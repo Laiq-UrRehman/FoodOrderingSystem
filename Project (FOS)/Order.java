@@ -1,11 +1,13 @@
-import java.util.List;
+// Order class should not be final to allow inheritance by ScheduledOrder.
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
-public final class Order {
+public class Order {
 
     private final String orderID;
-    private final String status;
+    private String status;
     private final List<FoodItem> items;
     private final double totalAmount;
 
@@ -32,12 +34,12 @@ public final class Order {
         return totalAmount;
     }
 
-    public void getStatusInfo() {
-        System.out.println("Order Status: " + status);
+    public void updateStatus(String newStatus) {
+        this.status = newStatus;
+        System.out.println("Order status updated to: " + status);
     }
 
     public void cancelOrder() {
-        System.out.println("Order Cancelled.");
+        updateStatus("Cancelled");
     }
-
 }

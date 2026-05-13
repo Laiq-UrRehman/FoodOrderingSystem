@@ -1,3 +1,5 @@
+// Update: Added Loyalty Points and Scheduled Order features to the Customer class.
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,25 +20,18 @@ public class Customer extends Person {
         this.orderHistory  = new ArrayList<>();
     }
 
-    // ── Loyalty Points ────────────────────────────────────────────────────────
-
+// Loyalty Points Logic
     public LoyaltyPoints getLoyaltyPoints() {
         return loyaltyPoints;
     }
 
-    /**
-     * Returns the customer's current points balance.
-     */
+
     public int viewLoyaltyPoints() {
         return loyaltyPoints.getPointsBalance();
     }
 
-    // ── Order Management ──────────────────────────────────────────────────────
+// Order History Logic
 
-    /**
-     * Records a placed order into the customer's history.
-     * Called after Cart.checkOut() returns an Order.
-     */
     public void placeOrder(Order order) {
         if (order == null) {
             System.out.println("Cannot place a null order.");
@@ -47,17 +42,10 @@ public class Customer extends Person {
                 + " | Total: " + order.getTotalAmount() + " PKR");
     }
 
-    /**
-     * Returns an unmodifiable view of all past orders.
-     */
     public List<Order> viewOrderHistory() {
         return Collections.unmodifiableList(orderHistory);
     }
 
-    /**
-     * Cancels an order by ID if it exists in the customer's history.
-     * Delegates the cancellation message to Order itself.
-     */
     public void cancelOrder(String orderID) {
         for (Order order : orderHistory) {
             if (order.getOrderID().equals(orderID)) {
@@ -66,5 +54,15 @@ public class Customer extends Person {
             }
         }
         System.out.println("Order not found: " + orderID);
+    }
+
+    public List<ScheduledOrder> viewScheduledOrders() {
+        List<ScheduledOrder> scheduled = new ArrayList<>();
+        for (Order order : orderHistory) {
+            if (order instanceof ScheduledOrder) {
+                scheduled.add((ScheduledOrder) order);
+            }
+        }
+        return Collections.unmodifiableList(scheduled);
     }
 }
