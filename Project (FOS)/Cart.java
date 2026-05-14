@@ -125,4 +125,16 @@ public class Cart {
         customer.getLoyaltyPoints().earnPoints(amountPaid);
         return order;
     }
+
+    public void viewCart() {
+        if (items.isEmpty()) {
+            System.out.println("Your cart is empty.");
+            return;
+        }
+        System.out.println("=== Your Cart ===");
+        for (FoodItem item : items) {
+            System.out.println(item);
+        }
+        System.out.println("Total: " + totalAmount + " PKR");
+    }
 }

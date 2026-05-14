@@ -9,9 +9,12 @@ public class Customer extends Person {
     private LoyaltyPoints loyaltyPoints;
     private List<Order> orderHistory;
 
+    private Cart cart;
+
     public Customer() {
         this.loyaltyPoints = new LoyaltyPoints();
         this.orderHistory  = new ArrayList<>();
+        this.cart = new Cart();
     }
 
     public Customer(String personID, String name, String address, String phoneNumber) {

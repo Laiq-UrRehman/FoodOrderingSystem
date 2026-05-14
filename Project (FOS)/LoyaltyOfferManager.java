@@ -142,7 +142,7 @@ public class LoyaltyOfferManager {
         loadOffers();
     }
 
-    // ── Display ────────────────────────────────────────────────────────────────
+
 
     public void printAllOffers() {
         if (offers.isEmpty()) {
