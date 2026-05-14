@@ -4,11 +4,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Customer extends Person {
-
+public class Customer extends Person implements Account{
+    private String username;
+    private String password;
     private LoyaltyPoints loyaltyPoints;
     private List<Order> orderHistory;
 
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
 
     private Cart cart;
 
@@ -18,8 +28,10 @@ public class Customer extends Person {
         this.cart = new Cart();
     }
 
-    public Customer(String personID, String name, String address, String phoneNumber) {
+    public Customer(String personID, String name, String address, String phoneNumber, String username, String password) {
         super(personID, name, address, phoneNumber);
+        this.username = username;
+        this.password = password;
         this.loyaltyPoints = new LoyaltyPoints(personID + "-LP", 0);
         this.orderHistory  = new ArrayList<>();
     }
