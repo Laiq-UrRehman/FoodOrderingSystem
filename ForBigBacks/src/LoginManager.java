@@ -1,13 +1,12 @@
-
 import java.util.ArrayList;
 
 public class LoginManager<T extends Account> {
 
-    private FileHandler<T> fileHandler = new FileHandler<>();
+    private FileHandler<T> fileHandler = new FileHandler<T>();
 
-    public boolean login(String username,String password,String fileName) {
+    public boolean login(String username, String password, String fileName) {
 
-        ArrayList<String> accounts = fileHandler.loadAccounts(fileName);
+        ArrayList<String> accounts = fileHandler.loadText(fileName); // ← loadText instead of loadObject
 
         for (String line : accounts) {
             String[] data = line.split(",");

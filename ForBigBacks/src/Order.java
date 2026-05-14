@@ -10,7 +10,7 @@ public class Order {
     private String status;
     private final List<FoodItem> items;
     private final double totalAmount;
-
+    
     public Order(String orderID, String status, List<FoodItem> items, double totalAmount) {
         this.orderID = orderID;
         this.status = status;
@@ -41,5 +41,21 @@ public class Order {
 
     public void cancelOrder() {
         updateStatus("Cancelled");
+    }
+
+    public void proceedWithCashPayment() {
+        if ("Cancelled".equals(status)) {
+            System.out.println("Cannot proceed to payment. Order is cancelled.");
+            return;
+        }
+        CashPayment cashPayment = new CashPayment(orderID, totalAmount);
+
+    }
+    public void proceedWithCardPayment() {
+        if ("Cancelled".equals(status)) {
+            System.out.println("Cannot proceed to payment. Order is cancelled.");
+            return;
+        }
+        CardPayment cardPayment = new CardPayment(orderID, totalAmount);
     }
 }

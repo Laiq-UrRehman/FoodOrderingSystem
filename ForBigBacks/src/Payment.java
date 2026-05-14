@@ -3,10 +3,9 @@ abstract class Payment {
     private double amount;
     private String status;
     public Payment(){}
-    public Payment(String paymentID, double amount, String status){
+    public Payment(String paymentID, double amount){
         this.paymentID = paymentID;
         this.amount = amount;
-        this.status = status;
     }
 
     public String getPaymentID() {

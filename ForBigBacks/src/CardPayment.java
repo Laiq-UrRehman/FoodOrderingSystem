@@ -6,11 +6,8 @@ public class CardPayment extends Payment {
     public CardPayment() {
     }
 
-    public CardPayment(String paymentID, double amount, String status, String cardNumber, String cardHolderName, String expiryDate) {
-        super(paymentID, amount, status);
-        this.cardNumber = cardNumber;
-        this.cardHolderName = cardHolderName;
-        this.expiryDate = expiryDate;
+    public CardPayment(String paymentID, double amount) {
+        super(paymentID, amount);
     }
 
     public String getCardNumber() {

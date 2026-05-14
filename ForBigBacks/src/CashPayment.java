@@ -3,8 +3,8 @@ public class CashPayment extends Payment {
     public CashPayment() {
     }
 
-    public CashPayment(String paymentID, double amount, String status) {
-        super(paymentID, amount, status);
+    public CashPayment(String paymentID, double amount) {
+        super(paymentID, amount);
     }
 
     @Override
