@@ -5,6 +5,8 @@ public class Restaurant {
     private String address;
     private Menu menu;
 
+    private RestaurantAdmin admin;
+
     public Restaurant() {
     }
 
@@ -13,6 +15,7 @@ public class Restaurant {
         this.name = name;
         this.address = address;
         this.menu = menu;
+        this.admin = new RestaurantAdmin();
     }
 
     public String getRestaurantID() {
@@ -46,6 +49,10 @@ public class Restaurant {
     public void setMenu(Menu menu) {
         this.menu = menu;
     }
+
+    public RestaurantAdmin getAdmin() {
+            return admin;
+        }
 
     public void updateMenu() {
         System.out.println("Menu updated.");

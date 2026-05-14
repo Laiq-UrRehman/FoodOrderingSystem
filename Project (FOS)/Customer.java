@@ -9,6 +9,7 @@ public class Customer extends Person {
     private LoyaltyPoints loyaltyPoints;
     private List<Order> orderHistory;
 
+
     private Cart cart;
 
     public Customer() {
@@ -68,4 +69,11 @@ public class Customer extends Person {
         }
         return Collections.unmodifiableList(scheduled);
     }
+
+// View Cart Logic
+
+    public Cart getCart() {
+        return cart;
+    }
+
 }
