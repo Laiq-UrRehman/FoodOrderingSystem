@@ -1,14 +1,19 @@
 // Update: Added Loyalty Points and Scheduled Order features to the Customer class.
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Customer extends Person implements Account{
+public class Customer extends Person implements Account {
+
+    private static final long serialVersionUID = 1L;
+
     private String username;
     private String password;
     private LoyaltyPoints loyaltyPoints;
     private List<Order> orderHistory;
+    private Cart cart;
 
     @Override
     public String getUsername() {
@@ -19,8 +24,6 @@ public class Customer extends Person implements Account{
     public String getPassword() {
         return password;
     }
-
-    private Cart cart;
 
     public Customer() {
         this.loyaltyPoints = new LoyaltyPoints();
@@ -34,19 +37,20 @@ public class Customer extends Person implements Account{
         this.password = password;
         this.loyaltyPoints = new LoyaltyPoints(personID + "-LP", 0);
         this.orderHistory  = new ArrayList<>();
+        this.cart = new Cart();
     }
 
-// Loyalty Points Logic
+    // Loyalty Points Logic
+
     public LoyaltyPoints getLoyaltyPoints() {
         return loyaltyPoints;
     }
-
 
     public int viewLoyaltyPoints() {
         return loyaltyPoints.getPointsBalance();
     }
 
-// Order History Logic
+    // Order History Logic
 
     public void placeOrder(Order order) {
         if (order == null) {
@@ -82,10 +86,9 @@ public class Customer extends Person implements Account{
         return Collections.unmodifiableList(scheduled);
     }
 
-// View Cart Logic
+    // View Cart Logic
 
     public Cart getCart() {
         return cart;
     }
-
 }

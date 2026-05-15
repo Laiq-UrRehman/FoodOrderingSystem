@@ -1,4 +1,9 @@
-public class Offers {
+import java.io.Serializable;
+
+public class Offers implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private String offerID;
     private String description;
     private double discount;

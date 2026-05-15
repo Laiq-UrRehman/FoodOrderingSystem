@@ -1,4 +1,8 @@
-public class LoyaltyOffer {
+import java.io.Serializable;
+
+public class LoyaltyOffer implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String offerCode;
     private String description;

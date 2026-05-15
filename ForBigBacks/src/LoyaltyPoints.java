@@ -1,6 +1,9 @@
+import java.io.Serializable;
 import java.util.List;
 
-public class LoyaltyPoints {
+public class LoyaltyPoints implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String loyaltyID;
     private int pointsBalance;
@@ -8,8 +11,8 @@ public class LoyaltyPoints {
     // 10 points earned for every 100 PKR spent
     private static final int POINTS_PER_100_PKR = 10;
 
-    // Shared manager — reads from loyalty_offers.txt
-    private LoyaltyOfferManager offerManager;
+    // transient: LoyaltyOfferManager does file I/O only, no need to serialize it
+    private transient LoyaltyOfferManager offerManager;
 
     public LoyaltyPoints() {
         this.pointsBalance = 0;
@@ -19,6 +22,12 @@ public class LoyaltyPoints {
     public LoyaltyPoints(String loyaltyID, int pointsBalance) {
         this.loyaltyID = loyaltyID;
         this.pointsBalance = pointsBalance;
+        this.offerManager = new LoyaltyOfferManager();
+    }
+
+    // Recreate transient field after deserialization
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject();
         this.offerManager = new LoyaltyOfferManager();
     }
 
@@ -38,10 +47,6 @@ public class LoyaltyPoints {
 
     // ── Earning ────────────────────────────────────────────────────────────────
 
-    /**
-     * Awards 10 points for every 100 PKR spent.
-     * e.g. 1500 PKR order => 150 points earned.
-     */
     public void earnPoints(double orderTotalPKR) {
         int earned = (int) (orderTotalPKR / 100) * POINTS_PER_100_PKR;
         pointsBalance += earned;
@@ -50,21 +55,12 @@ public class LoyaltyPoints {
 
     // ── Offer Eligibility ──────────────────────────────────────────────────────
 
-    /**
-     * Returns offers the customer qualifies for — loaded from loyalty_offers.txt
-     * via LoyaltyOfferManager.
-     */
     public List<LoyaltyOffer> getAvailableOffers(double cartTotalPKR) {
         return offerManager.getAvailableOffers(pointsBalance, cartTotalPKR);
     }
 
     // ── Redeem Code Generation ─────────────────────────────────────────────────
 
-    /**
-     * Customer selects an offer in the Cart tab.
-     * Points are deducted and a one-time RedeemCode is returned.
-     * Returns null if the customer doesn't qualify.
-     */
     public RedeemCode generateRedeemCode(LoyaltyOffer offer, double cartTotalPKR) {
         if (pointsBalance < offer.getPointsRequired()) {
             System.out.println("Not enough points. You have " + pointsBalance
@@ -86,10 +82,6 @@ public class LoyaltyPoints {
 
     // ── Applying a Redeem Code at Checkout ────────────────────────────────────
 
-    /**
-     * Validates and applies a redeem code.
-     * Returns discount in PKR, or 0 if invalid.
-     */
     public double applyRedeemCode(RedeemCode redeemCode, double cartTotalPKR) {
         if (redeemCode == null) {
             System.out.println("No redeem code provided.");
@@ -120,7 +112,6 @@ public class LoyaltyPoints {
         offerManager.printAvailableOffers(pointsBalance, cartTotalPKR);
     }
 
-    /** Expose manager so restaurantAdmin can add/remove offers */
     public LoyaltyOfferManager getOfferManager() {
         return offerManager;
     }

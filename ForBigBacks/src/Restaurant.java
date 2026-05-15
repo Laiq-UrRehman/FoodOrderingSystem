@@ -1,10 +1,13 @@
-public class Restaurant {
+import java.io.Serializable;
+
+public class Restaurant implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String restaurantID;
     private String name;
     private String address;
     private Menu menu;
-
     private RestaurantAdmin admin;
 
     public Restaurant() {
@@ -15,7 +18,7 @@ public class Restaurant {
         this.name = name;
         this.address = address;
         this.menu = menu;
-        this.admin = new RestaurantAdmin();
+        // admin is set separately via setAdmin()
     }
 
     public String getRestaurantID() {
@@ -51,8 +54,12 @@ public class Restaurant {
     }
 
     public RestaurantAdmin getAdmin() {
-            return admin;
-        }
+        return admin;
+    }
+
+    public void setAdmin(RestaurantAdmin admin) {
+        this.admin = admin;
+    }
 
     public void updateMenu() {
         System.out.println("Menu updated.");

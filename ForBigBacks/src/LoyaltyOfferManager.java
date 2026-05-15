@@ -48,8 +48,6 @@ public class LoyaltyOfferManager {
                     System.out.println("Skipping line with invalid numbers: " + line);
                 }
             }
-            System.out.println(offers.size() + " loyalty offers loaded from file.");
-
         } catch (FileNotFoundException e) {
             System.out.println("loyalty_offers.txt not found. No offers loaded.");
         } catch (IOException e) {

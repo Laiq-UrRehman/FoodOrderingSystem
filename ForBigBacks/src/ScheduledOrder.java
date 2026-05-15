@@ -1,14 +1,16 @@
-// Minimum scheduled time is 30 minutes from now..
+// Minimum scheduled time is 30 minutes from now.
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.List;
 
 public class ScheduledOrder extends Order {
 
+    private static final long serialVersionUID = 1L;
+
     private LocalDateTime scheduledTime;
     private boolean isConfirmed;
-
     private static final int MIN_ADVANCE_MINUTES = 30;
 
     public ScheduledOrder(String orderID, List<FoodItem> items, double totalAmount, LocalDateTime scheduledTime) {
@@ -35,7 +37,7 @@ public class ScheduledOrder extends Order {
         return minutesAhead >= MIN_ADVANCE_MINUTES;
     }
 
-// Cancel Order if not confirmed
+    // Cancel Order if not confirmed
     @Override
     public void cancelOrder() {
         if (isConfirmed) {
