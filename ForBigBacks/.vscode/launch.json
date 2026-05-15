@@ -9,7 +9,6 @@
             "name": "Runner",
             "request": "launch",
             "mainClass": "Runner",
-            "projectName": "ForBigBacks_2779fc37",
             "vmArgs": "--module-path lib --add-modules javafx.controls,javafx.fxml,javafx.graphics -Djava.library.path=lib"
         },
         {
