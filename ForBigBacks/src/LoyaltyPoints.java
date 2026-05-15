@@ -1,14 +1,13 @@
 import java.util.List;
 
+// 10 point per 100 PKR
 public class LoyaltyPoints {
 
     private String loyaltyID;
     private int pointsBalance;
 
-    // 10 points earned for every 100 PKR spent
     private static final int POINTS_PER_100_PKR = 10;
 
-    // Shared manager — reads from loyalty_offers.txt
     private LoyaltyOfferManager offerManager;
 
     public LoyaltyPoints() {
@@ -22,7 +21,6 @@ public class LoyaltyPoints {
         this.offerManager = new LoyaltyOfferManager();
     }
 
-    // ── Getters / Setters ──────────────────────────────────────────────────────
 
     public String getLoyaltyID() {
         return loyaltyID;
@@ -36,35 +34,18 @@ public class LoyaltyPoints {
         return pointsBalance;
     }
 
-    // ── Earning ────────────────────────────────────────────────────────────────
-
-    /**
-     * Awards 10 points for every 100 PKR spent.
-     * e.g. 1500 PKR order => 150 points earned.
-     */
     public void earnPoints(double orderTotalPKR) {
         int earned = (int) (orderTotalPKR / 100) * POINTS_PER_100_PKR;
         pointsBalance += earned;
         System.out.println("You earned " + earned + " points! Balance: " + pointsBalance + " pts.");
     }
 
-    // ── Offer Eligibility ──────────────────────────────────────────────────────
-
-    /**
-     * Returns offers the customer qualifies for — loaded from loyalty_offers.txt
-     * via LoyaltyOfferManager.
-     */
     public List<LoyaltyOffer> getAvailableOffers(double cartTotalPKR) {
         return offerManager.getAvailableOffers(pointsBalance, cartTotalPKR);
     }
 
-    // ── Redeem Code Generation ─────────────────────────────────────────────────
+// Redeem COde Logic 
 
-    /**
-     * Customer selects an offer in the Cart tab.
-     * Points are deducted and a one-time RedeemCode is returned.
-     * Returns null if the customer doesn't qualify.
-     */
     public RedeemCode generateRedeemCode(LoyaltyOffer offer, double cartTotalPKR) {
         if (pointsBalance < offer.getPointsRequired()) {
             System.out.println("Not enough points. You have " + pointsBalance
@@ -84,12 +65,6 @@ public class LoyaltyPoints {
         return code;
     }
 
-    // ── Applying a Redeem Code at Checkout ────────────────────────────────────
-
-    /**
-     * Validates and applies a redeem code.
-     * Returns discount in PKR, or 0 if invalid.
-     */
     public double applyRedeemCode(RedeemCode redeemCode, double cartTotalPKR) {
         if (redeemCode == null) {
             System.out.println("No redeem code provided.");
@@ -110,7 +85,6 @@ public class LoyaltyPoints {
         return discount;
     }
 
-    // ── Display ────────────────────────────────────────────────────────────────
 
     public void printBalance() {
         System.out.println("Loyalty Points Balance: " + pointsBalance + " pts");
@@ -120,7 +94,6 @@ public class LoyaltyPoints {
         offerManager.printAvailableOffers(pointsBalance, cartTotalPKR);
     }
 
-    /** Expose manager so restaurantAdmin can add/remove offers */
     public LoyaltyOfferManager getOfferManager() {
         return offerManager;
     }
