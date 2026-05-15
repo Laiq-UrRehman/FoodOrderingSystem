@@ -12,8 +12,7 @@ public class LoyaltyOffer implements Serializable {
 
     public LoyaltyOffer() {}
 
-    public LoyaltyOffer(String offerCode, String description, int pointsRequired,
-                        double discountPKR, double minOrderPKR) {
+    public LoyaltyOffer(String offerCode, String description, int pointsRequired, double discountPKR, double minOrderPKR) {
         this.offerCode      = offerCode;
         this.description    = description;
         this.pointsRequired = pointsRequired;
@@ -21,11 +20,21 @@ public class LoyaltyOffer implements Serializable {
         this.minOrderPKR    = minOrderPKR;
     }
 
-    public String getOfferCode()      { return offerCode;      }
-    public String getDescription()    { return description;    }
-    public int    getPointsRequired() { return pointsRequired; }
-    public double getDiscountPKR()    { return discountPKR;    }
-    public double getMinOrderPKR()    { return minOrderPKR;    }
+    public String getOfferCode()      { 
+        return offerCode;
+        }
+    public String getDescription()    { 
+        return description;    
+    }
+    public int    getPointsRequired() { 
+        return pointsRequired; 
+    }
+    public double getDiscountPKR()    { 
+        return discountPKR;    
+    }
+    public double getMinOrderPKR()    { 
+        return minOrderPKR;    
+    }
 
     @Override
     public String toString() {
