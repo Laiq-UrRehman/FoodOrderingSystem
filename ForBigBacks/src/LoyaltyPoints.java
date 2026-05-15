@@ -1,15 +1,18 @@
+import java.io.Serializable;
 import java.util.List;
 
-public class LoyaltyPoints {
+// 10 point per 100 PKR
+public class LoyaltyPoints implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String loyaltyID;
     private int pointsBalance;
 
-    // 10 points earned for every 100 PKR spent
     private static final int POINTS_PER_100_PKR = 10;
 
-    // Shared manager — reads from loyalty_offers.txt
-    private LoyaltyOfferManager offerManager;
+    // transient: LoyaltyOfferManager does file I/O only, no need to serialize it
+    private transient LoyaltyOfferManager offerManager;
 
     public LoyaltyPoints() {
         this.pointsBalance = 0;
@@ -22,7 +25,12 @@ public class LoyaltyPoints {
         this.offerManager = new LoyaltyOfferManager();
     }
 
-    // ── Getters / Setters ──────────────────────────────────────────────────────
+    // Recreate transient field after deserialization
+    private void readObject(java.io.ObjectInputStream in)
+            throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        this.offerManager = new LoyaltyOfferManager();
+    }
 
     public String getLoyaltyID() {
         return loyaltyID;
@@ -36,91 +44,99 @@ public class LoyaltyPoints {
         return pointsBalance;
     }
 
-    // ── Earning ────────────────────────────────────────────────────────────────
-
-    /**
-     * Awards 10 points for every 100 PKR spent.
-     * e.g. 1500 PKR order => 150 points earned.
-     */
     public void earnPoints(double orderTotalPKR) {
         int earned = (int) (orderTotalPKR / 100) * POINTS_PER_100_PKR;
         pointsBalance += earned;
-        System.out.println("You earned " + earned + " points! Balance: " + pointsBalance + " pts.");
+
+        System.out.println("You earned " + earned +
+                " points! Balance: " + pointsBalance + " pts.");
     }
 
-    // ── Offer Eligibility ──────────────────────────────────────────────────────
-
-    /**
-     * Returns offers the customer qualifies for — loaded from loyalty_offers.txt
-     * via LoyaltyOfferManager.
-     */
     public List<LoyaltyOffer> getAvailableOffers(double cartTotalPKR) {
         return offerManager.getAvailableOffers(pointsBalance, cartTotalPKR);
     }
 
-    // ── Redeem Code Generation ─────────────────────────────────────────────────
+    // Redeem Code Logic
+    public RedeemCode generateRedeemCode(
+            LoyaltyOffer offer,
+            double cartTotalPKR) {
 
-    /**
-     * Customer selects an offer in the Cart tab.
-     * Points are deducted and a one-time RedeemCode is returned.
-     * Returns null if the customer doesn't qualify.
-     */
-    public RedeemCode generateRedeemCode(LoyaltyOffer offer, double cartTotalPKR) {
         if (pointsBalance < offer.getPointsRequired()) {
-            System.out.println("Not enough points. You have " + pointsBalance
-                    + " pts but need " + offer.getPointsRequired() + " pts.");
+            System.out.println("Not enough points. You have "
+                    + pointsBalance + " pts but need "
+                    + offer.getPointsRequired() + " pts.");
             return null;
         }
+
         if (cartTotalPKR < offer.getMinOrderPKR()) {
             System.out.println("Minimum order for this offer is "
-                    + offer.getMinOrderPKR() + " PKR. Your cart is " + cartTotalPKR + " PKR.");
+                    + offer.getMinOrderPKR()
+                    + " PKR. Your cart is "
+                    + cartTotalPKR + " PKR.");
             return null;
         }
 
         pointsBalance -= offer.getPointsRequired();
+
         RedeemCode code = new RedeemCode(offer);
-        System.out.println("Code generated: " + code.getCode()
-                + " | " + offer.getPointsRequired() + " pts deducted. Remaining: " + pointsBalance + " pts.");
+
+        System.out.println("Code generated: "
+                + code.getCode()
+                + " | "
+                + offer.getPointsRequired()
+                + " pts deducted. Remaining: "
+                + pointsBalance + " pts.");
+
         return code;
     }
 
-    // ── Applying a Redeem Code at Checkout ────────────────────────────────────
+    public double applyRedeemCode(
+            RedeemCode redeemCode,
+            double cartTotalPKR) {
 
-    /**
-     * Validates and applies a redeem code.
-     * Returns discount in PKR, or 0 if invalid.
-     */
-    public double applyRedeemCode(RedeemCode redeemCode, double cartTotalPKR) {
         if (redeemCode == null) {
             System.out.println("No redeem code provided.");
             return 0;
         }
+
         if (redeemCode.isUsed()) {
             System.out.println("This redeem code has already been used.");
             return 0;
         }
-        if (cartTotalPKR < redeemCode.getOffer().getMinOrderPKR()) {
-            System.out.println("Your cart does not meet the minimum order requirement for this code.");
+
+        if (cartTotalPKR <
+                redeemCode.getOffer().getMinOrderPKR()) {
+
+            System.out.println(
+                    "Your cart does not meet the minimum order requirement for this code.");
+
             return 0;
         }
 
         redeemCode.consume();
-        double discount = redeemCode.getOffer().getDiscountPKR();
-        System.out.println("Redeem code applied! You saved " + discount + " PKR.");
+
+        double discount =
+                redeemCode.getOffer().getDiscountPKR();
+
+        System.out.println(
+                "Redeem code applied! You saved "
+                        + discount + " PKR.");
+
         return discount;
     }
 
-    // ── Display ────────────────────────────────────────────────────────────────
-
     public void printBalance() {
-        System.out.println("Loyalty Points Balance: " + pointsBalance + " pts");
+        System.out.println(
+                "Loyalty Points Balance: "
+                        + pointsBalance + " pts");
     }
 
     public void printAvailableOffers(double cartTotalPKR) {
-        offerManager.printAvailableOffers(pointsBalance, cartTotalPKR);
+        offerManager.printAvailableOffers(
+                pointsBalance,
+                cartTotalPKR);
     }
 
-    /** Expose manager so restaurantAdmin can add/remove offers */
     public LoyaltyOfferManager getOfferManager() {
         return offerManager;
     }

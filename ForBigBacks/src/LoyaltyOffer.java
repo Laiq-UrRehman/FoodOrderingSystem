@@ -1,4 +1,8 @@
-public class LoyaltyOffer {
+import java.io.Serializable;
+
+public class LoyaltyOffer implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String offerCode;
     private String description;
@@ -8,8 +12,7 @@ public class LoyaltyOffer {
 
     public LoyaltyOffer() {}
 
-    public LoyaltyOffer(String offerCode, String description, int pointsRequired,
-                        double discountPKR, double minOrderPKR) {
+    public LoyaltyOffer(String offerCode, String description, int pointsRequired, double discountPKR, double minOrderPKR) {
         this.offerCode      = offerCode;
         this.description    = description;
         this.pointsRequired = pointsRequired;
@@ -17,11 +20,21 @@ public class LoyaltyOffer {
         this.minOrderPKR    = minOrderPKR;
     }
 
-    public String getOfferCode()      { return offerCode;      }
-    public String getDescription()    { return description;    }
-    public int    getPointsRequired() { return pointsRequired; }
-    public double getDiscountPKR()    { return discountPKR;    }
-    public double getMinOrderPKR()    { return minOrderPKR;    }
+    public String getOfferCode()      { 
+        return offerCode;
+        }
+    public String getDescription()    { 
+        return description;    
+    }
+    public int    getPointsRequired() { 
+        return pointsRequired; 
+    }
+    public double getDiscountPKR()    { 
+        return discountPKR;    
+    }
+    public double getMinOrderPKR()    { 
+        return minOrderPKR;    
+    }
 
     @Override
     public String toString() {

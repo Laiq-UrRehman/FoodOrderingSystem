@@ -1,6 +1,9 @@
+import java.io.Serializable;
 import java.util.UUID;
 
-public class RedeemCode {
+public class RedeemCode implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final String code;
     private final LoyaltyOffer offer;
@@ -13,16 +16,9 @@ public class RedeemCode {
         this.used  = false;
     }
 
-    public String      getCode()  { 
-        return code;  
-    }
-    public LoyaltyOffer getOffer(){ 
-        return offer; 
-    }
-    public boolean     isUsed()   { 
-        return used;  
-    }
-
+    public String getCode()       { return code;  }
+    public LoyaltyOffer getOffer(){ return offer; }
+    public boolean isUsed()       { return used;  }
 
     public boolean consume() {
         if (used) return false;

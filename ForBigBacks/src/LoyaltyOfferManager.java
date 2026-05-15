@@ -12,13 +12,6 @@ public class LoyaltyOfferManager {
         loadOffers();
     }
 
-    // ── File Reading ───────────────────────────────────────────────────────────
-
-    
-    //  * Reads all offers from loyalty_offers.txt.
-    //  * Each line format: offerCode | description | pointsRequired | discountPKR | minOrderPKR
-    //  * Lines starting with '#' or blank lines are skipped.
-     
     private void loadOffers() {
         offers.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
@@ -26,8 +19,7 @@ public class LoyaltyOfferManager {
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
 
-                // Skip comments and blank lines
-                if (line.isEmpty() || line.startsWith("#")) continue;
+                if (line.isEmpty() || line.startsWith("#")) continue; // Skip empty lines and comments
 
                 String[] parts = line.split("\\|");
                 if (parts.length != 5) {
@@ -42,14 +34,11 @@ public class LoyaltyOfferManager {
                     double discountPKR    = Double.parseDouble(parts[3].trim());
                     double minOrderPKR    = Double.parseDouble(parts[4].trim());
 
-                    offers.add(new LoyaltyOffer(offerCode, description, pointsRequired,
-                                                discountPKR, minOrderPKR));
+                    offers.add(new LoyaltyOffer(offerCode, description, pointsRequired, discountPKR, minOrderPKR));
                 } catch (NumberFormatException e) {
                     System.out.println("Skipping line with invalid numbers: " + line);
                 }
             }
-            System.out.println(offers.size() + " loyalty offers loaded from file.");
-
         } catch (FileNotFoundException e) {
             System.out.println("loyalty_offers.txt not found. No offers loaded.");
         } catch (IOException e) {
@@ -57,12 +46,6 @@ public class LoyaltyOfferManager {
         }
     }
 
-    // ── File Writing ───────────────────────────────────────────────────────────
-
-    /**
-     * Writes all current offers back to loyalty_offers.txt.
-     * Useful after adding or removing an offer at runtime (e.g. by admin).
-     */
     public void saveOffers() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
             writer.write("# Format: offerCode | description | pointsRequired | discountPKR | minOrderPKR");
@@ -88,17 +71,11 @@ public class LoyaltyOfferManager {
         }
     }
 
-    // ── Offer Management ───────────────────────────────────────────────────────
-
-    /** Returns all loaded offers. */
     public List<LoyaltyOffer> getAllOffers() {
         return offers;
     }
 
-    /**
-     * Returns offers the customer qualifies for based on their
-     * current points balance and cart total.
-     */
+
     public List<LoyaltyOffer> getAvailableOffers(int pointsBalance, double cartTotalPKR) {
         List<LoyaltyOffer> available = new ArrayList<>();
         for (LoyaltyOffer offer : offers) {
@@ -110,7 +87,6 @@ public class LoyaltyOfferManager {
         return available;
     }
 
-    /** Find an offer by its code (e.g. "LOYAL-A"). Returns null if not found. */
     public LoyaltyOffer findByCode(String code) {
         for (LoyaltyOffer offer : offers) {
             if (offer.getOfferCode().equalsIgnoreCase(code)) return offer;
@@ -118,26 +94,18 @@ public class LoyaltyOfferManager {
         return null;
     }
 
-    /**
-     * Add a new offer at runtime and immediately save to file.
-     * Can be called by restaurantAdmin to introduce new deals.
-     */
     public void addOffer(LoyaltyOffer offer) {
         offers.add(offer);
         saveOffers();
         System.out.println("New offer added: " + offer.getOfferCode());
     }
 
-    /**
-     * Remove an offer by code and save changes to file.
-     */
     public void removeOffer(String offerCode) {
         offers.removeIf(o -> o.getOfferCode().equalsIgnoreCase(offerCode));
         saveOffers();
         System.out.println("Offer removed: " + offerCode);
     }
 
-    /** Reload offers fresh from the file (e.g. if the file was edited externally). */
     public void refresh() {
         loadOffers();
     }

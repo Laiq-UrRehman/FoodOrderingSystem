@@ -1,16 +1,19 @@
 // Order class should not be final to allow inheritance by ScheduledOrder.
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Order {
+public class Order implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final String orderID;
     private String status;
     private final List<FoodItem> items;
     private final double totalAmount;
-    
+
     public Order(String orderID, String status, List<FoodItem> items, double totalAmount) {
         this.orderID = orderID;
         this.status = status;
@@ -49,8 +52,8 @@ public class Order {
             return;
         }
         CashPayment cashPayment = new CashPayment(orderID, totalAmount);
-
     }
+
     public void proceedWithCardPayment() {
         if ("Cancelled".equals(status)) {
             System.out.println("Cannot proceed to payment. Order is cancelled.");

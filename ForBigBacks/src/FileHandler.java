@@ -3,7 +3,7 @@ import java.util.ArrayList;
 
 public class FileHandler<T extends Serializable> {
 
-    // ─── Serializable Object Save/Load ───────────────────────────
+// ─── Serializable Object Save/Load ───────────────────────────
 
     public void saveObject(T obj, String fileName) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
@@ -24,7 +24,7 @@ public class FileHandler<T extends Serializable> {
         }
     }
 
-    // ─── Serializable Array Save/Load ────────────────────────────
+// ─── Serializable Array Save/Load ────────────────────────────
 
     public void saveArray(T[] arr, String fileName) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
@@ -45,7 +45,7 @@ public class FileHandler<T extends Serializable> {
         }
     }
 
-    // ─── Text File Save/Load (CSV style) ─────────────────────────
+// ─── Text File Save/Load (CSV style) ─────────────────────────
 
     public void saveText(String data, String fileName) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {

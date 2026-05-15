@@ -1,4 +1,9 @@
-public class FoodItem {
+import java.io.Serializable;
+
+public class FoodItem implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private String foodID;
     private String name;
     private double price;
@@ -58,5 +63,10 @@ public class FoodItem {
 
     public String getDetails() {
         return foodID + " " + name + " " + category + " " + price;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + foodID + "] " + name + " | " + category + " | Rs." + price + " x" + quantity;
     }
 }
