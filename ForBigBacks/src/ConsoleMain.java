@@ -2,7 +2,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
 
-public class Main {
+public class ConsoleMain {
 
     static Scanner scanner = new Scanner(System.in);
     static LoginManager loginManager = new LoginManager();
@@ -44,7 +44,7 @@ public class Main {
 
     static void seedIfNeeded() {
         java.io.File restaurantFile = new java.io.File("restaurants.dat");
-        java.io.File customerFile   = new java.io.File("customers.dat");
+        java.io.File customerFile = new java.io.File("customers.dat");
 
         if (!restaurantFile.exists()) {
             System.out.println("Seeding restaurant data...");
@@ -68,7 +68,8 @@ public class Main {
         String password = scanner.nextLine().trim();
 
         Customer customer = loginManager.loginCustomer(username, password);
-        if (customer == null) return;
+        if (customer == null)
+            return;
 
         customerMenu(customer);
     }
@@ -158,22 +159,22 @@ public class Main {
             String choice = scanner.nextLine().trim();
 
             switch (choice) {
-                case "1"  -> browseAndAddToCart(customer);
-                case "2"  -> customer.getCart().viewCart();
-                case "3"  -> checkoutNormal(customer);
-                case "4"  -> checkoutScheduled(customer);
-                case "5"  -> viewOrderHistory(customer);
-                case "6"  -> cancelOrder(customer);
-                case "7"  -> customer.getLoyaltyPoints().printBalance();
-                case "8"  -> customer.getLoyaltyPoints().printAvailableOffers(customer.getCart().getTotal());
-                case "9"  -> viewScheduledOrders(customer);
+                case "1" -> browseAndAddToCart(customer);
+                case "2" -> customer.getCart().viewCart();
+                case "3" -> checkoutNormal(customer);
+                case "4" -> checkoutScheduled(customer);
+                case "5" -> viewOrderHistory(customer);
+                case "6" -> cancelOrder(customer);
+                case "7" -> customer.getLoyaltyPoints().printBalance();
+                case "8" -> customer.getLoyaltyPoints().printAvailableOffers(customer.getCart().getTotal());
+                case "9" -> viewScheduledOrders(customer);
                 case "10" -> trackOrder();
-                case "0"  -> {
+                case "0" -> {
                     saveCustomer(customer);
                     System.out.println("Logged out.");
                     return;
                 }
-                default   -> System.out.println("Invalid choice.");
+                default -> System.out.println("Invalid choice.");
             }
         }
     }
@@ -237,7 +238,7 @@ public class Main {
         }
 
         FoodItem chosen = menuItems.get(iChoice);
-        FoodItem toAdd  = new FoodItem(chosen.getFoodID(), chosen.getName(),
+        FoodItem toAdd = new FoodItem(chosen.getFoodID(), chosen.getName(),
                 chosen.getPrice(), chosen.getCategory(), qty);
         customer.getCart().addItem(toAdd);
         System.out.println(qty + "x " + chosen.getName() + " added to cart. Cart total: Rs."
@@ -324,7 +325,8 @@ public class Main {
             order = cart.checkOutScheduled(customer, scheduledTime);
         }
 
-        if (order == null) return; // invalid schedule time
+        if (order == null)
+            return; // invalid schedule time
 
         order.confirm();
         customer.placeOrder(order);
@@ -336,10 +338,12 @@ public class Main {
 
     static RedeemCode offerSelectionFlow(Customer customer, Cart cart) {
         List<LoyaltyOffer> offers = cart.showLoyaltyOffers(customer);
-        if (offers.isEmpty()) return null;
+        if (offers.isEmpty())
+            return null;
 
         System.out.print("Apply a loyalty offer? (y/n): ");
-        if (!scanner.nextLine().trim().equalsIgnoreCase("y")) return null;
+        if (!scanner.nextLine().trim().equalsIgnoreCase("y"))
+            return null;
 
         System.out.print("Enter offer code (e.g. LOYAL-A): ");
         String code = scanner.nextLine().trim();
@@ -412,7 +416,8 @@ public class Main {
         String password = scanner.nextLine().trim();
 
         RestaurantAdmin admin = loginManager.loginAdmin(username, password);
-        if (admin == null) return;
+        if (admin == null)
+            return;
 
         adminMenu(admin);
     }
@@ -470,7 +475,7 @@ public class Main {
                     System.out.println("Logged out.");
                     return;
                 }
-                default  -> System.out.println("Invalid choice.");
+                default -> System.out.println("Invalid choice.");
             }
         }
     }

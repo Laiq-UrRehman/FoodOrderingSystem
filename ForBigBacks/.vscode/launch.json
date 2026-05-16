@@ -6,9 +6,30 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Runner",
+            "name": "ConsoleMain",
             "request": "launch",
-            "mainClass": "Runner",
+            "mainClass": "ConsoleMain",
+            "projectName": "ForBigBacks_2779fc37"
+        },
+        {
+            "type": "java",
+            "name": "DataSeeder",
+            "request": "launch",
+            "mainClass": "DataSeeder",
+            "projectName": "ForBigBacks_2779fc37"
+        },
+        {
+            "type": "java",
+            "name": "CustomerSeeder",
+            "request": "launch",
+            "mainClass": "CustomerSeeder",
+            "projectName": "ForBigBacks_2779fc37"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "GUIMain",
             "vmArgs": "--module-path lib --add-modules javafx.controls,javafx.fxml,javafx.graphics -Djava.library.path=lib"
         },
         {

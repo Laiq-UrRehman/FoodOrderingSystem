@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox prefHeight="800" prefWidth="1280" styleClass="login-signup-screen-background" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="LoginController">
+
+    <!-- LEFT PANEL -->
+    <VBox alignment="CENTER" prefHeight="800" prefWidth="500" spacing="14" styleClass="login-signup-left-panel">
+
+        <Label styleClass="login-signup-logo-text" text="FORBIGBACKS" />
+
+        <Region prefHeight="3" prefWidth="60" styleClass="login-signup-logo-underline" />
+
+        <Label styleClass="login-signup-tagline-text" text="E A T  E A T  E A T!" />
+
+    </VBox>
+
+    <!-- RIGHT PANEL -->
+    <VBox alignment="CENTER_LEFT" prefHeight="800" prefWidth="780" styleClass="login-signup-right-panel">
+
+        <VBox alignment="CENTER_LEFT" maxWidth="400" spacing="0">
+
+            <VBox.margin>
+                <Insets left="80" />
+            </VBox.margin>
+
+            <Label styleClass="login-signup-form-heading" text="Welcome To FORBIGBACKS!" />
+
+            <Label styleClass="login-signup-form-subheading" text="Login to your account to continue!">
+                <VBox.margin>
+                    <Insets bottom="20" top="6" />
+                </VBox.margin>
+            </Label>
+
+            <!-- Tabs -->
+            <HBox styleClass="login-signup-tab-bar">
+                <VBox.margin>
+                    <Insets bottom="24" />
+                </VBox.margin>
+                <Button fx:id="customerTab" onAction="#switchToCustomer" styleClass="login-signup-tab-selected" text="Customer" />
+                <Button fx:id="adminTab" onAction="#switchToAdmin" styleClass="login-signup-tab-unselected" text="Restaurant Admin" />
+            </HBox>
+
+            <!-- Username -->
+            <Label styleClass="login-signup-field-label" text="Username" />
+            <TextField fx:id="usernameField" maxWidth="400" promptText="Enter your username" styleClass="input-text-field">
+                <VBox.margin>
+                    <Insets bottom="16" top="6" />
+                </VBox.margin>
+            </TextField>
+
+            <!-- Password -->
+            <Label styleClass="login-signup-field-label" text="Password" />
+            <PasswordField fx:id="passwordField" maxWidth="400" promptText="Enter your password" styleClass="input-password-field">
+                <VBox.margin>
+                    <Insets bottom="8" top="6" />
+                </VBox.margin>
+            </PasswordField>
+
+            <!-- Error -->
+            <Label fx:id="errorLabel" styleClass="text-error-message" text="">
+                <VBox.margin>
+                    <Insets bottom="12" />
+                </VBox.margin>
+            </Label>
+
+            <!-- Login Button -->
+            <Button maxWidth="400" onAction="#handleLogin" styleClass="action-button-brown" text="Login">
+                <VBox.margin>
+                    <Insets bottom="16" />
+                </VBox.margin>
+            </Button>
+
+            <!-- Signup Link -->
+            <HBox alignment="CENTER_LEFT" spacing="4">
+                <Label styleClass="login-signup-bottom-plain-text" text="Don't have an account?" />
+                <Button onAction="#goToSignup" styleClass="login-signup-bottom-link" text="Sign Up" />
+            </HBox>
+
+        </VBox>
+    </VBox>
+
+</HBox>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox prefHeight="800" prefWidth="1280" styleClass="login-signup-screen-background" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="SignupController">
+
+    <!-- LEFT PANEL -->
+    <VBox alignment="CENTER" prefHeight="800" prefWidth="500" spacing="14" styleClass="login-signup-left-panel">
+
+        <Label styleClass="login-signup-logo-text" text="FORBIGBACKS" />
+
+        <Region prefHeight="3" prefWidth="60" styleClass="login-signup-logo-underline" />
+
+        <Label styleClass="login-signup-tagline-text" text="E A T  E A T  E A T!" />
+
+    </VBox>
+
+    <!-- RIGHT PANEL -->
+    <VBox alignment="CENTER_LEFT" prefHeight="800" prefWidth="780" styleClass="login-signup-right-panel">
+
+        <VBox alignment="CENTER_LEFT" maxWidth="400" spacing="0">
+
+            <VBox.margin>
+                <Insets left="80" />
+            </VBox.margin>
+
+            <Label styleClass="login-signup-form-heading" text="Create Account" />
+
+            <Label styleClass="login-signup-form-subheading" text="Sign up to start ordering!">
+                <VBox.margin>
+                    <Insets bottom="24" top="6" />
+                </VBox.margin>
+            </Label>
+
+            <!-- Full Name -->
+            <Label styleClass="login-signup-field-label" text="Full Name" />
+            <TextField fx:id="nameField" maxWidth="400" promptText="Enter your full name" styleClass="input-text-field">
+                <VBox.margin>
+                    <Insets bottom="14" top="6" />
+                </VBox.margin>
+            </TextField>
+
+            <!-- Address -->
+            <Label styleClass="login-signup-field-label" text="Address" />
+            <TextField fx:id="addressField" maxWidth="400" promptText="Enter your address" styleClass="input-text-field">
+                <VBox.margin>
+                    <Insets bottom="14" top="6" />
+                </VBox.margin>
+            </TextField>
+
+            <!-- Phone -->
+            <Label styleClass="login-signup-field-label" text="Phone Number" />
+            <TextField fx:id="phoneField" maxWidth="400" promptText="Enter your phone number" styleClass="input-text-field">
+                <VBox.margin>
+                    <Insets bottom="14" top="6" />
+                </VBox.margin>
+            </TextField>
+
+            <!-- Username -->
+            <Label styleClass="login-signup-field-label" text="Username" />
+            <TextField fx:id="usernameField" maxWidth="400" promptText="Choose a username" styleClass="input-text-field">
+                <VBox.margin>
+                    <Insets bottom="14" top="6" />
+                </VBox.margin>
+            </TextField>
+
+            <!-- Password -->
+            <Label styleClass="login-signup-field-label" text="Password" />
+            <PasswordField fx:id="passwordField" maxWidth="400" promptText="Choose a password" styleClass="input-password-field">
+                <VBox.margin>
+                    <Insets bottom="8" top="6" />
+                </VBox.margin>
+            </PasswordField>
+
+            <!-- Error -->
+            <Label fx:id="errorLabel" styleClass="text-error-message" text="">
+                <VBox.margin>
+                    <Insets bottom="12" />
+                </VBox.margin>
+            </Label>
+
+            <!-- Signup Button -->
+            <Button maxWidth="400" onAction="#handleSignup" styleClass="action-button-brown" text="Create Account">
+                <VBox.margin>
+                    <Insets bottom="16" />
+                </VBox.margin>
+            </Button>
+
+            <!-- Login Link -->
+            <HBox alignment="CENTER_LEFT" spacing="4">
+                <Label styleClass="login-signup-bottom-plain-text" text="Already have an account?" />
+                <Button onAction="#goToLogin" styleClass="login-signup-bottom-link" text="Login" />
+            </HBox>
+
+        </VBox>
+    </VBox>
+
+</HBox>

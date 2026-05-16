@@ -1,0 +1,100 @@
+/* whole login/signup screen background */
+.login-signup-screen-background {
+    -fx-background-color: #111111;
+}
+
+/* left dark panel containing logo and tagline */
+.login-signup-left-panel {
+    -fx-background-color: #1a1a1a;
+}
+
+/* right darker panel containing the form */
+.login-signup-right-panel {
+    -fx-background-color: #111111;
+}
+
+/* FORBIGBACKS logo text on left panel */
+.login-signup-logo-text {
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+/* brown horizontal line under the logo */
+.login-signup-logo-underline {
+    -fx-background-color: #8B5E3C;
+}
+
+/* EAT HEAVY text under the line */
+.login-signup-tagline-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #888888;
+}
+
+/* description text under tagline */
+.login-signup-description-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #555555;
+}
+
+/* Welcome back heading on right panel */
+.login-signup-form-heading {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+/* smaller text under Welcome back */
+.login-signup-form-subheading {
+    -fx-font-size: 13px;
+    -fx-text-fill: #666666;
+}
+
+/* Username / Password labels above each field */
+.login-signup-field-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #aaaaaa;
+}
+
+/* container holding Customer and Admin tabs */
+.login-signup-tab-bar {
+    -fx-border-color: transparent transparent #222222 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* currently selected tab e.g. Customer */
+.login-signup-tab-selected {
+    -fx-background-color: transparent;
+    -fx-text-fill: #8B5E3C;
+    -fx-font-size: 13px;
+    -fx-padding: 8 16;
+    -fx-border-color: transparent transparent #8B5E3C transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-cursor: hand;
+}
+
+/* unselected tab e.g. Restaurant Admin when Customer is active */
+.login-signup-tab-unselected {
+    -fx-background-color: transparent;
+    -fx-text-fill: #555555;
+    -fx-font-size: 13px;
+    -fx-padding: 8 16;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+/* Sign Up / Login clickable brown link at the bottom */
+.login-signup-bottom-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: #8B5E3C;
+    -fx-font-size: 12px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+}
+
+/* Don't have an account? plain grey text at the bottom */
+.login-signup-bottom-plain-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: #555555;
+}

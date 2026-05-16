@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="CustomerDashboardController"
+      style="-fx-background-color: #1a1a1a;"
+      alignment="CENTER" prefWidth="1280" prefHeight="800">
+    <Label text="Customer Dashboard"
+           style="-fx-text-fill: white; -fx-font-size: 24px;"/>
+</VBox>
