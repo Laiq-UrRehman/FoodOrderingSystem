@@ -48,7 +48,7 @@ public class SignupController {
 
         // Create new customer
         String newID = String.format("C%03d", count + 1);
-        Customer newCustomer = new Customer(newID, name, address, phone, username, password);
+        Customer newCustomer = new Customer(newID, name, address, phone, username, password, new Location(0, 0));
 
         // Save
         Customer[] updated = new Customer[count + 1];

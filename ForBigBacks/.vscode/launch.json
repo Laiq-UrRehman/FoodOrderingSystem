@@ -9,6 +9,13 @@
             "name": "ConsoleMain",
             "request": "launch",
             "mainClass": "ConsoleMain",
+            "projectName": "ForBigBacks_dd3b2902"
+        },
+        {
+            "type": "java",
+            "name": "ConsoleMain",
+            "request": "launch",
+            "mainClass": "ConsoleMain",
             "projectName": "ForBigBacks_2779fc37"
         },
         {

@@ -6,6 +6,7 @@ public class ConsoleMain {
 
     static Scanner scanner = new Scanner(System.in);
     static LoginManager loginManager = new LoginManager();
+    static Restaurant selectedRestaurant = null; // tracks which restaurant customer browsed
 
     public static void main(String[] args) {
 
@@ -44,7 +45,7 @@ public class ConsoleMain {
 
     static void seedIfNeeded() {
         java.io.File restaurantFile = new java.io.File("restaurants.dat");
-        java.io.File customerFile = new java.io.File("customers.dat");
+        java.io.File customerFile   = new java.io.File("customers.dat");
 
         if (!restaurantFile.exists()) {
             System.out.println("Seeding restaurant data...");
@@ -73,8 +74,7 @@ public class ConsoleMain {
         String password = scanner.nextLine().trim();
 
         Customer customer = loginManager.loginCustomer(username, password);
-        if (customer == null)
-            return;
+        if (customer == null) return;
 
         customerMenu(customer);
     }
@@ -179,7 +179,7 @@ public class ConsoleMain {
                     System.out.println("Logged out.");
                     return;
                 }
-                default -> System.out.println("Invalid choice.");
+                default   -> System.out.println("Invalid choice.");
             }
         }
     }
@@ -212,6 +212,7 @@ public class ConsoleMain {
         }
 
         Restaurant selected = restaurants[rChoice];
+        selectedRestaurant = selected; // remember for checkout tracking
         System.out.println("\n--- Menu: " + selected.getName() + " ---");
         List<FoodItem> menuItems = selected.getMenu().getItems();
         for (int i = 0; i < menuItems.size(); i++) {
@@ -243,7 +244,7 @@ public class ConsoleMain {
         }
 
         FoodItem chosen = menuItems.get(iChoice);
-        FoodItem toAdd = new FoodItem(chosen.getFoodID(), chosen.getName(),
+        FoodItem toAdd  = new FoodItem(chosen.getFoodID(), chosen.getName(),
                 chosen.getPrice(), chosen.getCategory(), qty);
         customer.getCart().addItem(toAdd);
         System.out.println(qty + "x " + chosen.getName() + " added to cart. Cart total: Rs."
@@ -285,10 +286,11 @@ public class ConsoleMain {
                 ? new java.util.ArrayList<>(java.util.Arrays.asList(ridersArr))
                 : new java.util.ArrayList<>();
 
-        // Pick the restaurant the cart items came from (first restaurant for simplicity)
-        Restaurant restaurant = (restaurants != null && restaurants.length > 0) ? restaurants[0] : null;
+        // Use the restaurant the customer actually browsed from
+        Restaurant restaurant = selectedRestaurant;
 
         if (restaurant == null || riders.isEmpty()) {
+            if (restaurant == null) System.out.println("Please browse a restaurant before checking out.");
             System.out.println("Cannot start tracking: missing restaurant or rider data.");
             customer.placeOrder(order);
             cart.clearCart();
@@ -312,11 +314,11 @@ public class ConsoleMain {
         customer.placeOrder(order);
         System.out.println("Order placed successfully! Total paid: Rs." + order.getTotalAmount());
         if (order.getTracking() != null) {
-            System.out.println("" + order.getTracking().getCurrentStatus());
+            System.out.println("" + order.getTracking().getSummary());
         }
 
-        // Save updated riders (availability may have changed after assignment)
-        riderFH.saveArray(ridersArr, "riders.dat");
+        // Save updated riders — convert list back to array to capture availability changes
+        riderFH.saveArray(riders.toArray(new Rider[0]), "riders.dat");
 
         // Clear cart
         cart.clearCart();
@@ -349,8 +351,7 @@ public class ConsoleMain {
             order = cart.checkOutScheduled(customer, scheduledTime);
         }
 
-        if (order == null)
-            return; // invalid schedule time
+        if (order == null) return; // invalid schedule time
 
         order.confirm();
         customer.placeOrder(order);
@@ -362,12 +363,10 @@ public class ConsoleMain {
 
     static RedeemCode offerSelectionFlow(Customer customer, Cart cart) {
         List<LoyaltyOffer> offers = cart.showLoyaltyOffers(customer);
-        if (offers.isEmpty())
-            return null;
+        if (offers.isEmpty()) return null;
 
         System.out.print("Apply a loyalty offer? (y/n): ");
-        if (!scanner.nextLine().trim().equalsIgnoreCase("y"))
-            return null;
+        if (!scanner.nextLine().trim().equalsIgnoreCase("y")) return null;
 
         System.out.print("Enter offer code (e.g. LOYAL-A): ");
         String code = scanner.nextLine().trim();
@@ -454,8 +453,7 @@ public class ConsoleMain {
         String password = scanner.nextLine().trim();
 
         RestaurantAdmin admin = loginManager.loginAdmin(username, password);
-        if (admin == null)
-            return;
+        if (admin == null) return;
 
         adminMenu(admin);
     }
@@ -513,7 +511,7 @@ public class ConsoleMain {
                     System.out.println("Logged out.");
                     return;
                 }
-                default -> System.out.println("Invalid choice.");
+                default  -> System.out.println("Invalid choice.");
             }
         }
     }
