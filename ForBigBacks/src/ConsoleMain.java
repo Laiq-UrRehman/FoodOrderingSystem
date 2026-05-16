@@ -54,6 +54,11 @@ public class ConsoleMain {
             System.out.println("Seeding customer data...");
             CustomerSeeder.seedCustomers();
         }
+        java.io.File riderFile = new java.io.File("riders.dat");
+        if (!riderFile.exists()) {
+            System.out.println("Seeding rider data...");
+            RiderSeeder.seedRiders();
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -104,7 +109,7 @@ public class ConsoleMain {
 
         // Create new customer with auto-generated ID
         String newID = String.format("C%03d", count + 1);
-        Customer newCustomer = new Customer(newID, name, address, phone, username, password);
+        Customer newCustomer = new Customer(newID, name, address, phone, username, password, new Location(0, 0));
 
         // Build updated array and save back to customers.dat
         Customer[] updated = new Customer[count + 1];
@@ -159,17 +164,17 @@ public class ConsoleMain {
             String choice = scanner.nextLine().trim();
 
             switch (choice) {
-                case "1" -> browseAndAddToCart(customer);
-                case "2" -> customer.getCart().viewCart();
-                case "3" -> checkoutNormal(customer);
-                case "4" -> checkoutScheduled(customer);
-                case "5" -> viewOrderHistory(customer);
-                case "6" -> cancelOrder(customer);
-                case "7" -> customer.getLoyaltyPoints().printBalance();
-                case "8" -> customer.getLoyaltyPoints().printAvailableOffers(customer.getCart().getTotal());
-                case "9" -> viewScheduledOrders(customer);
-                case "10" -> trackOrder();
-                case "0" -> {
+                case "1"  -> browseAndAddToCart(customer);
+                case "2"  -> customer.getCart().viewCart();
+                case "3"  -> checkoutNormal(customer);
+                case "4"  -> checkoutScheduled(customer);
+                case "5"  -> viewOrderHistory(customer);
+                case "6"  -> cancelOrder(customer);
+                case "7"  -> customer.getLoyaltyPoints().printBalance();
+                case "8"  -> customer.getLoyaltyPoints().printAvailableOffers(customer.getCart().getTotal());
+                case "9"  -> viewScheduledOrders(customer);
+                case "10" -> trackOrder(customer);
+                case "0"  -> {
                     saveCustomer(customer);
                     System.out.println("Logged out.");
                     return;
@@ -271,6 +276,25 @@ public class ConsoleMain {
             order = cart.checkOut(customer);
         }
 
+        // Load restaurant and riders for tracking
+        FileHandler<Restaurant> rfh = new FileHandler<>();
+        Restaurant[] restaurants = rfh.loadArray("restaurants.dat");
+        FileHandler<Rider> riderFH = new FileHandler<>();
+        Rider[] ridersArr = riderFH.loadArray("riders.dat");
+        java.util.List<Rider> riders = (ridersArr != null)
+                ? new java.util.ArrayList<>(java.util.Arrays.asList(ridersArr))
+                : new java.util.ArrayList<>();
+
+        // Pick the restaurant the cart items came from (first restaurant for simplicity)
+        Restaurant restaurant = (restaurants != null && restaurants.length > 0) ? restaurants[0] : null;
+
+        if (restaurant == null || riders.isEmpty()) {
+            System.out.println("Cannot start tracking: missing restaurant or rider data.");
+            customer.placeOrder(order);
+            cart.clearCart();
+            return;
+        }
+
         if (payChoice.equals("2")) {
             System.out.print("Card Number: ");
             String cardNum = scanner.nextLine().trim();
@@ -278,21 +302,21 @@ public class ConsoleMain {
             String holderName = scanner.nextLine().trim();
             System.out.print("Expiry Date (MM/YY): ");
             String expiry = scanner.nextLine().trim();
-
-            CardPayment card = new CardPayment(order.getOrderID(), order.getTotalAmount());
-            card.setCardNumber(cardNum);
-            card.setCardHolderName(holderName);
-            card.setExpiryDate(expiry);
-            card.processPayment();
-            System.out.println("Card Payment Status: " + card.getStatus());
+            // proceedWithCardPayment handles payment + tracking internally
+            order.proceedWithCardPayment(cardNum, holderName, expiry, restaurant, customer, riders);
         } else {
-            CashPayment cash = new CashPayment(order.getOrderID(), order.getTotalAmount());
-            cash.processPayment();
-            System.out.println("Cash Payment Status: " + cash.getStatus());
+            // proceedWithCashPayment handles payment + tracking internally
+            order.proceedWithCashPayment(restaurant, customer, riders);
         }
 
         customer.placeOrder(order);
         System.out.println("Order placed successfully! Total paid: Rs." + order.getTotalAmount());
+        if (order.getTracking() != null) {
+            System.out.println("" + order.getTracking().getCurrentStatus());
+        }
+
+        // Save updated riders (availability may have changed after assignment)
+        riderFH.saveArray(ridersArr, "riders.dat");
 
         // Clear cart
         cart.clearCart();
@@ -393,15 +417,29 @@ public class ConsoleMain {
         }
     }
 
-    static void trackOrder() {
+    static void trackOrder(Customer customer) {
+        java.util.List<Order> history = customer.viewOrderHistory();
+        if (history.isEmpty()) {
+            System.out.println("No orders to track.");
+            return;
+        }
+
         System.out.print("Enter Order ID to track: ");
         String orderID = scanner.nextLine().trim();
-        // Simulated tracking
-        Tracking tracking = new Tracking(orderID, "30 minutes", "Out for Delivery");
-        System.out.println("\n--- Tracking Info ---");
-        System.out.println("  Order ID : " + tracking.getTrackID());
-        System.out.println("  Status   : " + tracking.getStatus());
-        System.out.println("  ETA      : " + tracking.getEstimatedETA());
+
+        for (Order o : history) {
+            if (o.getOrderID().equals(orderID)) {
+                OrderTracking tracking = o.getTracking();
+                if (tracking == null) {
+                    System.out.println("No tracking available for this order.");
+                    return;
+                }
+                System.out.println("\n--- Tracking Info ---");
+                System.out.println(tracking.getSummary());
+                return;
+            }
+        }
+        System.out.println("Order ID not found.");
     }
 
     // ─────────────────────────────────────────────────────────────────────────

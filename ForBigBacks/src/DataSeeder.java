@@ -19,7 +19,7 @@ public class DataSeeder {
         menu1.addItem(new FoodItem("F004", "Chocolate Shake",  250.0, "Drinks",  1));
         menu1.addItem(new FoodItem("F005", "Onion Rings",      200.0, "Sides",   1));
 
-        Restaurant burgerPalace = new Restaurant("R001", "Burger Palace", "Main Boulevard, Gulberg, Lahore", menu1);
+        Restaurant burgerPalace = new Restaurant("R001", "Burger Palace", "Main Boulevard, Gulberg, Lahore", menu1, new Location(20.0, 35.0));
 
         RestaurantAdmin admin1 = new RestaurantAdmin(
                 "A001", "Ahmed Raza", "Gulberg, Lahore", "03001112222",
@@ -35,7 +35,7 @@ public class DataSeeder {
         menu2.addItem(new FoodItem("F009", "Caesar Salad",      300.0, "Salads", 1));
         menu2.addItem(new FoodItem("F010", "Iced Tea",          150.0, "Drinks", 1));
 
-        Restaurant pizzaHub = new Restaurant("R002", "Pizza Hub", "DHA Phase 5, Lahore", menu2);
+        Restaurant pizzaHub = new Restaurant("R002", "Pizza Hub", "DHA Phase 5, Lahore", menu2, new Location(80.0, 15.0));
 
         RestaurantAdmin admin2 = new RestaurantAdmin(
                 "A002", "Bilal Sheikh", "DHA Phase 5, Lahore", "03112223333",
@@ -50,7 +50,7 @@ public class DataSeeder {
         menu3.addItem(new FoodItem("F014", "Raita",            80.0, "Sides",       1));
         menu3.addItem(new FoodItem("F015", "Mango Lassi",     180.0, "Drinks",      1));
 
-        Restaurant desiDhaba = new Restaurant("R003", "Desi Dhaba", "Johar Town, Lahore", menu3);
+        Restaurant desiDhaba = new Restaurant("R003", "Desi Dhaba", "Johar Town, Lahore", menu3, new Location(55.0, 70.0));
 
         RestaurantAdmin admin3 = new RestaurantAdmin(
                 "A003", "Nadia Malik", "Johar Town, Lahore", "03223334444",

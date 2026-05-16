@@ -49,8 +49,25 @@ public class ScheduledOrder extends Order {
 
     @Override
     public String toString() {
-        return "ScheduledOrder [" + getOrderID() + "] | Time: " + scheduledTime
-                + " | Status: " + getStatus()
-                + " | Confirmed: " + isConfirmed;
+        return "ScheduledOrder [" + getOrderID() + "] | Time: " + scheduledTime + " | Status: " + getStatus() + " | Confirmed: " + isConfirmed;
+    }
+
+    // validate schedule before allowing payment
+    @Override
+    public void proceedWithCashPayment(Restaurant restaurant, Customer customer, List<Rider> riders) {
+        if (!isValidSchedule()) {
+            System.out.println("Cannot pay — scheduled time must be at least " + MIN_ADVANCE_MINUTES + " minutes from now.");
+            return;
+        }
+        super.proceedWithCashPayment(restaurant, customer, riders);
+    }
+
+     @Override
+    public void proceedWithCardPayment(String cardNumber, String cardHolderName, String expiryDate, Restaurant restaurant, Customer customer, List<Rider> riders) {
+        if (!isValidSchedule()) {
+            System.out.println("Cannot pay — scheduled time must be at least "+ MIN_ADVANCE_MINUTES + " minutes from now.");
+            return;
+        }
+        super.proceedWithCardPayment(cardNumber, cardHolderName, expiryDate, restaurant, customer, riders);
     }
 }

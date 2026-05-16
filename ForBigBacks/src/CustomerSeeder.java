@@ -12,7 +12,7 @@ public class CustomerSeeder {
         FileHandler<Customer> fileHandler = new FileHandler<>();
 
         // ─── Customer 1: Ali Hassan ───────────────────────────────────
-        Customer ali = new Customer("C001", "Ali Hassan", "Gulberg, Lahore", "03001234567", "ali_hassan", "ali123");
+        Customer ali = new Customer("C001", "Ali Hassan", "Gulberg, Lahore", "03001234567", "ali_hassan", "ali123", new Location(0, 0));
 
         List<FoodItem> aliItems1 = new ArrayList<>();
         aliItems1.add(new FoodItem("F001", "Classic Burger", 350.0, "Burgers", 1));
@@ -30,7 +30,7 @@ public class CustomerSeeder {
         ali.getLoyaltyPoints().earnPoints(1000.0);
 
         // ─── Customer 2: Sara Khan ────────────────────────────────────
-        Customer sara = new Customer("C002", "Sara Khan", "DHA Phase 3, Lahore", "03111234567", "sara_khan", "sara456");
+        Customer sara = new Customer("C002", "Sara Khan", "DHA Phase 3, Lahore", "03111234567", "sara_khan", "sara456", new Location(0, 0));
 
         List<FoodItem> saraItems1 = new ArrayList<>();
         saraItems1.add(new FoodItem("F011", "Chicken Karahi", 900.0, "Main Course", 1));
@@ -42,7 +42,7 @@ public class CustomerSeeder {
         sara.getLoyaltyPoints().earnPoints(1200.0);
 
         // ─── Customer 3: Usman Raza ───────────────────────────────────
-        Customer usman = new Customer("C003", "Usman Raza", "Johar Town, Lahore", "03211234567", "usman_raza", "usman789");
+        Customer usman = new Customer("C003", "Usman Raza", "Johar Town, Lahore", "03211234567", "usman_raza", "usman789", new Location(0, 0));
 
         List<FoodItem> usmanItems1 = new ArrayList<>();
         usmanItems1.add(new FoodItem("F006", "Margherita Pizza", 650.0, "Pizza",  1));
@@ -60,7 +60,7 @@ public class CustomerSeeder {
         usman.getLoyaltyPoints().earnPoints(1090.0);
 
         // ─── Customer 4: Fatima Malik ─────────────────────────────────
-        Customer fatima = new Customer("C004", "Fatima Malik", "Model Town, Lahore", "03321234567", "fatima_malik", "fatima321");
+        Customer fatima = new Customer("C004", "Fatima Malik", "Model Town, Lahore", "03321234567", "fatima_malik", "fatima321", new Location(0, 0));
 
         List<FoodItem> fatimaItems1 = new ArrayList<>();
         fatimaItems1.add(new FoodItem("F012", "Beef Nihari",  750.0, "Main Course", 1));

@@ -9,15 +9,17 @@ public class Restaurant implements Serializable {
     private String address;
     private Menu menu;
     private RestaurantAdmin admin;
+    private Location location;
 
     public Restaurant() {
     }
 
-    public Restaurant(String restaurantID, String name, String address, Menu menu) {
+    public Restaurant(String restaurantID, String name, String address, Menu menu, Location location) {
         this.restaurantID = restaurantID;
         this.name = name;
         this.address = address;
         this.menu = menu;
+        this.location = location;
         // admin is set separately via setAdmin()
     }
 
@@ -59,6 +61,14 @@ public class Restaurant implements Serializable {
 
     public void setAdmin(RestaurantAdmin admin) {
         this.admin = admin;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
     }
 
     public void updateMenu() {

@@ -14,6 +14,7 @@ public class Customer extends Person implements Account {
     private LoyaltyPoints loyaltyPoints;
     private List<Order> orderHistory;
     private Cart cart;
+    private Location location;
 
     @Override
     public String getUsername() {
@@ -31,10 +32,11 @@ public class Customer extends Person implements Account {
         this.cart = new Cart();
     }
 
-    public Customer(String personID, String name, String address, String phoneNumber, String username, String password) {
+    public Customer(String personID, String name, String address, String phoneNumber, String username, String password, Location location) {
         super(personID, name, address, phoneNumber);
         this.username = username;
         this.password = password;
+        this.location = location;
         this.loyaltyPoints = new LoyaltyPoints(personID + "-LP", 0);
         this.orderHistory  = new ArrayList<>();
         this.cart = new Cart();
@@ -90,5 +92,12 @@ public class Customer extends Person implements Account {
 
     public Cart getCart() {
         return cart;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+    public void setLocation(Location location) {
+        this.location = location;
     }
 }

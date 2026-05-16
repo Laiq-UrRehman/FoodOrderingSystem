@@ -13,6 +13,7 @@ public class Order implements Serializable {
     private String status;
     private final List<FoodItem> items;
     private final double totalAmount;
+    private OrderTracking tracking;
 
     public Order(String orderID, String status, List<FoodItem> items, double totalAmount) {
         this.orderID = orderID;
@@ -46,19 +47,41 @@ public class Order implements Serializable {
         updateStatus("Cancelled");
     }
 
-    public void proceedWithCashPayment() {
+    public void proceedWithCashPayment(Restaurant restaurant, Customer customer, java.util.List<Rider> riders) {
         if ("Cancelled".equals(status)) {
             System.out.println("Cannot proceed to payment. Order is cancelled.");
             return;
         }
         CashPayment cashPayment = new CashPayment(orderID, totalAmount);
+        if (cashPayment.processPayment()) {           // always true for cash
+            initTracking(restaurant, customer, riders);
+        }
     }
 
-    public void proceedWithCardPayment() {
+    public void proceedWithCardPayment(String cardNumber, String cardHolderName, String expiryDate, Restaurant restaurant, Customer customer, java.util.List<Rider> riders) {
         if ("Cancelled".equals(status)) {
             System.out.println("Cannot proceed to payment. Order is cancelled.");
             return;
         }
         CardPayment cardPayment = new CardPayment(orderID, totalAmount);
+        cardPayment.setCardNumber(cardNumber);
+        cardPayment.setCardHolderName(cardHolderName);
+        cardPayment.setExpiryDate(expiryDate);
+ 
+        if (cardPayment.processPayment()) {
+            initTracking(restaurant, customer, riders);
+        } else {
+            System.out.println("Card payment failed. Tracking not started.");
+        }
+    }
+
+    private void initTracking(Restaurant restaurant, Customer customer, java.util.List<Rider> riders) {
+        String trackingID = "TRK-" + orderID;
+        this.tracking = new OrderTracking(trackingID, this, restaurant, customer, riders);
+        System.out.println("[Order] Tracking started: " + trackingID);
+    }
+
+    public OrderTracking getTracking() {
+        return tracking;
     }
 }
