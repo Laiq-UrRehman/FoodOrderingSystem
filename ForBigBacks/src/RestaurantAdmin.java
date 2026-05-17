@@ -1,3 +1,5 @@
+// Updated: addOffer() and removeOffer() now reuse a single LoyaltyOfferManager instance instead of creating a new one each call
+
 public class RestaurantAdmin extends Person implements Account {
 
     private static final long serialVersionUID = 1L;
@@ -5,11 +7,13 @@ public class RestaurantAdmin extends Person implements Account {
     private String username;
     private String password;
     private Restaurant restaurant;
+    private final LoyaltyOfferManager offerManager = new LoyaltyOfferManager();
 
     public RestaurantAdmin() {
     }
 
-    public RestaurantAdmin(String personID, String name, String address, String phoneNumber, String username, String password, Restaurant restaurant) {
+    public RestaurantAdmin(String personID, String name, String address, String phoneNumber, String username,
+            String password, Restaurant restaurant) {
         super(personID, name, address, phoneNumber);
         this.username = username;
         this.password = password;
@@ -64,18 +68,15 @@ public class RestaurantAdmin extends Person implements Account {
         System.out.println("===== MENU =====");
         for (FoodItem item : restaurant.getMenu().getItems()) {
             System.out.println(
-                    item.getFoodID() + " | " + item.getName() + " | " + item.getCategory() + " | " + item.getPrice()
-            );
+                    item.getFoodID() + " | " + item.getName() + " | " + item.getCategory() + " | " + item.getPrice());
         }
     }
 
     public void addOffer(LoyaltyOffer offer) {
-        LoyaltyOfferManager manager = new LoyaltyOfferManager();
-        manager.addOffer(offer);
+        offerManager.addOffer(offer);
     }
 
     public void removeOffer(String offerCode) {
-        LoyaltyOfferManager manager = new LoyaltyOfferManager();
-        manager.removeOffer(offerCode);
+        offerManager.removeOffer(offerCode);
     }
 }

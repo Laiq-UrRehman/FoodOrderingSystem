@@ -1,3 +1,6 @@
+// Updated: clearCart() called at the end of every checkOut() variant so cart is empty after ordering
+// Updated: incrementOrderCount() called on each item and restaurants.dat re-saved after every checkout
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -84,42 +87,72 @@ public class Cart implements Serializable {
         return customer.getLoyaltyPoints().generateRedeemCode(offer, totalAmount);
     }
 
-    // Dynamic Order ID Generator
     private String generateOrderID() {
         return "ORD-" + System.currentTimeMillis();
     }
 
+    private void persistOrderCounts(Restaurant restaurant) {
+        for (FoodItem cartItem : items) {
+            for (FoodItem menuItem : restaurant.getMenu().getItems()) {
+                if (menuItem.getFoodID().equals(cartItem.getFoodID())) {
+                    menuItem.incrementOrderCount();
+                }
+            }
+        }
+        FileHandler<Restaurant> fileHandler = new FileHandler<>();
+        Restaurant[] all = fileHandler.loadArray("restaurants.dat");
+        if (all != null) {
+            for (int i = 0; i < all.length; i++) {
+                if (all[i].getRestaurantID().equals(restaurant.getRestaurantID())) {
+                    all[i] = restaurant;
+                }
+            }
+            fileHandler.saveArray(all, "restaurants.dat");
+        }
+    }
+
     // Checkout Logic
 
-    public Order checkOut(Customer customer, RedeemCode redeemCode) {
+    public Order checkOut(Customer customer, RedeemCode redeemCode, Restaurant restaurant) {
         double discount = customer.getLoyaltyPoints().applyRedeemCode(redeemCode, totalAmount);
         double amountPaid = Math.max(0, totalAmount - discount);
         customer.getLoyaltyPoints().earnPoints(amountPaid);
-        return new Order(generateOrderID(), "Pending", items, amountPaid);
+        Order order = new Order(generateOrderID(), "Pending", items, amountPaid);
+        persistOrderCounts(restaurant);
+        clearCart();
+        return order;
     }
 
-    public Order checkOut(Customer customer) {
+    public Order checkOut(Customer customer, Restaurant restaurant) {
         customer.getLoyaltyPoints().earnPoints(totalAmount);
-        return new Order(generateOrderID(), "Pending", items, totalAmount);
+        Order order = new Order(generateOrderID(), "Pending", items, totalAmount);
+        persistOrderCounts(restaurant);
+        clearCart();
+        return order;
     }
 
     public Order checkOut() {
-        return new Order(generateOrderID(), "Pending", items, totalAmount);
+        Order order = new Order(generateOrderID(), "Pending", items, totalAmount);
+        clearCart();
+        return order;
     }
 
     // Scheduled Order Logic
 
-    public ScheduledOrder checkOutScheduled(Customer customer, LocalDateTime scheduledTime) {
+    public ScheduledOrder checkOutScheduled(Customer customer, LocalDateTime scheduledTime, Restaurant restaurant) {
         ScheduledOrder order = new ScheduledOrder(generateOrderID(), items, totalAmount, scheduledTime);
         if (!order.isValidSchedule()) {
             System.out.println("Scheduled time must be at least 30 minutes from now.");
             return null;
         }
         customer.getLoyaltyPoints().earnPoints(totalAmount);
+        persistOrderCounts(restaurant);
+        clearCart();
         return order;
     }
 
-    public ScheduledOrder checkOutScheduled(Customer customer, RedeemCode redeemCode, LocalDateTime scheduledTime) {
+    public ScheduledOrder checkOutScheduled(Customer customer, RedeemCode redeemCode, LocalDateTime scheduledTime,
+            Restaurant restaurant) {
         double discount = customer.getLoyaltyPoints().applyRedeemCode(redeemCode, totalAmount);
         double amountPaid = Math.max(0, totalAmount - discount);
         ScheduledOrder order = new ScheduledOrder(generateOrderID(), items, amountPaid, scheduledTime);
@@ -128,6 +161,8 @@ public class Cart implements Serializable {
             return null;
         }
         customer.getLoyaltyPoints().earnPoints(amountPaid);
+        persistOrderCounts(restaurant);
+        clearCart();
         return order;
     }
 

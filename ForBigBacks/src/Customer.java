@@ -1,9 +1,11 @@
-// Update: Added Loyalty Points and Scheduled Order features to the Customer class.
+// Updated: Added LoyaltyPoints, placeOrder, viewOrderHistory, cancelOrder, viewScheduledOrders
+// Updated: Added preferredCategory tracking based on most ordered category
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Customer extends Person implements Account {
 
@@ -15,6 +17,7 @@ public class Customer extends Person implements Account {
     private List<Order> orderHistory;
     private Cart cart;
     private Location location;
+    private Map<String, Integer> categoryOrderCounts;
 
     @Override
     public String getUsername() {
@@ -28,18 +31,21 @@ public class Customer extends Person implements Account {
 
     public Customer() {
         this.loyaltyPoints = new LoyaltyPoints();
-        this.orderHistory  = new ArrayList<>();
+        this.orderHistory = new ArrayList<>();
         this.cart = new Cart();
+        this.categoryOrderCounts = new HashMap<>();
     }
 
-    public Customer(String personID, String name, String address, String phoneNumber, String username, String password, Location location) {
+    public Customer(String personID, String name, String address, String phoneNumber, String username, String password,
+            Location location) {
         super(personID, name, address, phoneNumber);
         this.username = username;
         this.password = password;
         this.location = location;
         this.loyaltyPoints = new LoyaltyPoints(personID + "-LP", 0);
-        this.orderHistory  = new ArrayList<>();
+        this.orderHistory = new ArrayList<>();
         this.cart = new Cart();
+        this.categoryOrderCounts = new HashMap<>();
     }
 
     // Loyalty Points Logic
@@ -60,6 +66,11 @@ public class Customer extends Person implements Account {
             return;
         }
         orderHistory.add(order);
+        // Track category counts for smart suggestions
+        for (FoodItem item : order.getItems()) {
+            String cat = item.getCategory();
+            categoryOrderCounts.put(cat, categoryOrderCounts.getOrDefault(cat, 0) + 1);
+        }
         System.out.println("Order placed: " + order.getOrderID()
                 + " | Total: " + order.getTotalAmount() + " PKR");
     }
@@ -88,7 +99,31 @@ public class Customer extends Person implements Account {
         return Collections.unmodifiableList(scheduled);
     }
 
-    // View Cart Logic
+    // Smart Suggestions — preferred category
+
+    /**
+     * Returns the category this customer has ordered most.
+     * Returns null if no orders have been placed yet.
+     */
+    public String getPreferredCategory() {
+        if (categoryOrderCounts.isEmpty())
+            return null;
+        String preferred = null;
+        int max = 0;
+        for (Map.Entry<String, Integer> entry : categoryOrderCounts.entrySet()) {
+            if (entry.getValue() > max) {
+                max = entry.getValue();
+                preferred = entry.getKey();
+            }
+        }
+        return preferred;
+    }
+
+    public Map<String, Integer> getCategoryOrderCounts() {
+        return Collections.unmodifiableMap(categoryOrderCounts);
+    }
+
+    // Cart and Location
 
     public Cart getCart() {
         return cart;
@@ -97,6 +132,7 @@ public class Customer extends Person implements Account {
     public Location getLocation() {
         return location;
     }
+
     public void setLocation(Location location) {
         this.location = location;
     }

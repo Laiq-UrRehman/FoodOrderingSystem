@@ -1,8 +1,7 @@
-// Minimum scheduled time is 30 minutes from now.
+// Updated: unconfirm() added to reset isConfirmed if the scheduled time becomes invalid after confirmation
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class ScheduledOrder extends Order {
@@ -28,8 +27,19 @@ public class ScheduledOrder extends Order {
     }
 
     public void confirm() {
+        if (!isValidSchedule()) {
+            System.out.println("Cannot confirm — scheduled time is no longer valid.");
+            return;
+        }
         isConfirmed = true;
         System.out.println("Scheduled order " + getOrderID() + " confirmed for " + scheduledTime);
+    }
+
+    public void unconfirm() {
+        if (!isValidSchedule()) {
+            isConfirmed = false;
+            System.out.println("Order " + getOrderID() + " unconfirmed — scheduled time is no longer valid.");
+        }
     }
 
     public boolean isValidSchedule() {
@@ -37,7 +47,6 @@ public class ScheduledOrder extends Order {
         return minutesAhead >= MIN_ADVANCE_MINUTES;
     }
 
-    // Cancel Order if not confirmed
     @Override
     public void cancelOrder() {
         if (isConfirmed) {
@@ -49,23 +58,26 @@ public class ScheduledOrder extends Order {
 
     @Override
     public String toString() {
-        return "ScheduledOrder [" + getOrderID() + "] | Time: " + scheduledTime + " | Status: " + getStatus() + " | Confirmed: " + isConfirmed;
+        return "ScheduledOrder [" + getOrderID() + "] | Time: " + scheduledTime + " | Status: " + getStatus()
+                + " | Confirmed: " + isConfirmed;
     }
 
-    // validate schedule before allowing payment
     @Override
     public void proceedWithCashPayment(Restaurant restaurant, Customer customer, List<Rider> riders) {
         if (!isValidSchedule()) {
-            System.out.println("Cannot pay — scheduled time must be at least " + MIN_ADVANCE_MINUTES + " minutes from now.");
+            System.out.println(
+                    "Cannot pay — scheduled time must be at least " + MIN_ADVANCE_MINUTES + " minutes from now.");
             return;
         }
         super.proceedWithCashPayment(restaurant, customer, riders);
     }
 
-     @Override
-    public void proceedWithCardPayment(String cardNumber, String cardHolderName, String expiryDate, Restaurant restaurant, Customer customer, List<Rider> riders) {
+    @Override
+    public void proceedWithCardPayment(String cardNumber, String cardHolderName, String expiryDate,
+            Restaurant restaurant, Customer customer, List<Rider> riders) {
         if (!isValidSchedule()) {
-            System.out.println("Cannot pay — scheduled time must be at least "+ MIN_ADVANCE_MINUTES + " minutes from now.");
+            System.out.println(
+                    "Cannot pay — scheduled time must be at least " + MIN_ADVANCE_MINUTES + " minutes from now.");
             return;
         }
         super.proceedWithCardPayment(cardNumber, cardHolderName, expiryDate, restaurant, customer, riders);

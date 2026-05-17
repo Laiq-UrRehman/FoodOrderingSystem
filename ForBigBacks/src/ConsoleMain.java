@@ -1,3 +1,6 @@
+// Updated: checkoutNormal() and checkoutScheduled() now pass selectedRestaurant into cart.checkOut() variants
+// Updated: Added full Search & Browse menu with SearchManager integration
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
@@ -6,14 +9,13 @@ public class ConsoleMain {
 
     static Scanner scanner = new Scanner(System.in);
     static LoginManager loginManager = new LoginManager();
-    static Restaurant selectedRestaurant = null; // tracks which restaurant customer browsed
+    static SearchManager searchManager = new SearchManager();
+    static Restaurant selectedRestaurant = null;
 
     public static void main(String[] args) {
 
-        // ── Seed data if .dat files don't exist ───────────────────────────────
         seedIfNeeded();
 
-        // ── Main Menu ─────────────────────────────────────────────────────────
         while (true) {
             System.out.println("\n========================================");
             System.out.println("     WELCOME TO FOOD ORDERING SYSTEM    ");
@@ -45,7 +47,8 @@ public class ConsoleMain {
 
     static void seedIfNeeded() {
         java.io.File restaurantFile = new java.io.File("restaurants.dat");
-        java.io.File customerFile   = new java.io.File("customers.dat");
+        java.io.File customerFile = new java.io.File("customers.dat");
+        java.io.File riderFile = new java.io.File("riders.dat");
 
         if (!restaurantFile.exists()) {
             System.out.println("Seeding restaurant data...");
@@ -55,7 +58,6 @@ public class ConsoleMain {
             System.out.println("Seeding customer data...");
             CustomerSeeder.seedCustomers();
         }
-        java.io.File riderFile = new java.io.File("riders.dat");
         if (!riderFile.exists()) {
             System.out.println("Seeding rider data...");
             RiderSeeder.seedRiders();
@@ -74,8 +76,8 @@ public class ConsoleMain {
         String password = scanner.nextLine().trim();
 
         Customer customer = loginManager.loginCustomer(username, password);
-        if (customer == null) return;
-
+        if (customer == null)
+            return;
         customerMenu(customer);
     }
 
@@ -92,12 +94,10 @@ public class ConsoleMain {
         System.out.print("Password: ");
         String password = scanner.nextLine().trim();
 
-        // Load existing customers to check username and generate next ID
         FileHandler<Customer> fh = new FileHandler<>();
         Customer[] existing = fh.loadArray("customers.dat");
         int count = (existing == null) ? 0 : existing.length;
 
-        // Check username not already taken
         if (existing != null) {
             for (Customer c : existing) {
                 if (c.getUsername().equals(username)) {
@@ -107,15 +107,12 @@ public class ConsoleMain {
             }
         }
 
-        // Create new customer with auto-generated ID
         String newID = String.format("C%03d", count + 1);
         Customer newCustomer = new Customer(newID, name, address, phone, username, password, new Location(0, 0));
 
-        // Build updated array and save back to customers.dat
         Customer[] updated = new Customer[count + 1];
-        if (existing != null) {
+        if (existing != null)
             System.arraycopy(existing, 0, updated, 0, count);
-        }
         updated[count] = newCustomer;
         fh.saveArray(updated, "customers.dat");
 
@@ -125,20 +122,16 @@ public class ConsoleMain {
     static void saveCustomer(Customer customer) {
         FileHandler<Customer> fh = new FileHandler<>();
         Customer[] existing = fh.loadArray("customers.dat");
-
         if (existing == null) {
             System.out.println("Warning: could not load customers.dat to save.");
             return;
         }
-
-        // Find and replace the matching customer by username
         for (int i = 0; i < existing.length; i++) {
             if (existing[i].getUsername().equals(customer.getUsername())) {
                 existing[i] = customer;
                 break;
             }
         }
-
         fh.saveArray(existing, "customers.dat");
         System.out.println("Progress saved.");
     }
@@ -148,78 +141,211 @@ public class ConsoleMain {
             System.out.println("\n========================================");
             System.out.println("  CUSTOMER MENU - " + customer.getName());
             System.out.println("========================================");
-            System.out.println("  1.  Browse Restaurants & Add to Cart");
-            System.out.println("  2.  View Cart");
-            System.out.println("  3.  Checkout (Normal Order)");
-            System.out.println("  4.  Checkout (Scheduled Order)");
-            System.out.println("  5.  View Order History");
-            System.out.println("  6.  Cancel an Order");
-            System.out.println("  7.  View Loyalty Points");
-            System.out.println("  8.  View Available Loyalty Offers");
-            System.out.println("  9.  View Scheduled Orders");
-            System.out.println("  10. Track Order");
+            System.out.println("  1.  Search & Browse");
+            System.out.println("  2.  Add to Cart from Selected Restaurant");
+            System.out.println("  3.  View Cart");
+            System.out.println("  4.  Checkout (Normal Order)");
+            System.out.println("  5.  Checkout (Scheduled Order)");
+            System.out.println("  6.  View Order History");
+            System.out.println("  7.  Cancel an Order");
+            System.out.println("  8.  View Loyalty Points");
+            System.out.println("  9.  View Available Loyalty Offers");
+            System.out.println("  10. View Scheduled Orders");
+            System.out.println("  11. Track Order");
             System.out.println("  0.  Logout");
             System.out.print("Enter choice: ");
 
             String choice = scanner.nextLine().trim();
 
             switch (choice) {
-                case "1"  -> browseAndAddToCart(customer);
-                case "2"  -> customer.getCart().viewCart();
-                case "3"  -> checkoutNormal(customer);
-                case "4"  -> checkoutScheduled(customer);
-                case "5"  -> viewOrderHistory(customer);
-                case "6"  -> cancelOrder(customer);
-                case "7"  -> customer.getLoyaltyPoints().printBalance();
-                case "8"  -> customer.getLoyaltyPoints().printAvailableOffers(customer.getCart().getTotal());
-                case "9"  -> viewScheduledOrders(customer);
-                case "10" -> trackOrder(customer);
-                case "0"  -> {
+                case "1" -> searchAndBrowseMenu(customer);
+                case "2" -> addToCartFromSelected(customer);
+                case "3" -> customer.getCart().viewCart();
+                case "4" -> checkoutNormal(customer);
+                case "5" -> checkoutScheduled(customer);
+                case "6" -> viewOrderHistory(customer);
+                case "7" -> cancelOrder(customer);
+                case "8" -> customer.getLoyaltyPoints().printBalance();
+                case "9" -> customer.getLoyaltyPoints().printAvailableOffers(customer.getCart().getTotal());
+                case "10" -> viewScheduledOrders(customer);
+                case "11" -> trackOrder(customer);
+                case "0" -> {
                     saveCustomer(customer);
                     System.out.println("Logged out.");
                     return;
                 }
-                default   -> System.out.println("Invalid choice.");
+                default -> System.out.println("Invalid choice.");
             }
         }
     }
 
-    static void browseAndAddToCart(Customer customer) {
-        FileHandler<Restaurant> fh = new FileHandler<>();
-        Restaurant[] restaurants = fh.loadArray("restaurants.dat");
+    // ─────────────────────────────────────────────────────────────────────────
+    // SEARCH & BROWSE
+    // ─────────────────────────────────────────────────────────────────────────
 
-        if (restaurants == null || restaurants.length == 0) {
-            System.out.println("No restaurants available.");
+    static void searchAndBrowseMenu(Customer customer) {
+        Restaurant[] all = searchManager.getAllRestaurants();
+
+        while (true) {
+            System.out.println("\n--- Search & Browse ---");
+            System.out.println("  1. Search restaurants by name");
+            System.out.println("  2. Filter restaurants by cuisine");
+            System.out.println("  3. View top rated restaurants");
+            System.out.println("  4. Browse a restaurant's menu");
+            System.out.println("  5. Search items in a restaurant");
+            System.out.println("  6. Filter items by category");
+            System.out.println("  7. View top rated items in a restaurant");
+            System.out.println("  8. View trending categories");
+            System.out.println("  9. Smart suggestions for you");
+            System.out.println("  0. Back");
+            System.out.print("Enter choice: ");
+
+            String choice = scanner.nextLine().trim();
+
+            switch (choice) {
+                case "1" -> {
+                    System.out.print("Search restaurants: ");
+                    String query = scanner.nextLine().trim();
+                    List<Restaurant> results = searchManager.searchRestaurants(query, all);
+                    System.out.println("\n--- Results ---");
+                    searchManager.printRestaurants(results);
+                    selectRestaurantFromList(results);
+                }
+                case "2" -> {
+                    System.out.print("Enter cuisine (e.g. Pakistani, Italian, American): ");
+                    String cuisine = scanner.nextLine().trim();
+                    List<Restaurant> results = searchManager.filterByCuisine(cuisine, all);
+                    System.out.println("\n--- " + cuisine + " Restaurants ---");
+                    searchManager.printRestaurants(results);
+                    selectRestaurantFromList(results);
+                }
+                case "3" -> {
+                    List<Restaurant> topRated = searchManager.getTopRatedRestaurants(all);
+                    System.out.println("\n--- Top Rated Restaurants ---");
+                    searchManager.printRestaurants(topRated);
+                    selectRestaurantFromList(topRated);
+                }
+                case "4" -> {
+                    Restaurant r = pickRestaurant(all);
+                    if (r != null) {
+                        selectedRestaurant = r;
+                        printMenu(r);
+                    }
+                }
+                case "5" -> {
+                    Restaurant r = pickRestaurant(all);
+                    if (r != null) {
+                        selectedRestaurant = r;
+                        System.out.print("Search items: ");
+                        String query = scanner.nextLine().trim();
+                        List<FoodItem> results = searchManager.searchMenuItems(query, r);
+                        System.out.println("\n--- Results in " + r.getName() + " ---");
+                        searchManager.printItems(results);
+                    }
+                }
+                case "6" -> {
+                    Restaurant r = pickRestaurant(all);
+                    if (r != null) {
+                        selectedRestaurant = r;
+                        System.out.print("Enter category (e.g. Burgers, Pizza, Drinks): ");
+                        String category = scanner.nextLine().trim();
+                        List<FoodItem> results = searchManager.filterByCategory(category, r);
+                        System.out.println("\n--- " + category + " in " + r.getName() + " ---");
+                        searchManager.printItems(results);
+                    }
+                }
+                case "7" -> {
+                    Restaurant r = pickRestaurant(all);
+                    if (r != null) {
+                        selectedRestaurant = r;
+                        List<FoodItem> topItems = searchManager.getTopRatedItems(r);
+                        System.out.println("\n--- Top Rated Items in " + r.getName() + " ---");
+                        searchManager.printItems(topItems);
+                    }
+                }
+                case "8" -> {
+                    List<String> trending = searchManager.getTrendingCategories(all);
+                    searchManager.printCategories(trending);
+                }
+                case "9" -> {
+                    List<FoodItem> suggestions = searchManager.getSuggestedItems(customer, all, 5);
+                    System.out.println("\n--- Suggested For You ---");
+                    searchManager.printItems(suggestions);
+                }
+                case "0" -> {
+                    return;
+                }
+                default -> System.out.println("Invalid choice.");
+            }
+        }
+    }
+
+    /**
+     * Lets the customer pick a restaurant from a filtered/searched list
+     * and sets it as selectedRestaurant.
+     */
+    static void selectRestaurantFromList(List<Restaurant> list) {
+        if (list.isEmpty())
+            return;
+        System.out.print("Select a restaurant by number to browse (or 0 to skip): ");
+        int pick;
+        try {
+            pick = Integer.parseInt(scanner.nextLine().trim()) - 1;
+        } catch (NumberFormatException e) {
             return;
         }
+        if (pick < 0 || pick >= list.size())
+            return;
+        selectedRestaurant = list.get(pick);
+        System.out.println("Selected: " + selectedRestaurant.getName());
+        printMenu(selectedRestaurant);
+    }
 
-        System.out.println("\n--- Available Restaurants ---");
-        for (int i = 0; i < restaurants.length; i++) {
-            System.out.println("  " + (i + 1) + ". " + restaurants[i].getName()
-                    + " | " + restaurants[i].getAddress());
+    /**
+     * Shows all restaurants and lets the customer pick one by number.
+     */
+    static Restaurant pickRestaurant(Restaurant[] all) {
+        System.out.println("\n--- All Restaurants ---");
+        for (int i = 0; i < all.length; i++) {
+            System.out.println("  " + (i + 1) + ". " + all[i].getName()
+                    + " | " + all[i].getCuisineType()
+                    + " | Rating: " + String.format("%.1f", all[i].getRating()));
         }
         System.out.print("Select restaurant (number): ");
-        int rChoice;
+        int pick;
         try {
-            rChoice = Integer.parseInt(scanner.nextLine().trim()) - 1;
+            pick = Integer.parseInt(scanner.nextLine().trim()) - 1;
         } catch (NumberFormatException e) {
             System.out.println("Invalid input.");
-            return;
+            return null;
         }
-        if (rChoice < 0 || rChoice >= restaurants.length) {
+        if (pick < 0 || pick >= all.length) {
             System.out.println("Invalid selection.");
+            return null;
+        }
+        return all[pick];
+    }
+
+    static void printMenu(Restaurant r) {
+        System.out.println("\n--- Menu: " + r.getName() + " ---");
+        List<FoodItem> items = r.getMenu().getItems();
+        for (int i = 0; i < items.size(); i++) {
+            FoodItem item = items.get(i);
+            System.out.println("  " + (i + 1) + ". [" + item.getFoodID() + "] "
+                    + item.getName() + " | " + item.getCategory()
+                    + " | Rs." + item.getPrice()
+                    + " | Rating: " + String.format("%.1f", item.getRating()));
+        }
+    }
+
+    static void addToCartFromSelected(Customer customer) {
+        if (selectedRestaurant == null) {
+            System.out.println("No restaurant selected. Please use Search & Browse first.");
             return;
         }
 
-        Restaurant selected = restaurants[rChoice];
-        selectedRestaurant = selected; // remember for checkout tracking
-        System.out.println("\n--- Menu: " + selected.getName() + " ---");
-        List<FoodItem> menuItems = selected.getMenu().getItems();
-        for (int i = 0; i < menuItems.size(); i++) {
-            FoodItem item = menuItems.get(i);
-            System.out.println("  " + (i + 1) + ". [" + item.getFoodID() + "] "
-                    + item.getName() + " | " + item.getCategory() + " | Rs." + item.getPrice());
-        }
+        printMenu(selectedRestaurant);
+        List<FoodItem> menuItems = selectedRestaurant.getMenu().getItems();
 
         System.out.print("Select item to add (number): ");
         int iChoice;
@@ -244,12 +370,16 @@ public class ConsoleMain {
         }
 
         FoodItem chosen = menuItems.get(iChoice);
-        FoodItem toAdd  = new FoodItem(chosen.getFoodID(), chosen.getName(),
+        FoodItem toAdd = new FoodItem(chosen.getFoodID(), chosen.getName(),
                 chosen.getPrice(), chosen.getCategory(), qty);
         customer.getCart().addItem(toAdd);
         System.out.println(qty + "x " + chosen.getName() + " added to cart. Cart total: Rs."
                 + customer.getCart().getTotal());
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CHECKOUT
+    // ─────────────────────────────────────────────────────────────────────────
 
     static void checkoutNormal(Customer customer) {
         Cart cart = customer.getCart();
@@ -257,13 +387,14 @@ public class ConsoleMain {
             System.out.println("Your cart is empty.");
             return;
         }
+        if (selectedRestaurant == null) {
+            System.out.println("Please browse a restaurant before checking out.");
+            return;
+        }
 
         cart.viewCart();
-
-        // Loyalty offer
         RedeemCode redeemCode = offerSelectionFlow(customer, cart);
 
-        // Payment method
         System.out.println("\nSelect Payment Method:");
         System.out.println("  1. Cash");
         System.out.println("  2. Card");
@@ -272,28 +403,20 @@ public class ConsoleMain {
 
         Order order;
         if (redeemCode != null) {
-            order = cart.checkOut(customer, redeemCode);
+            order = cart.checkOut(customer, redeemCode, selectedRestaurant);
         } else {
-            order = cart.checkOut(customer);
+            order = cart.checkOut(customer, selectedRestaurant);
         }
 
-        // Load restaurant and riders for tracking
-        FileHandler<Restaurant> rfh = new FileHandler<>();
-        Restaurant[] restaurants = rfh.loadArray("restaurants.dat");
         FileHandler<Rider> riderFH = new FileHandler<>();
         Rider[] ridersArr = riderFH.loadArray("riders.dat");
         java.util.List<Rider> riders = (ridersArr != null)
                 ? new java.util.ArrayList<>(java.util.Arrays.asList(ridersArr))
                 : new java.util.ArrayList<>();
 
-        // Use the restaurant the customer actually browsed from
-        Restaurant restaurant = selectedRestaurant;
-
-        if (restaurant == null || riders.isEmpty()) {
-            if (restaurant == null) System.out.println("Please browse a restaurant before checking out.");
-            System.out.println("Cannot start tracking: missing restaurant or rider data.");
+        if (riders.isEmpty()) {
+            System.out.println("Cannot start tracking: no rider data.");
             customer.placeOrder(order);
-            cart.clearCart();
             return;
         }
 
@@ -304,30 +427,27 @@ public class ConsoleMain {
             String holderName = scanner.nextLine().trim();
             System.out.print("Expiry Date (MM/YY): ");
             String expiry = scanner.nextLine().trim();
-            // proceedWithCardPayment handles payment + tracking internally
-            order.proceedWithCardPayment(cardNum, holderName, expiry, restaurant, customer, riders);
+            order.proceedWithCardPayment(cardNum, holderName, expiry, selectedRestaurant, customer, riders);
         } else {
-            // proceedWithCashPayment handles payment + tracking internally
-            order.proceedWithCashPayment(restaurant, customer, riders);
+            order.proceedWithCashPayment(selectedRestaurant, customer, riders);
         }
 
         customer.placeOrder(order);
         System.out.println("Order placed successfully! Total paid: Rs." + order.getTotalAmount());
-        if (order.getTracking() != null) {
-            System.out.println("" + order.getTracking().getSummary());
-        }
+        if (order.getTracking() != null)
+            System.out.println(order.getTracking().getSummary());
 
-        // Save updated riders — convert list back to array to capture availability changes
         riderFH.saveArray(riders.toArray(new Rider[0]), "riders.dat");
-
-        // Clear cart
-        cart.clearCart();
     }
 
     static void checkoutScheduled(Customer customer) {
         Cart cart = customer.getCart();
         if (cart.getItems().isEmpty()) {
             System.out.println("Your cart is empty.");
+            return;
+        }
+        if (selectedRestaurant == null) {
+            System.out.println("Please browse a restaurant before checking out.");
             return;
         }
 
@@ -346,27 +466,27 @@ public class ConsoleMain {
 
         ScheduledOrder order;
         if (redeemCode != null) {
-            order = cart.checkOutScheduled(customer, redeemCode, scheduledTime);
+            order = cart.checkOutScheduled(customer, redeemCode, scheduledTime, selectedRestaurant);
         } else {
-            order = cart.checkOutScheduled(customer, scheduledTime);
+            order = cart.checkOutScheduled(customer, scheduledTime, selectedRestaurant);
         }
 
-        if (order == null) return; // invalid schedule time
+        if (order == null)
+            return;
 
         order.confirm();
         customer.placeOrder(order);
         System.out.println("Scheduled order placed! Total: Rs." + order.getTotalAmount());
-
-        // Clear cart
-        cart.clearCart();
     }
 
     static RedeemCode offerSelectionFlow(Customer customer, Cart cart) {
         List<LoyaltyOffer> offers = cart.showLoyaltyOffers(customer);
-        if (offers.isEmpty()) return null;
+        if (offers.isEmpty())
+            return null;
 
         System.out.print("Apply a loyalty offer? (y/n): ");
-        if (!scanner.nextLine().trim().equalsIgnoreCase("y")) return null;
+        if (!scanner.nextLine().trim().equalsIgnoreCase("y"))
+            return null;
 
         System.out.print("Enter offer code (e.g. LOYAL-A): ");
         String code = scanner.nextLine().trim();
@@ -381,6 +501,10 @@ public class ConsoleMain {
         return cart.selectOffer(customer, offer);
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // ORDER MANAGEMENT
+    // ─────────────────────────────────────────────────────────────────────────
+
     static void viewOrderHistory(Customer customer) {
         List<Order> history = customer.viewOrderHistory();
         if (history.isEmpty()) {
@@ -389,8 +513,7 @@ public class ConsoleMain {
         }
         System.out.println("\n--- Order History ---");
         for (Order o : history) {
-            System.out.println("  [" + o.getOrderID() + "] Status: " + o.getStatus()
-                    + " | Rs." + o.getTotalAmount());
+            System.out.println("  [" + o.getOrderID() + "] Status: " + o.getStatus() + " | Rs." + o.getTotalAmount());
             for (FoodItem item : o.getItems()) {
                 System.out.println("    - " + item.getName() + " x" + item.getQuantity());
             }
@@ -411,9 +534,8 @@ public class ConsoleMain {
             return;
         }
         System.out.println("\n--- Scheduled Orders ---");
-        for (ScheduledOrder so : scheduled) {
+        for (ScheduledOrder so : scheduled)
             System.out.println("  " + so);
-        }
     }
 
     static void trackOrder(Customer customer) {
@@ -453,28 +575,24 @@ public class ConsoleMain {
         String password = scanner.nextLine().trim();
 
         RestaurantAdmin admin = loginManager.loginAdmin(username, password);
-        if (admin == null) return;
-
+        if (admin == null)
+            return;
         adminMenu(admin);
     }
 
     static void saveRestaurant(Restaurant restaurant) {
         FileHandler<Restaurant> fh = new FileHandler<>();
         Restaurant[] existing = fh.loadArray("restaurants.dat");
-
         if (existing == null) {
             System.out.println("Warning: could not load restaurants.dat to save.");
             return;
         }
-
-        // Find and replace the matching restaurant by ID
         for (int i = 0; i < existing.length; i++) {
             if (existing[i].getRestaurantID().equals(restaurant.getRestaurantID())) {
                 existing[i] = restaurant;
                 break;
             }
         }
-
         fh.saveArray(existing, "restaurants.dat");
         System.out.println("Restaurant data saved.");
     }
@@ -511,7 +629,7 @@ public class ConsoleMain {
                     System.out.println("Logged out.");
                     return;
                 }
-                default  -> System.out.println("Invalid choice.");
+                default -> System.out.println("Invalid choice.");
             }
         }
     }
