@@ -7,7 +7,7 @@ public class RestaurantAdmin extends Person implements Account {
     private String username;
     private String password;
     private Restaurant restaurant;
-    private final LoyaltyOfferManager offerManager = new LoyaltyOfferManager();
+    private transient LoyaltyOfferManager offerManager = new LoyaltyOfferManager();
 
     public RestaurantAdmin() {
     }
@@ -78,5 +78,11 @@ public class RestaurantAdmin extends Person implements Account {
 
     public void removeOffer(String offerCode) {
         offerManager.removeOffer(offerCode);
+    }
+
+    private void readObject(java.io.ObjectInputStream in)
+            throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        this.offerManager = new LoyaltyOfferManager();
     }
 }

@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "RiderSeeder",
+            "request": "launch",
+            "mainClass": "RiderSeeder",
+            "projectName": "ForBigBacks_2779fc37"
+        },
+        {
+            "type": "java",
             "name": "ConsoleMain",
             "request": "launch",
             "mainClass": "ConsoleMain",
