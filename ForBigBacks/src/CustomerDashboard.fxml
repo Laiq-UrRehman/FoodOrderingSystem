@@ -1,10 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<VBox xmlns:fx="http://javafx.com/fxml"
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/26"
       fx:controller="CustomerDashboardController"
-      style="-fx-background-color: #1a1a1a;"
-      alignment="CENTER" prefWidth="1280" prefHeight="800">
-    <Label text="Customer Dashboard"
-           style="-fx-text-fill: white; -fx-font-size: 24px;"/>
-</VBox>
+      prefWidth="1280" prefHeight="800"
+      style="-fx-background-color: #111111;">
+
+    <!-- SIDEBAR -->
+    <VBox prefWidth="200" prefHeight="800" styleClass="dashboard-sidebar">
+
+        <Label text="FORBIGBACKS" styleClass="dashboard-sidebar-logo">
+            <VBox.margin><Insets top="20" left="20" bottom="16"/></VBox.margin>
+        </Label>
+
+        <Region prefHeight="1" maxWidth="200" style="-fx-background-color: #2a2a2a;">
+            <VBox.margin><Insets bottom="8"/></VBox.margin>
+        </Region>
+
+        <Button text="  Home"     styleClass="dashboard-nav-button-active" maxWidth="200" onAction="#goHome"/>
+        <Button text="  Browse"   styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goBrowse"/>
+        <Button text="  Cart"     styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goCart"/>
+        <Button text="  Orders"   styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goOrders"/>
+        <Button text="  Tracking" styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goTracking"/>
+
+    </VBox>
+
+    <!-- MAIN -->
+    <VBox prefWidth="1080" prefHeight="800" style="-fx-background-color: #111111;">
+
+        <!-- TOP BAR -->
+        <HBox styleClass="dashboard-topbar" alignment="CENTER_LEFT" spacing="6">
+
+            <HBox alignment="CENTER_LEFT" spacing="4" HBox.hgrow="ALWAYS">
+                <Label text="Welcome back, " styleClass="dashboard-topbar-greeting"/>
+                <Label fx:id="customerNameLabel" text="Customer" styleClass="dashboard-topbar-name"/>
+            </HBox>
+
+            <HBox alignment="CENTER_RIGHT" spacing="10">
+                <Label fx:id="loyaltyPointsBadge" text="0 pts" styleClass="dashboard-points-badge"/>
+                <Button text="Logout" styleClass="dashboard-logout-button" onAction="#handleLogout"/>
+            </HBox>
+
+        </HBox>
+
+        <!-- CONTENT -->
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color: #111111; -fx-background: #111111;"
+                    VBox.vgrow="ALWAYS">
+
+            <VBox spacing="20" styleClass="dashboard-content-area">
+
+                <!-- STATS -->
+                <Label text="OVERVIEW" styleClass="dashboard-section-title"/>
+
+                <HBox spacing="12">
+                    <VBox styleClass="dashboard-stat-card" spacing="6">
+                        <Label text="Total Orders" styleClass="dashboard-stat-label"/>
+                        <Label fx:id="totalOrdersLabel" text="0" styleClass="dashboard-stat-value"/>
+                    </VBox>
+                    <VBox styleClass="dashboard-stat-card" spacing="6">
+                        <Label text="Loyalty Points" styleClass="dashboard-stat-label"/>
+                        <Label fx:id="pointsStatLabel" text="0" styleClass="dashboard-stat-value-brown"/>
+                    </VBox>
+                    <VBox styleClass="dashboard-stat-card" spacing="6">
+                        <Label text="Favourite Category" styleClass="dashboard-stat-label"/>
+                        <Label fx:id="favouriteCategoryLabel" text="-" styleClass="dashboard-stat-value"
+                               style="-fx-font-size: 14px;"/>
+                    </VBox>
+                </HBox>
+
+                <!-- RESTAURANTS -->
+                <Label text="RESTAURANTS" styleClass="dashboard-section-title"/>
+                <FlowPane fx:id="restaurantsContainer" hgap="12" vgap="12"/>
+
+            </VBox>
+        </ScrollPane>
+
+    </VBox>
+
+</HBox>

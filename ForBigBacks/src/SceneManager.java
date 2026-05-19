@@ -37,7 +37,8 @@ public class SceneManager {
         this.stage.setTitle("ForBigBacks");
         this.stage.setResizable(true);
         this.stage.setWidth(1280);
-        this.stage.setHeight(680);
+        this.stage.setHeight(800);
+        this.stage.centerOnScreen();
     }
 
     public void switchTo(String screenName) {
@@ -50,13 +51,25 @@ public class SceneManager {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
             Parent root = loader.load();
             Scene scene = new Scene(root);
-            // global.css is applied here
+
+            // global.css on every screen
             scene.getStylesheets().add(
                     getClass().getResource("/global.css").toExternalForm());
-            // auth.css is applied here
+
+            // auth.css only for login and signup
             if (screenName.equals("Login") || screenName.equals("Signup")) {
                 scene.getStylesheets().add(
                         getClass().getResource("/auth.css").toExternalForm());
+            }
+
+            // dashboard.css for all customer and admin screens
+            if (screenName.equals("CustomerDashboard") || screenName.equals("MenuView")
+                    || screenName.equals("Cart") || screenName.equals("Checkout")
+                    || screenName.equals("OrderHistory") || screenName.equals("OrderTracking")
+                    || screenName.equals("ScheduledOrder") || screenName.equals("AdminDashboard")
+                    || screenName.equals("RestaurantBrowse")) {
+                scene.getStylesheets().add(
+                        getClass().getResource("/dashboard.css").toExternalForm());
             }
 
             stage.setScene(scene);

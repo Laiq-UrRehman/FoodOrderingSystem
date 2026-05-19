@@ -3,6 +3,7 @@ public class SessionManager {
     private static SessionManager instance;
     private Customer currentCustomer;
     private RestaurantAdmin currentAdmin;
+    private Restaurant selectedRestaurant;
 
     private SessionManager() {
     }
@@ -29,9 +30,18 @@ public class SessionManager {
         this.currentAdmin = a;
     }
 
+    public Restaurant getSelectedRestaurant() {
+        return selectedRestaurant;
+    }
+
+    public void setSelectedRestaurant(Restaurant r) {
+        this.selectedRestaurant = r;
+    }
+
     public void logout() {
         currentCustomer = null;
         currentAdmin = null;
+        selectedRestaurant = null;
     }
 
     public boolean isCustomerLoggedIn() {

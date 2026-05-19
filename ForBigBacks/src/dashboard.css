@@ -1,0 +1,229 @@
+/* ── Sidebar ── */
+
+.dashboard-sidebar {
+    -fx-background-color: #1a1a1a;
+}
+
+.dashboard-sidebar-logo {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.dashboard-nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #888888;
+    -fx-font-size: 13px;
+    -fx-padding: 10 20;
+    -fx-alignment: CENTER_LEFT;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-pref-width: 200;
+    -fx-background-radius: 0;
+}
+
+.dashboard-nav-button:hover {
+    -fx-background-color: #222222;
+    -fx-text-fill: #cccccc;
+}
+
+.dashboard-nav-button-active {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-padding: 10 20;
+    -fx-alignment: CENTER_LEFT;
+    -fx-cursor: hand;
+    -fx-border-color: #8B5E3C transparent transparent transparent;
+    -fx-border-width: 0 0 0 3;
+    -fx-pref-width: 200;
+    -fx-background-radius: 0;
+}
+
+/* ── Top Bar ── */
+
+.dashboard-topbar {
+    -fx-background-color: #1a1a1a;
+    -fx-border-color: transparent transparent #2a2a2a transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 24;
+    -fx-pref-height: 54;
+}
+
+.dashboard-topbar-greeting {
+    -fx-font-size: 13px;
+    -fx-text-fill: #aaaaaa;
+}
+
+.dashboard-topbar-name {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.dashboard-points-badge {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #8B5E3C;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 12;
+    -fx-background-radius: 20;
+    -fx-border-color: #444444;
+    -fx-border-radius: 20;
+}
+
+.dashboard-logout-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #888888;
+    -fx-font-size: 12px;
+    -fx-padding: 4 12;
+    -fx-border-color: #444444;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+    -fx-background-radius: 6;
+}
+
+.dashboard-logout-button:hover {
+    -fx-text-fill: #cccccc;
+    -fx-border-color: #666666;
+}
+
+.dashboard-back-button {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #cccccc;
+    -fx-font-size: 13px;
+    -fx-padding: 6 14;
+    -fx-background-radius: 6;
+    -fx-border-color: #444444;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+
+.dashboard-back-button:hover {
+    -fx-background-color: #333333;
+}
+
+/* ── Main Content Area ── */
+
+.dashboard-content-area {
+    -fx-background-color: #111111;
+    -fx-padding: 24;
+}
+
+.dashboard-section-title {
+    -fx-font-size: 11px;
+    -fx-text-fill: #888888;
+}
+
+/* ── Stat Cards ── */
+
+.dashboard-stat-card {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 10;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 10;
+    -fx-padding: 14;
+    -fx-pref-width: 200;
+}
+
+.dashboard-stat-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #aaaaaa;
+}
+
+.dashboard-stat-value {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.dashboard-stat-value-brown {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8B5E3C;
+}
+
+/* ── Restaurant Cards ── */
+
+.dashboard-restaurant-card {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 10;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 10;
+    -fx-cursor: hand;
+    -fx-pref-width: 220;
+}
+
+.dashboard-restaurant-card:hover {
+    -fx-border-color: #8B5E3C;
+}
+
+.dashboard-restaurant-card-header {
+    -fx-background-color: #2a2a2a;
+    -fx-background-radius: 10 10 0 0;
+    -fx-pref-height: 80;
+    -fx-alignment: CENTER;
+}
+
+.dashboard-restaurant-name {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.dashboard-restaurant-cuisine {
+    -fx-font-size: 12px;
+    -fx-text-fill: #aaaaaa;
+}
+
+.dashboard-restaurant-rating {
+    -fx-font-size: 12px;
+    -fx-text-fill: #8B5E3C;
+    -fx-font-weight: bold;
+}
+
+/* ── Menu Item Rows ── */
+
+.dashboard-menu-item-row {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 8;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 8;
+    -fx-padding: 12 16;
+}
+
+.dashboard-menu-item-name {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.dashboard-menu-item-category {
+    -fx-font-size: 12px;
+    -fx-text-fill: #aaaaaa;
+}
+
+.dashboard-menu-item-price {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8B5E3C;
+}
+
+.dashboard-menu-item-rating {
+    -fx-font-size: 12px;
+    -fx-text-fill: #888888;
+}
+
+.dashboard-add-button {
+    -fx-background-color: #8B5E3C;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 14;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.dashboard-add-button:hover {
+    -fx-background-color: #6F4A2F;
+}
