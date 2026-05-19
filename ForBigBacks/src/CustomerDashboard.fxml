@@ -33,14 +33,15 @@
     <VBox prefWidth="1080" prefHeight="800" style="-fx-background-color: #111111;">
 
         <!-- TOP BAR -->
-        <HBox styleClass="dashboard-topbar" alignment="CENTER_LEFT" spacing="6">
+        <HBox styleClass="dashboard-topbar" alignment="CENTER_LEFT" spacing="4">
 
-            <HBox alignment="CENTER_LEFT" spacing="4" HBox.hgrow="ALWAYS">
-                <Label text="Welcome back, " styleClass="dashboard-topbar-greeting"/>
+            <HBox alignment="CENTER_LEFT" spacing="0" HBox.hgrow="ALWAYS">
+                <Label text="Welcome To FORBIGBACKS " styleClass="dashboard-topbar-greeting"/>
                 <Label fx:id="customerNameLabel" text="Customer" styleClass="dashboard-topbar-name"/>
+                <Label text="!" styleClass="dashboard-topbar-name"/>
             </HBox>
 
-            <HBox alignment="CENTER_RIGHT" spacing="10">
+            <HBox alignment="CENTER_RIGHT" spacing="12">
                 <Label fx:id="loyaltyPointsBadge" text="0 pts" styleClass="dashboard-points-badge"/>
                 <Button text="Logout" styleClass="dashboard-logout-button" onAction="#handleLogout"/>
             </HBox>
@@ -57,25 +58,33 @@
                 <!-- STATS -->
                 <Label text="OVERVIEW" styleClass="dashboard-section-title"/>
 
-                <HBox spacing="12">
-                    <VBox styleClass="dashboard-stat-card" spacing="6">
+                <HBox spacing="14" fillHeight="true">
+                    <VBox styleClass="dashboard-stat-card" spacing="8">
                         <Label text="Total Orders" styleClass="dashboard-stat-label"/>
                         <Label fx:id="totalOrdersLabel" text="0" styleClass="dashboard-stat-value"/>
                     </VBox>
-                    <VBox styleClass="dashboard-stat-card" spacing="6">
+                    <VBox styleClass="dashboard-stat-card" spacing="8">
                         <Label text="Loyalty Points" styleClass="dashboard-stat-label"/>
                         <Label fx:id="pointsStatLabel" text="0" styleClass="dashboard-stat-value-brown"/>
                     </VBox>
-                    <VBox styleClass="dashboard-stat-card" spacing="6">
+                    <VBox styleClass="dashboard-stat-card" spacing="8">
                         <Label text="Favourite Category" styleClass="dashboard-stat-label"/>
                         <Label fx:id="favouriteCategoryLabel" text="-" styleClass="dashboard-stat-value"
-                               style="-fx-font-size: 14px;"/>
+                               style="-fx-font-size: 18px;"/>
                     </VBox>
                 </HBox>
 
                 <!-- RESTAURANTS -->
-                <Label text="RESTAURANTS" styleClass="dashboard-section-title"/>
-                <FlowPane fx:id="restaurantsContainer" hgap="12" vgap="12"/>
+                <Label text="RESTAURANTS" styleClass="dashboard-section-title">
+                    <VBox.margin><Insets top="8"/></VBox.margin>
+                </Label>
+                <FlowPane fx:id="restaurantsContainer" hgap="14" vgap="14"/>
+
+                <!-- SUGGESTIONS -->
+                <Label text="SUGGESTED FOR YOU" styleClass="dashboard-section-title">
+                    <VBox.margin><Insets top="8"/></VBox.margin>
+                </Label>
+                <FlowPane fx:id="suggestionsContainer" hgap="14" vgap="14"/>
 
             </VBox>
         </ScrollPane>

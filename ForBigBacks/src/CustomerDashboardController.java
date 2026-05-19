@@ -3,6 +3,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import java.util.List;
 
 public class CustomerDashboardController {
 
@@ -18,8 +19,11 @@ public class CustomerDashboardController {
     private Label favouriteCategoryLabel;
     @FXML
     private FlowPane restaurantsContainer;
+    @FXML
+    private FlowPane suggestionsContainer;
 
     private Customer customer;
+    private Restaurant[] restaurants;
 
     @FXML
     public void initialize() {
@@ -30,6 +34,7 @@ public class CustomerDashboardController {
         }
         loadCustomerData();
         loadRestaurants();
+        loadSuggestions();
     }
 
     private void loadCustomerData() {
@@ -38,12 +43,12 @@ public class CustomerDashboardController {
         totalOrdersLabel.setText(String.valueOf(customer.viewOrderHistory().size()));
         pointsStatLabel.setText(String.valueOf(customer.viewLoyaltyPoints()));
         String preferred = customer.getPreferredCategory();
-        favouriteCategoryLabel.setText(preferred != null ? preferred : "-");
+        favouriteCategoryLabel.setText(preferred != null ? preferred : "None yet");
     }
 
     private void loadRestaurants() {
         FileHandler<Restaurant> fh = new FileHandler<>();
-        Restaurant[] restaurants = fh.loadArray("restaurants.dat");
+        restaurants = fh.loadArray("restaurants.dat");
         if (restaurants == null)
             return;
 
@@ -53,23 +58,42 @@ public class CustomerDashboardController {
         }
     }
 
+    private void loadSuggestions() {
+        if (restaurants == null)
+            return;
+
+        SearchManager sm = new SearchManager();
+        List<FoodItem> suggestions = sm.getSuggestedItems(customer, restaurants, 6);
+
+        suggestionsContainer.getChildren().clear();
+
+        if (suggestions.isEmpty()) {
+            Label empty = new Label("Order something to get personalised suggestions!");
+            empty.setStyle("-fx-text-fill: #555555; -fx-font-size: 13px;");
+            suggestionsContainer.getChildren().add(empty);
+            return;
+        }
+
+        for (FoodItem item : suggestions) {
+            suggestionsContainer.getChildren().add(createSuggestionCard(item));
+        }
+    }
+
     private VBox createRestaurantCard(Restaurant restaurant) {
         VBox card = new VBox();
         card.getStyleClass().add("dashboard-restaurant-card");
-        card.setPrefWidth(220);
+        card.setPrefWidth(280);
 
-        // Header with emoji
         VBox header = new VBox();
         header.getStyleClass().add("dashboard-restaurant-card-header");
-        header.setPrefHeight(80);
+        header.setPrefHeight(100);
         header.setAlignment(Pos.CENTER);
         Label emoji = new Label(getCuisineEmoji(restaurant.getCuisineType()));
-        emoji.setStyle("-fx-font-size: 30px;");
+        emoji.setStyle("-fx-font-size: 36px;");
         header.getChildren().add(emoji);
 
-        // Body
-        VBox body = new VBox(4);
-        body.setPadding(new Insets(10));
+        VBox body = new VBox(6);
+        body.setPadding(new Insets(12));
 
         Label nameLabel = new Label(restaurant.getName());
         nameLabel.getStyleClass().add("dashboard-restaurant-name");
@@ -77,18 +101,38 @@ public class CustomerDashboardController {
         Label cuisineLabel = new Label(restaurant.getCuisineType());
         cuisineLabel.getStyleClass().add("dashboard-restaurant-cuisine");
 
-        Label ratingLabel = new Label(String.format("★ %.1f", restaurant.getRating()));
+        Label ratingLabel = new Label(String.format("★ %.1f  ·  %d ratings",
+                restaurant.getRating(), restaurant.getTotalRatings()));
         ratingLabel.getStyleClass().add("dashboard-restaurant-rating");
 
         body.getChildren().addAll(nameLabel, cuisineLabel, ratingLabel);
         card.getChildren().addAll(header, body);
 
-        // Click — store selected restaurant and go to menu
         card.setOnMouseClicked(e -> {
             SessionManager.getInstance().setSelectedRestaurant(restaurant);
             SceneManager.getInstance().switchTo("MenuView");
         });
 
+        return card;
+    }
+
+    private VBox createSuggestionCard(FoodItem item) {
+        VBox card = new VBox(8);
+        card.getStyleClass().add("dashboard-suggestion-card");
+        card.setPrefWidth(280);
+
+        Label nameLabel = new Label(item.getName());
+        nameLabel.getStyleClass().add("dashboard-suggestion-name");
+        nameLabel.setWrapText(true);
+
+        Label detailLabel = new Label(item.getCategory()
+                + "  ·  ★ " + String.format("%.1f", item.getRating()));
+        detailLabel.getStyleClass().add("dashboard-suggestion-detail");
+
+        Label priceLabel = new Label("Rs. " + (int) item.getPrice());
+        priceLabel.getStyleClass().add("dashboard-suggestion-price");
+
+        card.getChildren().addAll(nameLabel, detailLabel, priceLabel);
         return card;
     }
 

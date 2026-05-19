@@ -74,6 +74,7 @@ public class SceneManager {
 
             stage.setScene(scene);
             stage.show();
+            stage.setMaximized(true);
         } catch (IOException e) {
             System.out.println("Error loading screen: " + screenName);
             e.printStackTrace();
