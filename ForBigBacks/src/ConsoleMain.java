@@ -49,6 +49,7 @@ public class ConsoleMain {
         java.io.File restaurantFile = new java.io.File("restaurants.dat");
         java.io.File customerFile = new java.io.File("customers.dat");
         java.io.File riderFile = new java.io.File("riders.dat");
+        java.io.File adminCredFile = new java.io.File("admin_credentials.dat");
 
         if (!restaurantFile.exists()) {
             System.out.println("Seeding restaurant data...");
@@ -61,6 +62,10 @@ public class ConsoleMain {
         if (!riderFile.exists()) {
             System.out.println("Seeding rider data...");
             RiderSeeder.seedRiders();
+        }
+        if (!adminCredFile.exists()) {
+            System.out.println("Seeding admin credentials...");
+            AdminCredentialsSeeder.seedAdminCredentials();
         }
     }
 

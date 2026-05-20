@@ -25,26 +25,44 @@ public class LoginManager {
     // ── Restaurant Admin Login ─────────────────────────────────────────────────
 
     public RestaurantAdmin loginAdmin(String username, String password) {
-        FileHandler<Restaurant> fileHandler = new FileHandler<>();
-        Restaurant[] restaurants = fileHandler.loadArray("restaurants.dat");
+
+        FileHandler<String[][]> credFileHandler = new FileHandler<>();
+        String[][] credentials = credFileHandler.loadObject("admin_credentials.dat");
+
+        if (credentials == null) {
+            System.out.println("No admin credential data found. Please seed data first.");
+            return null;
+        }
+
+        String matchedRestaurantID = null;
+        for (String[] cred : credentials) {
+            if (cred[0].equals(username) && cred[1].equals(password)) {
+                matchedRestaurantID = cred[2];
+                break;
+            }
+        }
+
+        if (matchedRestaurantID == null) {
+            System.out.println("Invalid admin username or password.");
+            return null;
+        }
+
+        FileHandler<Restaurant> restaurantFileHandler = new FileHandler<>();
+        Restaurant[] restaurants = restaurantFileHandler.loadArray("restaurants.dat");
 
         if (restaurants == null) {
-            System.out.println("No restaurant data found. Please seed data first.");
+            System.out.println("No restaurant data found.");
             return null;
         }
 
         for (Restaurant r : restaurants) {
-            RestaurantAdmin admin = r.getAdmin();
-            if (admin != null
-                    && admin.getUsername().equals(username)
-                    && admin.getPassword().equals(password)) {
-                System.out.println("Admin login successful. Welcome, " + admin.getName()
-                        + " (" + r.getName() + ")!");
-                return admin;
+            if (r.getRestaurantID().equals(matchedRestaurantID)) {
+                System.out.println("Admin login successful. Welcome, " + r.getAdmin().getName() + " (" + r.getName() + ")!");
+                return r.getAdmin();
             }
         }
 
-        System.out.println("Invalid admin username or password.");
+        System.out.println("Restaurant not found for admin.");
         return null;
     }
 }
