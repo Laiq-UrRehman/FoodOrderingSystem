@@ -3,6 +3,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CustomerSeeder",
+            "request": "launch",
+            "mainClass": "CustomerSeeder",
+            "projectName": "ForBigBacks_5df27f0d"
+        },
+        {
+            "type": "java",
+            "name": "DataSeeder",
+            "request": "launch",
+            "mainClass": "DataSeeder",
+            "projectName": "ForBigBacks_5df27f0d"
+        },
+        {
+            "type": "java",
             "name": "ConsoleMain",
             "request": "launch",
             "mainClass": "ConsoleMain",
