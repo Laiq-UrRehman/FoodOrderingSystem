@@ -373,3 +373,286 @@
     -fx-background-color: #6F4A2F;
     -fx-border-color: #6F4A2F;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   PHASE 5 ADDITIONS — append these to the bottom of dashboard.css
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Empty State ─────────────────────────────────────────────── */
+
+.dashboard-empty-state {
+    -fx-alignment: CENTER;
+    -fx-padding: 80;
+    -fx-spacing: 12;
+}
+
+.dashboard-empty-icon {
+    -fx-font-size: 52px;
+}
+
+.dashboard-empty-title {
+    -fx-text-fill: #555555;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+/* ── Order History Cards ─────────────────────────────────────── */
+
+.dashboard-order-card {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 10;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 10;
+}
+
+.dashboard-order-card-header {
+    -fx-background-color: #1f1f1f;
+    -fx-background-radius: 10 10 0 0;
+    -fx-padding: 14 16;
+    -fx-border-color: transparent transparent #2a2a2a transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.dashboard-order-card-body {
+    -fx-padding: 10 16 12 16;
+}
+
+.dashboard-order-card-footer {
+    -fx-background-color: #161616;
+    -fx-background-radius: 0 0 10 10;
+    -fx-padding: 10 16;
+    -fx-border-color: #2a2a2a transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.dashboard-order-type-label {
+    -fx-text-fill: #cccccc;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.dashboard-order-id-label {
+    -fx-text-fill: #444444;
+    -fx-font-size: 11px;
+}
+
+.dashboard-order-total {
+    -fx-text-fill: #8B5E3C;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-min-width: 90;
+}
+
+.dashboard-order-item-label {
+    -fx-text-fill: #666666;
+    -fx-font-size: 12px;
+}
+
+/* ── Order Action Buttons ────────────────────────────────────── */
+
+.dashboard-order-track-button {
+    -fx-background-color: #8B5E3C;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 14;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.dashboard-order-track-button:hover {
+    -fx-background-color: #6F4A2F;
+}
+
+.dashboard-order-cancel-button {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #ff6666;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 14;
+    -fx-background-radius: 6;
+    -fx-border-color: #ff4444;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+
+.dashboard-order-cancel-button:hover {
+    -fx-background-color: #2a1111;
+}
+
+/* ── Status Badges ───────────────────────────────────────────── */
+
+.dashboard-order-status-badge {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10;
+    -fx-background-radius: 20;
+}
+
+.order-status-pending {
+    -fx-background-color: #2a2a1a;
+    -fx-text-fill: #ccaa44;
+    -fx-border-color: #665522;
+    -fx-border-radius: 20;
+}
+
+.order-status-confirmed {
+    -fx-background-color: #1a2a2a;
+    -fx-text-fill: #44aacc;
+    -fx-border-color: #225566;
+    -fx-border-radius: 20;
+}
+
+.order-status-preparing {
+    -fx-background-color: #2a1f0a;
+    -fx-text-fill: #cc8833;
+    -fx-border-color: #664411;
+    -fx-border-radius: 20;
+}
+
+.order-status-transit {
+    -fx-background-color: #1a1a2a;
+    -fx-text-fill: #8888ee;
+    -fx-border-color: #333388;
+    -fx-border-radius: 20;
+}
+
+.order-status-delivered {
+    -fx-background-color: #0f1f0f;
+    -fx-text-fill: #44cc77;
+    -fx-border-color: #226633;
+    -fx-border-radius: 20;
+}
+
+.order-status-cancelled {
+    -fx-background-color: #1f0f0f;
+    -fx-text-fill: #cc4444;
+    -fx-border-color: #662222;
+    -fx-border-radius: 20;
+}
+
+.order-status-scheduled {
+    -fx-background-color: #1a0f2a;
+    -fx-text-fill: #aa77ee;
+    -fx-border-color: #553388;
+    -fx-border-radius: 20;
+}
+
+/* ── Tracking Screen ─────────────────────────────────────────── */
+
+.dashboard-tracking-big-status {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8B5E3C;
+}
+
+.dashboard-tracking-card {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 10;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 10;
+    -fx-padding: 16;
+}
+
+.dashboard-tracking-label {
+    -fx-text-fill: #888888;
+    -fx-font-size: 13px;
+}
+
+.dashboard-tracking-value {
+    -fx-text-fill: #cccccc;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.dashboard-tracking-item {
+    -fx-text-fill: #777777;
+    -fx-font-size: 12px;
+}
+
+.dashboard-tracking-rider-emoji {
+    -fx-font-size: 40px;
+    -fx-alignment: CENTER;
+}
+
+.dashboard-tracking-divider {
+    -fx-background-color: #2a2a2a;
+    -fx-pref-height: 1;
+}
+
+/* ── Tracking Step Indicators ────────────────────────────────── */
+
+.dashboard-step-circle-done {
+    -fx-background-color: #4a7c59;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-max-width: 32;
+    -fx-max-height: 32;
+    -fx-background-radius: 16;
+    -fx-alignment: CENTER;
+}
+
+.dashboard-step-circle-active {
+    -fx-background-color: #8B5E3C;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-max-width: 32;
+    -fx-max-height: 32;
+    -fx-background-radius: 16;
+    -fx-alignment: CENTER;
+}
+
+.dashboard-step-circle-idle {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #444444;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-max-width: 32;
+    -fx-max-height: 32;
+    -fx-background-radius: 16;
+    -fx-alignment: CENTER;
+}
+
+.dashboard-step-label-active {
+    -fx-text-fill: #8B5E3C;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.dashboard-step-label-done {
+    -fx-text-fill: #4a7c59;
+    -fx-font-size: 12px;
+}
+
+.dashboard-step-label-idle {
+    -fx-text-fill: #444444;
+    -fx-font-size: 12px;
+}
+
+.dashboard-step-connector-done {
+    -fx-background-color: #4a7c59;
+    -fx-pref-width: 40;
+    -fx-pref-height: 2;
+    -fx-max-height: 2;
+}
+
+.dashboard-step-connector-idle {
+    -fx-background-color: #2a2a2a;
+    -fx-pref-width: 40;
+    -fx-pref-height: 2;
+    -fx-max-height: 2;
+}
+
+.dashboard-tracking-eta {
+    -fx-text-fill: #aaaaaa;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+}

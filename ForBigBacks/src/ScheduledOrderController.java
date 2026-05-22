@@ -259,7 +259,7 @@ public class ScheduledOrderController {
         customer.placeOrder(order);
         saveCustomer();
 
-        SceneManager.getInstance().switchTo("CustomerDashboard"); // Phase 5: change to OrderHistory
+        SceneManager.getInstance().switchTo("OrderHistory");
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -340,11 +340,11 @@ public class ScheduledOrderController {
 
     @FXML
     private void goOrders() {
-        SceneManager.getInstance().switchTo("CustomerDashboard");
-    } // Phase 5
+        SceneManager.getInstance().switchTo("OrderHistory");
+    }
 
     @FXML
     private void goTracking() {
-        SceneManager.getInstance().switchTo("CustomerDashboard"); // Phase 5 }
+        SceneManager.getInstance().switchTo("OrderTracking");
     }
 }

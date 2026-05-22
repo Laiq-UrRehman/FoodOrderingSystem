@@ -1,108 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 
-<HBox xmlns:fx="http://javafx.com/fxml/1"
-      xmlns="http://javafx.com/javafx/26"
-      fx:controller="ScheduledOrderController"
-      prefWidth="1280" prefHeight="800"
-      style="-fx-background-color: #111111;">
+<HBox prefHeight="800" prefWidth="1280" style="-fx-background-color: #111111;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ScheduledOrderController">
 
     <!-- SIDEBAR -->
-    <VBox prefWidth="200" prefHeight="800" styleClass="dashboard-sidebar">
+    <VBox prefHeight="800" prefWidth="200" styleClass="dashboard-sidebar">
 
-        <Label text="FORBIGBACKS" styleClass="dashboard-sidebar-logo">
-            <VBox.margin><Insets top="20" left="20" bottom="16"/></VBox.margin>
+        <Label styleClass="dashboard-sidebar-logo" text="FORBIGBACKS">
+            <VBox.margin><Insets bottom="16" left="20" top="20" /></VBox.margin>
         </Label>
 
-        <Region prefHeight="1" maxWidth="200" style="-fx-background-color: #2a2a2a;">
-            <VBox.margin><Insets bottom="8"/></VBox.margin>
+        <Region maxWidth="200" prefHeight="1" style="-fx-background-color: #2a2a2a;">
+            <VBox.margin><Insets bottom="8" /></VBox.margin>
         </Region>
 
-        <Button text="  Home"     styleClass="dashboard-nav-button" maxWidth="200" onAction="#goHome"/>
-        <Button text="  Browse"   styleClass="dashboard-nav-button" maxWidth="200" onAction="#goBrowse"/>
-        <Button text="  Cart"     styleClass="dashboard-nav-button" maxWidth="200" onAction="#goCart"/>
-        <Button text="  Orders"   styleClass="dashboard-nav-button" maxWidth="200" onAction="#goOrders"/>
-        <Button text="  Tracking" styleClass="dashboard-nav-button" maxWidth="200" onAction="#goTracking"/>
+        <Button maxWidth="200" onAction="#goHome" styleClass="dashboard-nav-button" text="  Home" />
+        <Button maxWidth="200" onAction="#goBrowse" styleClass="dashboard-nav-button" text="  Browse" />
+        <Button maxWidth="200" onAction="#goCart" styleClass="dashboard-nav-button" text="  Cart" />
+        <Button maxWidth="200" onAction="#goOrders" styleClass="dashboard-nav-button" text="  Orders" />
+        <Button maxWidth="200" onAction="#goTracking" styleClass="dashboard-nav-button" text="  Tracking" />
 
     </VBox>
 
     <!-- MAIN -->
-    <VBox prefWidth="1080" prefHeight="800" style="-fx-background-color: #111111;">
+    <VBox prefHeight="800" prefWidth="1080" style="-fx-background-color: #111111;">
 
         <!-- TOP BAR -->
-        <HBox styleClass="dashboard-topbar" alignment="CENTER_LEFT" spacing="12">
-            <Button text="← Back" styleClass="dashboard-back-button" onAction="#goBack"/>
-            <Label text="Schedule Order" styleClass="dashboard-topbar-name"/>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="dashboard-topbar">
+            <Button onAction="#goBack" styleClass="dashboard-back-button" text="← Back" />
+            <Label styleClass="dashboard-topbar-name" text="Schedule Order" />
         </HBox>
 
         <!-- CONTENT -->
-        <ScrollPane fitToWidth="true"
-                    style="-fx-background-color: #111111; -fx-background: #111111;"
-                    VBox.vgrow="ALWAYS">
+        <ScrollPane fitToWidth="true" style="-fx-background-color: #111111; -fx-background: #111111;" VBox.vgrow="ALWAYS">
 
             <HBox spacing="24">
-                <HBox.margin><Insets top="28" right="28" bottom="28" left="28"/></HBox.margin>
+                <HBox.margin><Insets bottom="28" left="28" right="28" top="28" /></HBox.margin>
 
                 <!-- LEFT: Order Summary + Date/Time -->
                 <VBox spacing="16" HBox.hgrow="ALWAYS">
 
-                    <Label text="ORDER SUMMARY" styleClass="dashboard-section-title"/>
+                    <Label styleClass="dashboard-section-title" text="ORDER SUMMARY" />
 
                     <!-- Items list -->
-                    <VBox fx:id="orderItemsContainer"
-                          styleClass="dashboard-cart-summary-card"
-                          spacing="10"/>
+                    <VBox fx:id="orderItemsContainer" spacing="10" styleClass="dashboard-cart-summary-card" />
 
                     <!-- Total -->
-                    <VBox styleClass="dashboard-cart-summary-card" spacing="12">
+                    <VBox spacing="12" styleClass="dashboard-cart-summary-card">
                         <HBox alignment="CENTER_LEFT">
-                            <Label text="TOTAL" styleClass="dashboard-topbar-greeting"
-                                   HBox.hgrow="ALWAYS"/>
-                            <Label fx:id="totalLabel" text="Rs. 0"
-                                   styleClass="dashboard-checkout-total"/>
+                            <Label styleClass="dashboard-topbar-greeting" text="TOTAL" HBox.hgrow="ALWAYS" />
+                            <Label fx:id="totalLabel" styleClass="dashboard-checkout-total" text="Rs. 0" />
                         </HBox>
                     </VBox>
 
                     <!-- Schedule Picker -->
                     <VBox spacing="12">
 
-                        <Label text="DELIVERY SCHEDULE" styleClass="dashboard-section-title">
-                            <VBox.margin><Insets top="8"/></VBox.margin>
+                        <Label styleClass="dashboard-section-title" text="DELIVERY SCHEDULE">
+                            <VBox.margin><Insets top="8" /></VBox.margin>
                         </Label>
 
-                        <Label text="Must be at least 30 minutes from now"
-                               styleClass="text-screen-subheading"/>
+                        <Label styleClass="text-screen-subheading" text="Must be at least 30 minutes from now" />
 
-                        <HBox spacing="12" alignment="CENTER_LEFT">
+                        <HBox alignment="CENTER_LEFT" spacing="12">
 
-                            <DatePicker fx:id="datePicker"
-                                        promptText="Select date"
-                                        prefWidth="200"
-                                        style="-fx-background-color: #2a2a2a;
-                                               -fx-border-color: #444444;
-                                               -fx-border-radius: 8;
-                                               -fx-background-radius: 8;"/>
+                            <DatePicker fx:id="datePicker" prefWidth="200" promptText="Select date" style="-fx-background-color: #2a2a2a;                                                -fx-border-color: #444444;                                                -fx-border-radius: 8;                                                -fx-background-radius: 8;" />
 
-                            <TextField fx:id="hourField"
-                                       promptText="HH  (00–23)"
-                                       prefWidth="110"
-                                       styleClass="input-text-field"/>
+                            <TextField fx:id="hourField" prefWidth="110" promptText="HH  (00–23)" styleClass="input-text-field" />
 
-                            <Label text=":" style="-fx-text-fill: #888888; -fx-font-size: 20px;
-                                                    -fx-font-weight: bold;"/>
+                            <Label style="-fx-text-fill: #888888; -fx-font-size: 20px;                                                     -fx-font-weight: bold;" text=":" />
 
-                            <TextField fx:id="minuteField"
-                                       promptText="MM  (00–59)"
-                                       prefWidth="110"
-                                       styleClass="input-text-field"/>
+                            <TextField fx:id="minuteField" prefWidth="110" promptText="MM  (00–59)" styleClass="input-text-field" />
 
                         </HBox>
 
-                        <Label fx:id="scheduleErrorLabel" text=""
-                               styleClass="text-error-message" wrapText="true"/>
+                        <Label fx:id="scheduleErrorLabel" styleClass="text-error-message" text="" wrapText="true" />
 
                     </VBox>
 
@@ -113,56 +94,33 @@
 
                     <!-- Payment Method -->
                     <VBox spacing="12">
-                        <Label text="PAYMENT METHOD" styleClass="dashboard-section-title"/>
+                        <Label styleClass="dashboard-section-title" text="PAYMENT METHOD" />
                         <HBox spacing="10">
-                            <Button fx:id="cashButton"
-                                    text="💵  Cash"
-                                    styleClass="dashboard-payment-toggle-active"
-                                    onAction="#selectCash"
-                                    HBox.hgrow="ALWAYS"
-                                    maxWidth="Infinity"/>
-                            <Button fx:id="cardButton"
-                                    text="💳  Card"
-                                    styleClass="dashboard-payment-toggle"
-                                    onAction="#selectCard"
-                                    HBox.hgrow="ALWAYS"
-                                    maxWidth="Infinity"/>
+                            <Button fx:id="cashButton" maxWidth="Infinity" onAction="#selectCash" styleClass="dashboard-payment-toggle-active" text="💵  Cash" HBox.hgrow="ALWAYS" />
+                            <Button fx:id="cardButton" maxWidth="Infinity" onAction="#selectCard" styleClass="dashboard-payment-toggle" text="💳  Card" HBox.hgrow="ALWAYS" />
                         </HBox>
                     </VBox>
 
                     <!-- Card Fields (hidden by default) -->
                     <VBox fx:id="cardFieldsContainer" spacing="10">
-                        <Label text="CARD DETAILS" styleClass="dashboard-section-title"/>
-                        <TextField fx:id="cardNumberField"
-                                   promptText="Card number (16 digits)"
-                                   styleClass="input-text-field"/>
-                        <TextField fx:id="cardHolderField"
-                                   promptText="Cardholder name"
-                                   styleClass="input-text-field"/>
-                        <TextField fx:id="expiryField"
-                                   promptText="Expiry  MM/YY"
-                                   styleClass="input-text-field"/>
+                        <Label styleClass="dashboard-section-title" text="CARD DETAILS" />
+                        <TextField fx:id="cardNumberField" promptText="Card number (16 digits)" styleClass="input-text-field" />
+                        <TextField fx:id="cardHolderField" promptText="Cardholder name" styleClass="input-text-field" />
+                        <TextField fx:id="expiryField" promptText="Expiry  MM/YY" styleClass="input-text-field" />
                     </VBox>
 
                     <!-- Loyalty Offers -->
                     <VBox spacing="10">
-                        <Label text="LOYALTY OFFERS" styleClass="dashboard-section-title"/>
-                        <Label fx:id="offersStatusLabel"
-                               text=""
-                               styleClass="text-screen-subheading"
-                               wrapText="true"/>
-                        <VBox fx:id="offersContainer" spacing="8"/>
+                        <Label styleClass="dashboard-section-title" text="LOYALTY OFFERS" />
+                        <Label fx:id="offersStatusLabel" styleClass="text-screen-subheading" text="" wrapText="true" />
+                        <VBox fx:id="offersContainer" spacing="8" />
                     </VBox>
 
                     <!-- Error -->
-                    <Label fx:id="errorLabel" text=""
-                           styleClass="text-error-message" wrapText="true"/>
+                    <Label fx:id="errorLabel" styleClass="text-error-message" text="" wrapText="true" />
 
                     <!-- Schedule Button -->
-                    <Button text="Confirm Schedule →"
-                            styleClass="action-button-brown"
-                            maxWidth="Infinity"
-                            onAction="#placeScheduledOrder"/>
+                    <Button maxWidth="Infinity" onAction="#placeScheduledOrder" styleClass="action-button-brown" text="Confirm Schedule →" />
 
                 </VBox>
 

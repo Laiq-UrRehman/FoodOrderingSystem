@@ -186,11 +186,11 @@ public class CartController {
 
     @FXML
     private void goOrders() {
-        SceneManager.getInstance().switchTo("CustomerDashboard");
-    } // Phase 5
+        SceneManager.getInstance().switchTo("OrderHistory");
+    }
 
     @FXML
     private void goTracking() {
-        SceneManager.getInstance().switchTo("CustomerDashboard"); // Phase 5
+        SceneManager.getInstance().switchTo("OrderTracking");
     }
 }

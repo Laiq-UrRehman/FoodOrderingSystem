@@ -1,90 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 
-<HBox xmlns:fx="http://javafx.com/fxml/1"
-      xmlns="http://javafx.com/javafx/26"
-      fx:controller="CustomerDashboardController"
-      prefWidth="1280" prefHeight="800"
-      style="-fx-background-color: #111111;">
+<HBox prefHeight="800" prefWidth="1280" style="-fx-background-color: #111111;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CustomerDashboardController">
 
     <!-- SIDEBAR -->
-    <VBox prefWidth="200" prefHeight="800" styleClass="dashboard-sidebar">
+    <VBox prefHeight="800" prefWidth="200" styleClass="dashboard-sidebar">
 
-        <Label text="FORBIGBACKS" styleClass="dashboard-sidebar-logo">
-            <VBox.margin><Insets top="20" left="20" bottom="16"/></VBox.margin>
+        <Label styleClass="dashboard-sidebar-logo" text="FORBIGBACKS">
+            <VBox.margin><Insets bottom="16" left="20" top="20" /></VBox.margin>
         </Label>
 
-        <Region prefHeight="1" maxWidth="200" style="-fx-background-color: #2a2a2a;">
-            <VBox.margin><Insets bottom="8"/></VBox.margin>
+        <Region maxWidth="200" prefHeight="1" style="-fx-background-color: #2a2a2a;">
+            <VBox.margin><Insets bottom="8" /></VBox.margin>
         </Region>
 
-        <Button text="  Home"     styleClass="dashboard-nav-button-active" maxWidth="200" onAction="#goHome"/>
-        <Button text="  Browse"   styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goBrowse"/>
-        <Button text="  Cart"     styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goCart"/>
-        <Button text="  Orders"   styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goOrders"/>
-        <Button text="  Tracking" styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goTracking"/>
+        <Button maxWidth="200" onAction="#goHome" styleClass="dashboard-nav-button-active" text="  Home" />
+        <Button maxWidth="200" onAction="#goBrowse" styleClass="dashboard-nav-button" text="  Browse" />
+        <Button maxWidth="200" onAction="#goCart" styleClass="dashboard-nav-button" text="  Cart" />
+        <Button maxWidth="200" onAction="#goOrders" styleClass="dashboard-nav-button" text="  Orders" />
+        <Button maxWidth="200" onAction="#goTracking" styleClass="dashboard-nav-button" text="  Tracking" />
 
     </VBox>
 
     <!-- MAIN -->
-    <VBox prefWidth="1080" prefHeight="800" style="-fx-background-color: #111111;">
+    <VBox prefHeight="800" prefWidth="1080" style="-fx-background-color: #111111;">
 
         <!-- TOP BAR -->
-        <HBox styleClass="dashboard-topbar" alignment="CENTER_LEFT" spacing="4">
+        <HBox alignment="CENTER_LEFT" spacing="4" styleClass="dashboard-topbar">
 
             <HBox alignment="CENTER_LEFT" spacing="0" HBox.hgrow="ALWAYS">
-                <Label text="Welcome To FORBIGBACKS " styleClass="dashboard-topbar-greeting"/>
-                <Label fx:id="customerNameLabel" text="Customer" styleClass="dashboard-topbar-name"/>
-                <Label text="!" styleClass="dashboard-topbar-name"/>
+                <Label styleClass="dashboard-topbar-greeting" text="Welcome " />
+                <Label fx:id="customerNameLabel" styleClass="dashboard-topbar-name" text="Customer" />
+                <Label styleClass="dashboard-topbar-name" text="!" />
             </HBox>
 
             <HBox alignment="CENTER_RIGHT" spacing="12">
-                <Label fx:id="loyaltyPointsBadge" text="0 pts" styleClass="dashboard-points-badge"/>
-                <Button text="Logout" styleClass="dashboard-logout-button" onAction="#handleLogout"/>
+                <Label fx:id="loyaltyPointsBadge" styleClass="dashboard-points-badge" text="0 pts" />
+                <Button onAction="#handleLogout" styleClass="dashboard-logout-button" text="Logout" />
             </HBox>
 
         </HBox>
 
         <!-- CONTENT -->
-        <ScrollPane fitToWidth="true"
-                    style="-fx-background-color: #111111; -fx-background: #111111;"
-                    VBox.vgrow="ALWAYS">
+        <ScrollPane fitToWidth="true" style="-fx-background-color: #111111; -fx-background: #111111;" VBox.vgrow="ALWAYS">
 
             <VBox spacing="20" styleClass="dashboard-content-area">
 
                 <!-- STATS -->
-                <Label text="OVERVIEW" styleClass="dashboard-section-title"/>
+                <Label styleClass="dashboard-section-title" text="OVERVIEW" />
 
-                <HBox spacing="14" fillHeight="true">
-                    <VBox styleClass="dashboard-stat-card" spacing="8">
-                        <Label text="Total Orders" styleClass="dashboard-stat-label"/>
-                        <Label fx:id="totalOrdersLabel" text="0" styleClass="dashboard-stat-value"/>
+                <HBox fillHeight="true" spacing="14">
+                    <VBox spacing="8" styleClass="dashboard-stat-card">
+                        <Label styleClass="dashboard-stat-label" text="Total Orders" />
+                        <Label fx:id="totalOrdersLabel" styleClass="dashboard-stat-value" text="0" />
                     </VBox>
-                    <VBox styleClass="dashboard-stat-card" spacing="8">
-                        <Label text="Loyalty Points" styleClass="dashboard-stat-label"/>
-                        <Label fx:id="pointsStatLabel" text="0" styleClass="dashboard-stat-value-brown"/>
+                    <VBox spacing="8" styleClass="dashboard-stat-card">
+                        <Label styleClass="dashboard-stat-label" text="Loyalty Points" />
+                        <Label fx:id="pointsStatLabel" styleClass="dashboard-stat-value-brown" text="0" />
                     </VBox>
-                    <VBox styleClass="dashboard-stat-card" spacing="8">
-                        <Label text="Favourite Category" styleClass="dashboard-stat-label"/>
-                        <Label fx:id="favouriteCategoryLabel" text="-" styleClass="dashboard-stat-value"
-                               style="-fx-font-size: 18px;"/>
+                    <VBox spacing="8" styleClass="dashboard-stat-card">
+                        <Label styleClass="dashboard-stat-label" text="Favourite Category" />
+                        <Label fx:id="favouriteCategoryLabel" style="-fx-font-size: 18px;" styleClass="dashboard-stat-value" text="-" />
                     </VBox>
                 </HBox>
 
                 <!-- RESTAURANTS -->
-                <Label text="RESTAURANTS" styleClass="dashboard-section-title">
-                    <VBox.margin><Insets top="8"/></VBox.margin>
+                <Label styleClass="dashboard-section-title" text="RESTAURANTS">
+                    <VBox.margin><Insets top="8" /></VBox.margin>
                 </Label>
-                <FlowPane fx:id="restaurantsContainer" hgap="14" vgap="14"/>
+                <FlowPane fx:id="restaurantsContainer" hgap="14" vgap="14" />
 
                 <!-- SUGGESTIONS -->
-                <Label text="SUGGESTED FOR YOU" styleClass="dashboard-section-title">
-                    <VBox.margin><Insets top="8"/></VBox.margin>
+                <Label styleClass="dashboard-section-title" text="SUGGESTED FOR YOU">
+                    <VBox.margin><Insets top="8" /></VBox.margin>
                 </Label>
-                <FlowPane fx:id="suggestionsContainer" hgap="14" vgap="14"/>
+                <FlowPane fx:id="suggestionsContainer" hgap="14" vgap="14" />
 
             </VBox>
         </ScrollPane>

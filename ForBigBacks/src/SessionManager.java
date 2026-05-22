@@ -4,6 +4,7 @@ public class SessionManager {
     private Customer currentCustomer;
     private RestaurantAdmin currentAdmin;
     private Restaurant selectedRestaurant;
+    private Order selectedOrder;
 
     private SessionManager() {
     }
@@ -38,10 +39,19 @@ public class SessionManager {
         this.selectedRestaurant = r;
     }
 
+    public Order getSelectedOrder() {
+        return selectedOrder;
+    }
+
+    public void setSelectedOrder(Order o) {
+        this.selectedOrder = o;
+    }
+
     public void logout() {
         currentCustomer = null;
         currentAdmin = null;
         selectedRestaurant = null;
+        selectedOrder = null;
     }
 
     public boolean isCustomerLoggedIn() {
