@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/26"
+      fx:controller="CheckoutController"
+      prefWidth="1280" prefHeight="800"
+      style="-fx-background-color: #111111;">
+
+    <!-- SIDEBAR -->
+    <VBox prefWidth="200" prefHeight="800" styleClass="dashboard-sidebar">
+
+        <Label text="FORBIGBACKS" styleClass="dashboard-sidebar-logo">
+            <VBox.margin><Insets top="20" left="20" bottom="16"/></VBox.margin>
+        </Label>
+
+        <Region prefHeight="1" maxWidth="200" style="-fx-background-color: #2a2a2a;">
+            <VBox.margin><Insets bottom="8"/></VBox.margin>
+        </Region>
+
+        <Button text="  Home"     styleClass="dashboard-nav-button" maxWidth="200" onAction="#goHome"/>
+        <Button text="  Browse"   styleClass="dashboard-nav-button" maxWidth="200" onAction="#goBrowse"/>
+        <Button text="  Cart"     styleClass="dashboard-nav-button" maxWidth="200" onAction="#goCart"/>
+        <Button text="  Orders"   styleClass="dashboard-nav-button" maxWidth="200" onAction="#goOrders"/>
+        <Button text="  Tracking" styleClass="dashboard-nav-button" maxWidth="200" onAction="#goTracking"/>
+
+    </VBox>
+
+    <!-- MAIN -->
+    <VBox prefWidth="1080" prefHeight="800" style="-fx-background-color: #111111;">
+
+        <!-- TOP BAR -->
+        <HBox styleClass="dashboard-topbar" alignment="CENTER_LEFT" spacing="12">
+            <Button text="← Back" styleClass="dashboard-back-button" onAction="#goBack"/>
+            <Label text="Checkout" styleClass="dashboard-topbar-name"/>
+        </HBox>
+
+        <!-- CONTENT -->
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color: #111111; -fx-background: #111111;"
+                    VBox.vgrow="ALWAYS">
+
+            <HBox spacing="24">
+                <HBox.margin><Insets top="28" right="28" bottom="28" left="28"/></HBox.margin>
+
+                <!-- LEFT: Order Summary -->
+                <VBox spacing="16" HBox.hgrow="ALWAYS">
+
+                    <Label text="ORDER SUMMARY" styleClass="dashboard-section-title"/>
+
+                    <!-- Items list -->
+                    <VBox fx:id="orderItemsContainer"
+                          styleClass="dashboard-cart-summary-card"
+                          spacing="10"/>
+
+                    <!-- Totals block -->
+                    <VBox styleClass="dashboard-cart-summary-card" spacing="12">
+
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Subtotal" styleClass="dashboard-stat-label" HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="subtotalLabel" text="Rs. 0"
+                                   styleClass="dashboard-menu-item-price"/>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Discount" styleClass="dashboard-stat-label" HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="discountLabel" text="- Rs. 0"
+                                   style="-fx-text-fill: #4a7c59; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                        </HBox>
+
+                        <Region prefHeight="1" style="-fx-background-color: #2a2a2a;"/>
+
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="TOTAL" styleClass="dashboard-topbar-greeting"
+                                   HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="totalLabel" text="Rs. 0"
+                                   styleClass="dashboard-checkout-total"/>
+                        </HBox>
+
+                    </VBox>
+
+                </VBox>
+
+                <!-- RIGHT: Payment + Offers -->
+                <VBox prefWidth="360" spacing="20">
+
+                    <!-- Payment Method -->
+                    <VBox spacing="12">
+                        <Label text="PAYMENT METHOD" styleClass="dashboard-section-title"/>
+                        <HBox spacing="10">
+                            <Button fx:id="cashButton"
+                                    text="💵  Cash"
+                                    styleClass="dashboard-payment-toggle-active"
+                                    onAction="#selectCash"
+                                    HBox.hgrow="ALWAYS"
+                                    maxWidth="Infinity"/>
+                            <Button fx:id="cardButton"
+                                    text="💳  Card"
+                                    styleClass="dashboard-payment-toggle"
+                                    onAction="#selectCard"
+                                    HBox.hgrow="ALWAYS"
+                                    maxWidth="Infinity"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Card Fields (hidden by default) -->
+                    <VBox fx:id="cardFieldsContainer" spacing="10">
+                        <Label text="CARD DETAILS" styleClass="dashboard-section-title"/>
+                        <TextField fx:id="cardNumberField"
+                                   promptText="Card number (16 digits)"
+                                   styleClass="input-text-field"/>
+                        <TextField fx:id="cardHolderField"
+                                   promptText="Cardholder name"
+                                   styleClass="input-text-field"/>
+                        <TextField fx:id="expiryField"
+                                   promptText="Expiry  MM/YY"
+                                   styleClass="input-text-field"/>
+                    </VBox>
+
+                    <!-- Loyalty Offers -->
+                    <VBox spacing="10">
+                        <Label text="LOYALTY OFFERS" styleClass="dashboard-section-title"/>
+                        <Label fx:id="offersStatusLabel"
+                               text=""
+                               styleClass="text-screen-subheading"
+                               wrapText="true"/>
+                        <VBox fx:id="offersContainer" spacing="8"/>
+                    </VBox>
+
+                    <!-- Error -->
+                    <Label fx:id="errorLabel" text="" styleClass="text-error-message" wrapText="true"/>
+
+                    <!-- Place Order -->
+                    <Button text="Place Order →"
+                            styleClass="action-button-brown"
+                            maxWidth="Infinity"
+                            onAction="#placeOrder"/>
+
+                </VBox>
+
+            </HBox>
+
+        </ScrollPane>
+
+    </VBox>
+
+</HBox>

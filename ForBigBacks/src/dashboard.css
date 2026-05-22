@@ -260,3 +260,116 @@
 .dashboard-add-button:hover {
     -fx-background-color: #6F4A2F;
 }
+
+
+/* ── Cart Item Row ───────────────────────────────────────────── */
+
+.dashboard-cart-item-row {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 8;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 8;
+    -fx-padding: 14 16;
+}
+
+.dashboard-cart-remove-button {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #888888;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 10;
+    -fx-background-radius: 6;
+    -fx-border-color: #444444;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+    -fx-min-width: 32;
+}
+
+.dashboard-cart-remove-button:hover {
+    -fx-background-color: #2a1111;
+    -fx-text-fill: #ff4444;
+    -fx-border-color: #ff4444;
+}
+
+/* ── Cart Summary Panel ──────────────────────────────────────── */
+
+.dashboard-cart-summary-card {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 10;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 10;
+    -fx-padding: 18;
+}
+
+.dashboard-cart-offers-badge {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 8;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 8;
+    -fx-padding: 14;
+}
+
+/* ── Checkout Total ──────────────────────────────────────────── */
+
+.dashboard-checkout-total {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8B5E3C;
+}
+
+/* ── Loyalty Offer Cards ─────────────────────────────────────── */
+
+.dashboard-offer-card {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 8;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 8;
+    -fx-padding: 12;
+    -fx-cursor: hand;
+}
+
+.dashboard-offer-card:hover {
+    -fx-border-color: #5a3e28;
+}
+
+/* selected state — must come after dashboard-offer-card to win specificity */
+.dashboard-offer-card-selected {
+    -fx-border-color: #8B5E3C;
+    -fx-background-color: #1f1510;
+}
+
+/* ── Payment Method Toggle ───────────────────────────────────── */
+
+.dashboard-payment-toggle {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #888888;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-background-radius: 8;
+    -fx-border-color: #444444;
+    -fx-border-radius: 8;
+    -fx-cursor: hand;
+}
+
+.dashboard-payment-toggle:hover {
+    -fx-text-fill: #cccccc;
+    -fx-border-color: #666666;
+}
+
+.dashboard-payment-toggle-active {
+    -fx-background-color: #8B5E3C;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-background-radius: 8;
+    -fx-border-color: #8B5E3C;
+    -fx-border-radius: 8;
+    -fx-cursor: hand;
+}
+
+.dashboard-payment-toggle-active:hover {
+    -fx-background-color: #6F4A2F;
+    -fx-border-color: #6F4A2F;
+}

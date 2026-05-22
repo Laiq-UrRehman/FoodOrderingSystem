@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/26"
+      fx:controller="CartController"
+      prefWidth="1280" prefHeight="800"
+      style="-fx-background-color: #111111;">
+
+    <!-- SIDEBAR -->
+    <VBox prefWidth="200" prefHeight="800" styleClass="dashboard-sidebar">
+
+        <Label text="FORBIGBACKS" styleClass="dashboard-sidebar-logo">
+            <VBox.margin><Insets top="20" left="20" bottom="16"/></VBox.margin>
+        </Label>
+
+        <Region prefHeight="1" maxWidth="200" style="-fx-background-color: #2a2a2a;">
+            <VBox.margin><Insets bottom="8"/></VBox.margin>
+        </Region>
+
+        <Button text="  Home"     styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goHome"/>
+        <Button text="  Browse"   styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goBrowse"/>
+        <Button text="  Cart"     styleClass="dashboard-nav-button-active" maxWidth="200" onAction="#goCart"/>
+        <Button text="  Orders"   styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goOrders"/>
+        <Button text="  Tracking" styleClass="dashboard-nav-button"        maxWidth="200" onAction="#goTracking"/>
+
+    </VBox>
+
+    <!-- MAIN -->
+    <VBox prefWidth="1080" prefHeight="800" style="-fx-background-color: #111111;">
+
+        <!-- TOP BAR -->
+        <HBox styleClass="dashboard-topbar" alignment="CENTER_LEFT" spacing="12">
+
+            <HBox alignment="CENTER_LEFT" spacing="12" HBox.hgrow="ALWAYS">
+                <Button text="← Back" styleClass="dashboard-back-button" onAction="#goBack"/>
+                <Label text="Your Cart" styleClass="dashboard-topbar-name"/>
+            </HBox>
+
+            <Label fx:id="itemCountLabel" text="0 items" styleClass="dashboard-points-badge"/>
+
+        </HBox>
+
+        <!-- CONTENT -->
+        <HBox spacing="20" VBox.vgrow="ALWAYS">
+            <HBox.margin><Insets top="28" right="28" bottom="28" left="28"/></HBox.margin>
+
+            <!-- LEFT: Cart Items -->
+            <VBox spacing="12" HBox.hgrow="ALWAYS">
+
+                <Label text="CART ITEMS" styleClass="dashboard-section-title"/>
+
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                            style="-fx-background-color: #111111; -fx-background: #111111;">
+                    <VBox fx:id="cartItemsContainer" spacing="10"/>
+                </ScrollPane>
+
+            </VBox>
+
+            <!-- RIGHT: Order Summary -->
+            <VBox prefWidth="300" spacing="14">
+
+                <Label text="ORDER SUMMARY" styleClass="dashboard-section-title"/>
+
+                <!-- Summary Card -->
+                <VBox styleClass="dashboard-cart-summary-card" spacing="14">
+
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Subtotal" styleClass="dashboard-stat-label" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="subtotalLabel" text="Rs. 0" styleClass="dashboard-menu-item-price"/>
+                    </HBox>
+
+                    <Region prefHeight="1" style="-fx-background-color: #2a2a2a;"/>
+
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="TOTAL" styleClass="dashboard-topbar-greeting" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="totalLabel" text="Rs. 0" styleClass="dashboard-checkout-total"/>
+                    </HBox>
+
+                </VBox>
+
+                <!-- Offers Info -->
+                <VBox styleClass="dashboard-cart-offers-badge" spacing="6">
+                    <Label text="LOYALTY OFFERS" styleClass="dashboard-section-title"/>
+                    <Label fx:id="offersAvailableLabel"
+                           text="Select offers at checkout"
+                           styleClass="text-screen-subheading"
+                           wrapText="true"/>
+                </VBox>
+
+                <!-- Actions -->
+                <Button text="Proceed to Checkout"
+                        styleClass="action-button-brown"
+                        maxWidth="Infinity"
+                        onAction="#goCheckout"/>
+
+                <Button text="Schedule This Order"
+                        styleClass="action-button-outline"
+                        maxWidth="Infinity"
+                        onAction="#goScheduledOrder"/>
+
+            </VBox>
+
+        </HBox>
+
+    </VBox>
+
+</HBox>
