@@ -307,6 +307,7 @@ public class CheckoutController {
 
     @FXML
     private void goTracking() {
+        SessionManager.getInstance().setSelectedOrder(null);
         SceneManager.getInstance().switchTo("OrderTracking");
     }
 }

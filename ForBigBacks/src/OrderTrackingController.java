@@ -295,6 +295,7 @@ public class OrderTrackingController {
 
     private Order findMostRecentTrackedOrder() {
         List<Order> history = customer.viewOrderHistory();
+        // Only return an order that is actively in progress
         for (int i = history.size() - 1; i >= 0; i--) {
             Order o = history.get(i);
             if (o.getTracking() != null
@@ -303,10 +304,7 @@ public class OrderTrackingController {
                 return o;
             }
         }
-        for (int i = history.size() - 1; i >= 0; i--) {
-            if (history.get(i).getTracking() != null)
-                return history.get(i);
-        }
+        // No active order — show empty state
         return null;
     }
 
