@@ -656,3 +656,73 @@
     -fx-font-size: 13px;
     -fx-font-style: italic;
 }
+
+/* ── Order Rating Panel ───────────────────────────────────────── */
+
+.dashboard-order-rating-panel {
+    -fx-background-color: #141414;
+    -fx-background-radius: 0 0 10 10;
+    -fx-padding: 14 16;
+    -fx-border-color: #2a2a2a transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.dashboard-order-rating-title {
+    -fx-text-fill: #444444;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.dashboard-order-rating-item-name {
+    -fx-text-fill: #aaaaaa;
+    -fx-font-size: 13px;
+}
+
+.dashboard-order-rated-label {
+    -fx-text-fill: #4a7c59;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* ── Star Buttons ────────────────────────────────────────────── */
+
+.dashboard-order-star-button {
+    -fx-background-color: #222222;
+    -fx-text-fill: #444444;
+    -fx-font-size: 18px;
+    -fx-padding: 2 5;
+    -fx-background-radius: 4;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-min-width: 34;
+}
+
+.dashboard-order-star-button-hover {
+    -fx-background-color: #2a1a05;
+    -fx-text-fill: #8B5E3C;
+    -fx-font-size: 18px;
+    -fx-padding: 2 5;
+    -fx-background-radius: 4;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-min-width: 34;
+}
+
+/* ── Rate Order Button ───────────────────────────────────────── */
+
+.dashboard-order-rate-button {
+    -fx-background-color: #1f1510;
+    -fx-text-fill: #8B5E3C;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 14;
+    -fx-background-radius: 6;
+    -fx-border-color: #5a3e28;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+
+.dashboard-order-rate-button:hover {
+    -fx-background-color: #2a1d0d;
+    -fx-border-color: #8B5E3C;
+}

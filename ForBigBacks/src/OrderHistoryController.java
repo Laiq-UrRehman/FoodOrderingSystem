@@ -117,6 +117,9 @@ public class OrderHistoryController {
 
         card.getChildren().addAll(header, body);
 
+        // ── Rating Panel (hidden until toggled) ──
+        VBox ratingPanel = buildRatingPanel(order);
+
         // ── Footer ──
         HBox footer = new HBox(10);
         footer.getStyleClass().add("dashboard-order-card-footer");
@@ -143,14 +146,117 @@ public class OrderHistoryController {
             footer.getChildren().add(cancelBtn);
         }
 
+        // Rate button — only for delivered orders that still have unrated items
+        if (order.getStatus().equals("Delivered") && hasUnratedItems(order)) {
+            Button rateBtn = new Button("Rate Order  ★");
+            rateBtn.getStyleClass().add("dashboard-order-rate-button");
+            rateBtn.setOnAction(e -> {
+                boolean nowVisible = !ratingPanel.isVisible();
+                ratingPanel.setVisible(nowVisible);
+                ratingPanel.setManaged(nowVisible);
+                rateBtn.setText(nowVisible ? "Close Ratings  ✕" : "Rate Order  ★");
+            });
+            footer.getChildren().add(rateBtn);
+        }
+
         if (!footer.getChildren().isEmpty()) {
             card.getChildren().add(footer);
         }
 
+        card.getChildren().add(ratingPanel);
+
         return card;
     }
 
+    // ── Rating Panel ─────────────────────────────────────────────────────────
+
+    private VBox buildRatingPanel(Order order) {
+        VBox panel = new VBox(10);
+        panel.getStyleClass().add("dashboard-order-rating-panel");
+        panel.setVisible(false);
+        panel.setManaged(false);
+
+        Label title = new Label("RATE YOUR ITEMS");
+        title.getStyleClass().add("dashboard-order-rating-title");
+        panel.getChildren().add(title);
+
+        Rating ratingService = new Rating();
+
+        for (FoodItem item : order.getItems()) {
+            HBox row = new HBox(10);
+            row.setAlignment(Pos.CENTER_LEFT);
+
+            Label itemName = new Label(item.getName());
+            itemName.getStyleClass().add("dashboard-order-rating-item-name");
+            itemName.setPrefWidth(220);
+            HBox.setHgrow(itemName, Priority.ALWAYS);
+            row.getChildren().add(itemName);
+
+            if (order.hasRated(item.getFoodID())) {
+                Label ratedLabel = new Label("Rated  ✓");
+                ratedLabel.getStyleClass().add("dashboard-order-rated-label");
+                row.getChildren().add(ratedLabel);
+            } else {
+                // 5 star buttons
+                HBox stars = new HBox(4);
+                stars.setAlignment(Pos.CENTER_LEFT);
+                for (int s = 1; s <= 5; s++) {
+                    final int starValue = s;
+                    Button starBtn = new Button("★");
+                    starBtn.getStyleClass().add("dashboard-order-star-button");
+                    // Hover: light up all stars up to this one
+                    starBtn.setOnMouseEntered(e -> highlightStars(stars, starValue));
+                    starBtn.setOnMouseExited(e -> resetStars(stars));
+                    starBtn.setOnAction(e -> {
+                        ratingService.rateFoodItem(customer, order, item.getFoodID(), starValue);
+                        saveCustomer();
+                        loadOrders(); // rebuild cards to reflect new state
+                    });
+                    stars.getChildren().add(starBtn);
+                }
+                row.getChildren().add(stars);
+            }
+
+            panel.getChildren().add(row);
+        }
+
+        return panel;
+    }
+
+    /** Lights up stars 1‥upTo on hover. */
+    private void highlightStars(HBox stars, int upTo) {
+        for (int i = 0; i < stars.getChildren().size(); i++) {
+            Button b = (Button) stars.getChildren().get(i);
+            if (i < upTo) {
+                b.getStyleClass().remove("dashboard-order-star-button");
+                b.getStyleClass().add("dashboard-order-star-button-hover");
+            } else {
+                b.getStyleClass().remove("dashboard-order-star-button-hover");
+                b.getStyleClass().add("dashboard-order-star-button");
+            }
+        }
+    }
+
+    /** Resets all stars to the default (un-hovered) style. */
+    private void resetStars(HBox stars) {
+        for (javafx.scene.Node n : stars.getChildren()) {
+            Button b = (Button) n;
+            b.getStyleClass().remove("dashboard-order-star-button-hover");
+            if (!b.getStyleClass().contains("dashboard-order-star-button")) {
+                b.getStyleClass().add("dashboard-order-star-button");
+            }
+        }
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private boolean hasUnratedItems(Order order) {
+        for (FoodItem item : order.getItems()) {
+            if (!order.hasRated(item.getFoodID()))
+                return true;
+        }
+        return false;
+    }
 
     private boolean isCancellable(Order order) {
         String s = order.getStatus();
