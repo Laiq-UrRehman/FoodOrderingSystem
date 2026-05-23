@@ -5,7 +5,6 @@ import java.util.TimerTask;
 
 public class OrderTracking implements Serializable {
     private static final long serialVersionUID = 1L;
-    private static final int PREP_TIME_MINUTES = 10;
     private static final int SECONDS_PER_MINUTE = 1;
 
     private String trackingID;
@@ -33,8 +32,7 @@ public class OrderTracking implements Serializable {
 
         for (Rider rider : riders) {
             rider.setLocation(randomLocation());
-            System.out
-                    .println("[Tracking] Rider " + rider.getName() + " location randomized to: " + rider.getLocation());
+            System.out.println("[Tracking] Rider " + rider.getName() + " location randomized to: " + rider.getLocation());
         }
 
         assignClosestRider(riders);
@@ -54,11 +52,14 @@ public class OrderTracking implements Serializable {
         for (Rider rider : riders) {
             if (!rider.getStatus())
                 continue;
+
             if (rider.getLocation() == null) {
                 System.out.println("[Tracking] Skipping rider " + rider.getName() + " — no location set.");
                 continue;
             }
+
             double dist = rider.getLocation().distanceTo(restaurant.getLocation());
+
             if (dist < minDistance) {
                 minDistance = dist;
                 closest = rider;
@@ -69,30 +70,40 @@ public class OrderTracking implements Serializable {
             System.out.println("[Tracking] No available riders found.");
             return;
         }
+
         closest.assignOrder();
+
         this.assignedRider = closest;
         this.distanceRiderToRestaurant = minDistance;
 
-        System.out.println("[Tracking] Rider assigned: " + closest.getName() + " | Distance to restaurant: "
+        updateRiderStatusInFile(false, true);
+
+        System.out.println("[Tracking] Rider assigned: " + closest.getName()
+                + " | Distance to restaurant: "
                 + String.format("%.2f", minDistance) + " units");
     }
 
     private void calculateDistancesAndTime() {
         distanceRestaurantToCustomer = restaurant.getLocation().distanceTo(customer.getLocation());
 
+        int prepTimeMinutes = order.getItems().size();
         int travelMinutes = (int) Math.ceil(distanceRestaurantToCustomer);
-        this.estimatedDeliveryMinutes = PREP_TIME_MINUTES + travelMinutes;
+
+        this.estimatedDeliveryMinutes = prepTimeMinutes + travelMinutes;
 
         System.out.println("[Tracking] Restaurant → Customer distance: "
                 + String.format("%.2f", distanceRestaurantToCustomer) + " units");
-        System.out.println("[Tracking] Estimated delivery time: " + estimatedDeliveryMinutes + " minutes "
-                + "(10 min prep + " + travelMinutes + " min travel)");
+
+        System.out.println("[Tracking] Estimated delivery time: "
+                + estimatedDeliveryMinutes + " minutes "
+                + "(" + prepTimeMinutes + " min prep + "
+                + travelMinutes + " min travel)");
     }
 
     private void startStatusUpdates() {
         statusTimer = new Timer(true);
 
-        long prepMs = minutesToMs(PREP_TIME_MINUTES);
+        long prepMs = minutesToMs(order.getItems().size());
         long deliveryMs = minutesToMs(estimatedDeliveryMinutes);
 
         scheduleStatus("Preparing", 0);
@@ -108,14 +119,42 @@ public class OrderTracking implements Serializable {
                 order.updateStatus(newStatus);
 
                 System.out.println("[Tracking " + trackingID + "] Status → " + newStatus);
+
                 if ("Delivered".equals(newStatus) && assignedRider != null) {
+
                     assignedRider.setAvailable(true);
                     assignedRider.setAssigned(false);
-                    System.out.println("[Tracking] Rider " + assignedRider.getName() + " is now available again.");
+
+                    updateRiderStatusInFile(true, false);
+
+                    System.out.println("[Tracking] Rider "
+                            + assignedRider.getName()
+                            + " is now available again.");
+
                     statusTimer.cancel();
                 }
             }
         }, delayMs);
+    }
+
+    private void updateRiderStatusInFile(boolean available, boolean assigned) {
+        FileHandler<Rider> fileHandler = new FileHandler<>();
+
+        Rider[] riders = fileHandler.loadArray("riders.dat");
+
+        if (riders == null || assignedRider == null)
+            return;
+
+        for (Rider rider : riders) {
+            if (rider.getPersonID().equals(assignedRider.getPersonID())) {
+                rider.setAvailable(available);
+                rider.setAssigned(assigned);
+                rider.setLocation(assignedRider.getLocation());
+                break;
+            }
+        }
+
+        fileHandler.saveArray(riders, "riders.dat");
     }
 
     private long minutesToMs(int minutes) {
@@ -169,22 +208,30 @@ public class OrderTracking implements Serializable {
         java.util.Random rand = new java.util.Random();
         double x = rand.nextDouble() * 100;
         double y = rand.nextDouble() * 100;
+
         return new Location(x, y);
     }
 
     private void readObject(java.io.ObjectInputStream in)
             throws java.io.IOException, ClassNotFoundException {
+
         in.defaultReadObject();
-        if (!"Delivered".equals(currentStatus) && !"Cancelled".equals(currentStatus)) {
+
+        if (!"Delivered".equals(currentStatus)
+                && !"Cancelled".equals(currentStatus)) {
+
             currentStatus = "Delivered";
+
             if (order != null) {
                 order.updateStatus("Delivered");
             }
+
             if (assignedRider != null) {
                 assignedRider.setAvailable(true);
                 assignedRider.setAssigned(false);
+
+                updateRiderStatusInFile(true, false);
             }
         }
     }
-
 }
