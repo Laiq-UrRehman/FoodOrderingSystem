@@ -46,6 +46,8 @@
     -fx-border-width: 0 0 1 0;
     -fx-padding: 0 28;
     -fx-pref-height: 64;
+    -fx-min-height: 64;
+    -fx-max-height: 64;
 }
 
 .dashboard-topbar-greeting {

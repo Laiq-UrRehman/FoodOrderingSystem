@@ -6,14 +6,15 @@
 /* ── Restaurant Badge (topbar) ───────────────────────────────── */
 
 .admin-restaurant-badge {
-    -fx-background-color: #1f1510;
-    -fx-text-fill: #8B5E3C;
-    -fx-font-size: 12px;
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 19px;
     -fx-font-weight: bold;
-    -fx-padding: 6 14;
-    -fx-background-radius: 20;
-    -fx-border-color: #5a3e28;
-    -fx-border-radius: 20;
+    -fx-letter-spacing: 2px;
+    -fx-padding: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-radius: 0;
 }
 
 /* ── Add-Item / Add-Offer Form Card ─────────────────────────── */

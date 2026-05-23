@@ -21,12 +21,11 @@
     <VBox prefHeight="800" prefWidth="200" styleClass="dashboard-sidebar">
 
         <!-- Logo -->
-        <HBox>
-            <VBox.margin><Insets bottom="16" left="20" top="20"/></VBox.margin>
-            <Label styleClass="dashboard-sidebar-logo" text="FOR"/>
-            <Label style="-fx-text-fill: #8B5E3C;" styleClass="dashboard-sidebar-logo" text="BIG"/>
-            <Label styleClass="dashboard-sidebar-logo" text="BACKS"/>
-        </HBox>
+        <HBox prefHeight="64" alignment="CENTER_LEFT" style="-fx-padding: 0 0 0 20;">
+    <Label styleClass="dashboard-sidebar-logo" text="FOR" />
+    <Label styleClass="dashboard-sidebar-logo" text="BIG" style="-fx-text-fill: #8B5E3C;" />
+    <Label styleClass="dashboard-sidebar-logo" text="BACKS" />
+</HBox>
 
         <!-- Divider -->
         <Region maxWidth="200" prefHeight="1" style="-fx-background-color: #2a2a2a;">
@@ -61,14 +60,13 @@
     <VBox HBox.hgrow="ALWAYS" style="-fx-background-color: #111111;">
 
         <!-- TOP BAR -->
-        <HBox alignment="CENTER_LEFT" spacing="8" styleClass="dashboard-topbar">
-            
-            <Region HBox.hgrow="ALWAYS"/>
-            <Label fx:id="restaurantBadge" styleClass="admin-restaurant-badge" text=""/>
-            <Button onAction="#handleLogout"
-                    styleClass="dashboard-logout-button"
-                    text="Logout"/>
-        </HBox>
+        <!-- TOP BAR -->
+<HBox alignment="CENTER" spacing="8" styleClass="dashboard-topbar" style="-fx-padding: 0 0 0 0;">
+    <VBox alignment="CENTER" spacing="5">
+        <Label fx:id="restaurantBadge" styleClass="admin-restaurant-badge" text=""/>
+        <Region prefHeight="2" prefWidth="40" style="-fx-background-color: #8B5E3C; -fx-background-radius: 2;"/>
+    </VBox>
+</HBox>
 
         <!-- CONTENT SCROLL -->
         <ScrollPane fitToWidth="true"

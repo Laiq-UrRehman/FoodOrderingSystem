@@ -34,11 +34,26 @@ public class SceneManager {
 
     public void init(Stage stage) {
         this.stage = stage;
-        this.stage.setTitle("ForBigBacks");
+        this.stage.setTitle("FORBIGBACKS");
         this.stage.setResizable(true);
         this.stage.setWidth(1280);
         this.stage.setHeight(800);
         this.stage.centerOnScreen();
+        String workingDir = new java.io.File(".").getAbsolutePath();
+        System.out.println("Looking for icon in: " + workingDir);
+
+        java.io.File iconFile = new java.io.File("FORBIGBACKS Logo.png");
+        System.out.println("Icon exists: " + iconFile.exists() + " at " + iconFile.getAbsolutePath());
+
+        if (iconFile.exists()) {
+            String uri = iconFile.toURI().toString();
+            this.stage.getIcons().addAll(
+                    new javafx.scene.image.Image(uri, 16, 16, true, true),
+                    new javafx.scene.image.Image(uri, 32, 32, true, true),
+                    new javafx.scene.image.Image(uri, 64, 64, true, true),
+                    new javafx.scene.image.Image(uri, 128, 128, true, true),
+                    new javafx.scene.image.Image(uri, 256, 256, true, true));
+        }
     }
 
     public void switchTo(String screenName) {

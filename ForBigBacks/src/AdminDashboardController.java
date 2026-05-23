@@ -68,7 +68,7 @@ public class AdminDashboardController {
             return;
         }
         if (admin.getRestaurant() != null)
-            restaurantBadge.setText(admin.getRestaurant().getName());
+            restaurantBadge.setText(admin.getRestaurant().getName().toUpperCase());
 
         offerManager = admin.getOfferManager();
         loadMenuItems();

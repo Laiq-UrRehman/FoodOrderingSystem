@@ -12,14 +12,19 @@ public class GUIMain extends Application {
     }
 
     public static void main(String[] args) {
+        System.out.println("Working dir: " + new java.io.File(".").getAbsolutePath());
         seedIfNeeded();
         launch(args);
     }
 
     static void seedIfNeeded() {
-        if (!new File("restaurants.dat").exists())        DataSeeder.seedRestaurants();
-        if (!new File("customers.dat").exists())          CustomerSeeder.seedCustomers();
-        if (!new File("riders.dat").exists())             RiderSeeder.seedRiders();
-        if (!new File("admin_credentials.dat").exists())  AdminCredentialsSeeder.seedAdminCredentials();
+        if (!new File("restaurants.dat").exists())
+            DataSeeder.seedRestaurants();
+        if (!new File("customers.dat").exists())
+            CustomerSeeder.seedCustomers();
+        if (!new File("riders.dat").exists())
+            RiderSeeder.seedRiders();
+        if (!new File("admin_credentials.dat").exists())
+            AdminCredentialsSeeder.seedAdminCredentials();
     }
 }

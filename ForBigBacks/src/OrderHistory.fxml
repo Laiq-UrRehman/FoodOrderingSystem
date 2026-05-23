@@ -13,8 +13,7 @@
     <!-- SIDEBAR -->
     <VBox prefHeight="800" prefWidth="200" styleClass="dashboard-sidebar">
 
-        <HBox>
-    <VBox.margin><Insets bottom="16" left="20" top="20" /></VBox.margin>
+        <HBox prefHeight="64" alignment="CENTER_LEFT" style="-fx-padding: 0 0 0 20;">
     <Label styleClass="dashboard-sidebar-logo" text="FOR" />
     <Label styleClass="dashboard-sidebar-logo" text="BIG" style="-fx-text-fill: #8B5E3C;" />
     <Label styleClass="dashboard-sidebar-logo" text="BACKS" />
