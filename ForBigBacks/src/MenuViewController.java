@@ -127,7 +127,7 @@ public class MenuViewController {
 
     @FXML
     private void goBack() {
-        SceneManager.getInstance().switchTo("CustomerDashboard");
+        SceneManager.getInstance().switchTo("RestaurantBrowse");
     }
 
     @FXML
@@ -137,7 +137,7 @@ public class MenuViewController {
 
     @FXML
     private void goBrowse() {
-        SceneManager.getInstance().switchTo("CustomerDashboard");
+        SceneManager.getInstance().switchTo("RestaurantBrowse");
     }
 
     @FXML

@@ -14,9 +14,12 @@
     <!-- SIDEBAR -->
     <VBox prefHeight="800" prefWidth="200" styleClass="dashboard-sidebar">
 
-        <Label styleClass="dashboard-sidebar-logo" text="FORBIGBACKS">
-            <VBox.margin><Insets bottom="16" left="20" top="20" /></VBox.margin>
-        </Label>
+        <HBox>
+    <VBox.margin><Insets bottom="16" left="20" top="20" /></VBox.margin>
+    <Label styleClass="dashboard-sidebar-logo" text="FOR" />
+    <Label styleClass="dashboard-sidebar-logo" text="BIG" style="-fx-text-fill: #8B5E3C;" />
+    <Label styleClass="dashboard-sidebar-logo" text="BACKS" />
+</HBox>
 
         <Region maxWidth="200" prefHeight="1" style="-fx-background-color: #2a2a2a;">
             <VBox.margin><Insets bottom="8" /></VBox.margin>
@@ -34,19 +37,9 @@
     <VBox prefHeight="800" prefWidth="1080" style="-fx-background-color: #111111;">
 
         <!-- TOP BAR -->
-        <HBox alignment="CENTER_LEFT" spacing="4" styleClass="dashboard-topbar">
-
-            <HBox alignment="CENTER_LEFT" spacing="0" HBox.hgrow="ALWAYS">
-                <Label styleClass="dashboard-topbar-greeting" text="Welcome " />
-                <Label fx:id="customerNameLabel" styleClass="dashboard-topbar-name" text="Customer" />
-                <Label styleClass="dashboard-topbar-name" text="!" />
-            </HBox>
-
-            <HBox alignment="CENTER_RIGHT" spacing="12">
-                <Label fx:id="loyaltyPointsBadge" styleClass="dashboard-points-badge" text="0 pts" />
-                <Button onAction="#handleLogout" styleClass="dashboard-logout-button" text="Logout" />
-            </HBox>
-
+        <HBox alignment="CENTER_RIGHT" spacing="12" styleClass="dashboard-topbar">
+             <Label fx:id="loyaltyPointsBadge" styleClass="dashboard-points-badge" text="0 pts" />
+             <Button onAction="#handleLogout" styleClass="dashboard-logout-button" text="Logout" />
         </HBox>
 
         <!-- CONTENT -->

@@ -14,7 +14,11 @@
     <!-- LEFT PANEL -->
     <VBox alignment="CENTER" prefHeight="800" prefWidth="500" spacing="14" styleClass="login-signup-left-panel">
 
-        <Label styleClass="login-signup-logo-text" text="FORBIGBACKS" />
+        <HBox alignment="CENTER">
+    <Label styleClass="login-signup-logo-text" text="FOR" />
+    <Label styleClass="login-signup-logo-text" text="BIG" style="-fx-text-fill: #8B5E3C;" />
+    <Label styleClass="login-signup-logo-text" text="BACKS" />
+</HBox>
 
         <Region prefHeight="3" prefWidth="60" styleClass="login-signup-logo-underline" />
 
@@ -31,7 +35,12 @@
                 <Insets left="80" />
             </VBox.margin>
 
-            <Label styleClass="login-signup-form-heading" text="Welcome To FORBIGBACKS!" />
+            <HBox alignment="CENTER_LEFT">
+    <Label styleClass="login-signup-form-heading" text="Welcome To " />
+    <Label styleClass="login-signup-form-heading" text="FOR" />
+    <Label styleClass="login-signup-form-heading" text="BIG" style="-fx-text-fill: #8B5E3C;" />
+    <Label styleClass="login-signup-form-heading" text="BACKS!" />
+</HBox>
 
             <Label styleClass="login-signup-form-subheading" text="Login to your account to continue!">
                 <VBox.margin>

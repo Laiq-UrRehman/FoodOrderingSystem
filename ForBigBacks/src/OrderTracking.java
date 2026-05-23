@@ -22,10 +22,10 @@ public class OrderTracking implements Serializable {
     private transient Timer statusTimer;
 
     public OrderTracking(String trackingID, Order order, Restaurant restaurant, Customer customer, List<Rider> riders) {
-        this.trackingID  = trackingID;
-        this.order       = order;
-        this.restaurant  = restaurant;
-        this.customer    = customer;
+        this.trackingID = trackingID;
+        this.order = order;
+        this.restaurant = restaurant;
+        this.customer = customer;
         this.currentStatus = "Confirmed";
 
         customer.setLocation(randomLocation());
@@ -33,7 +33,8 @@ public class OrderTracking implements Serializable {
 
         for (Rider rider : riders) {
             rider.setLocation(randomLocation());
-            System.out.println("[Tracking] Rider " + rider.getName() + " location randomized to: " + rider.getLocation());
+            System.out
+                    .println("[Tracking] Rider " + rider.getName() + " location randomized to: " + rider.getLocation());
         }
 
         assignClosestRider(riders);
@@ -51,7 +52,8 @@ public class OrderTracking implements Serializable {
         }
 
         for (Rider rider : riders) {
-            if (!rider.getStatus()) continue;
+            if (!rider.getStatus())
+                continue;
             if (rider.getLocation() == null) {
                 System.out.println("[Tracking] Skipping rider " + rider.getName() + " — no location set.");
                 continue;
@@ -59,7 +61,7 @@ public class OrderTracking implements Serializable {
             double dist = rider.getLocation().distanceTo(restaurant.getLocation());
             if (dist < minDistance) {
                 minDistance = dist;
-                closest     = rider;
+                closest = rider;
             }
         }
 
@@ -71,17 +73,20 @@ public class OrderTracking implements Serializable {
         this.assignedRider = closest;
         this.distanceRiderToRestaurant = minDistance;
 
-        System.out.println("[Tracking] Rider assigned: " + closest.getName() + " | Distance to restaurant: " + String.format("%.2f", minDistance) + " units");
+        System.out.println("[Tracking] Rider assigned: " + closest.getName() + " | Distance to restaurant: "
+                + String.format("%.2f", minDistance) + " units");
     }
 
     private void calculateDistancesAndTime() {
         distanceRestaurantToCustomer = restaurant.getLocation().distanceTo(customer.getLocation());
 
-        int travelMinutes  = (int)Math.ceil(distanceRestaurantToCustomer);
+        int travelMinutes = (int) Math.ceil(distanceRestaurantToCustomer);
         this.estimatedDeliveryMinutes = PREP_TIME_MINUTES + travelMinutes;
 
-        System.out.println("[Tracking] Restaurant → Customer distance: " + String.format("%.2f", distanceRestaurantToCustomer) + " units");
-        System.out.println("[Tracking] Estimated delivery time: " + estimatedDeliveryMinutes + " minutes " + "(10 min prep + " + travelMinutes + " min travel)");
+        System.out.println("[Tracking] Restaurant → Customer distance: "
+                + String.format("%.2f", distanceRestaurantToCustomer) + " units");
+        System.out.println("[Tracking] Estimated delivery time: " + estimatedDeliveryMinutes + " minutes "
+                + "(10 min prep + " + travelMinutes + " min travel)");
     }
 
     private void startStatusUpdates() {
@@ -117,31 +122,47 @@ public class OrderTracking implements Serializable {
         return (long) minutes * SECONDS_PER_MINUTE * 1000L;
     }
 
-    public String getTrackingID(){ return trackingID; }
-    public String getCurrentStatus(){ return currentStatus; }
-    public Rider getAssignedRider(){ return assignedRider; }
-    public int getEstimatedDeliveryMinutes(){ return estimatedDeliveryMinutes; }
-    public double getDistanceRestaurantToCustomer(){ return distanceRestaurantToCustomer; }
-    public double getDistanceRiderToRestaurant(){ return distanceRiderToRestaurant; }
+    public String getTrackingID() {
+        return trackingID;
+    }
+
+    public String getCurrentStatus() {
+        return currentStatus;
+    }
+
+    public Rider getAssignedRider() {
+        return assignedRider;
+    }
+
+    public int getEstimatedDeliveryMinutes() {
+        return estimatedDeliveryMinutes;
+    }
+
+    public double getDistanceRestaurantToCustomer() {
+        return distanceRestaurantToCustomer;
+    }
+
+    public double getDistanceRiderToRestaurant() {
+        return distanceRiderToRestaurant;
+    }
 
     public String getSummary() {
         return String.format(
-            "Tracking ID  : %s%n" +
-            "Order ID     : %s%n" +
-            "Status       : %s%n" +
-            "Rider        : %s (%s)%n" +
-            "Rider → Rest.: %.2f units%n" +
-            "Rest. → Cust.: %.2f units%n" +
-            "ETA          : %d minutes",
-            trackingID,
-            order.getOrderID(),
-            currentStatus,
-            assignedRider != null ? assignedRider.getName() : "None",
-            assignedRider != null ? assignedRider.getVehicleType() : "-",
-            distanceRiderToRestaurant,
-            distanceRestaurantToCustomer,
-            estimatedDeliveryMinutes
-        );
+                "Tracking ID  : %s%n" +
+                        "Order ID     : %s%n" +
+                        "Status       : %s%n" +
+                        "Rider        : %s (%s)%n" +
+                        "Rider → Rest.: %.2f units%n" +
+                        "Rest. → Cust.: %.2f units%n" +
+                        "ETA          : %d minutes",
+                trackingID,
+                order.getOrderID(),
+                currentStatus,
+                assignedRider != null ? assignedRider.getName() : "None",
+                assignedRider != null ? assignedRider.getVehicleType() : "-",
+                distanceRiderToRestaurant,
+                distanceRestaurantToCustomer,
+                estimatedDeliveryMinutes);
     }
 
     private Location randomLocation() {
@@ -150,4 +171,20 @@ public class OrderTracking implements Serializable {
         double y = rand.nextDouble() * 100;
         return new Location(x, y);
     }
+
+    private void readObject(java.io.ObjectInputStream in)
+            throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (!"Delivered".equals(currentStatus) && !"Cancelled".equals(currentStatus)) {
+            currentStatus = "Delivered";
+            if (order != null) {
+                order.updateStatus("Delivered");
+            }
+            if (assignedRider != null) {
+                assignedRider.setAvailable(true);
+                assignedRider.setAssigned(false);
+            }
+        }
+    }
+
 }

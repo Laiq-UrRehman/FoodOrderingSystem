@@ -8,8 +8,6 @@ import java.util.List;
 public class CustomerDashboardController {
 
     @FXML
-    private Label customerNameLabel;
-    @FXML
     private Label loyaltyPointsBadge;
     @FXML
     private Label totalOrdersLabel;
@@ -35,10 +33,10 @@ public class CustomerDashboardController {
         loadCustomerData();
         loadRestaurants();
         loadSuggestions();
+        saveCustomer();
     }
 
     private void loadCustomerData() {
-        customerNameLabel.setText(customer.getName());
         loyaltyPointsBadge.setText(customer.viewLoyaltyPoints() + " pts");
         totalOrdersLabel.setText(String.valueOf(customer.viewOrderHistory().size()));
         pointsStatLabel.setText(String.valueOf(customer.viewLoyaltyPoints()));
@@ -52,10 +50,123 @@ public class CustomerDashboardController {
         if (restaurants == null)
             return;
 
+        // Sort by rating descending
+        java.util.Arrays.sort(restaurants,
+                (a, b) -> Double.compare(b.getRating(), a.getRating()));
+
+        showTopRestaurants();
+    }
+
+    private void showTopRestaurants() {
         restaurantsContainer.getChildren().clear();
+        removeShowAllRow();
+
+        int limit = Math.min(3, restaurants.length);
+        for (int i = 0; i < limit; i++) {
+            restaurantsContainer.getChildren().add(createRestaurantCard(restaurants[i]));
+        }
+
+        if (restaurants.length > 3) {
+            insertShowAllRow();
+        }
+    }
+
+    private void showAllRestaurants(Button trigger) {
+        restaurantsContainer.getChildren().clear();
+        removeShowAllRow();
+
         for (Restaurant r : restaurants) {
             restaurantsContainer.getChildren().add(createRestaurantCard(r));
         }
+
+        insertShowLessRow();
+    }
+
+    private void removeShowAllRow() {
+        javafx.scene.Parent parent = restaurantsContainer.getParent();
+        if (parent instanceof VBox) {
+            ((VBox) parent).getChildren().removeIf(n -> "show-all-row".equals(n.getId()));
+        }
+    }
+
+    private void insertShowAllRow() {
+        javafx.scene.Parent parent = restaurantsContainer.getParent();
+        if (!(parent instanceof VBox))
+            return;
+        VBox contentVBox = (VBox) parent;
+
+        HBox row = new HBox();
+        row.setId("show-all-row");
+        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        row.setPadding(new Insets(2, 0, 0, 0));
+
+        Button btn = buildToggleButton("Show all ");
+        btn.setOnAction(e -> showAllRestaurants(btn));
+        applyToggleHover(btn);
+
+        row.getChildren().add(btn);
+
+        int idx = contentVBox.getChildren().indexOf(restaurantsContainer);
+        contentVBox.getChildren().add(idx + 1, row);
+    }
+
+    private void insertShowLessRow() {
+        javafx.scene.Parent parent = restaurantsContainer.getParent();
+        if (!(parent instanceof VBox))
+            return;
+        VBox contentVBox = (VBox) parent;
+
+        HBox row = new HBox();
+        row.setId("show-all-row");
+        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        row.setPadding(new Insets(2, 0, 0, 0));
+
+        Button btn = buildToggleButton("Show less");
+        btn.setOnAction(e -> {
+            removeShowAllRow();
+            showTopRestaurants();
+        });
+        applyToggleHover(btn);
+
+        row.getChildren().add(btn);
+
+        int idx = contentVBox.getChildren().indexOf(restaurantsContainer);
+        contentVBox.getChildren().add(idx + 1, row);
+    }
+
+    private Button buildToggleButton(String text) {
+        Button btn = new Button(text);
+        btn.setStyle(
+                "-fx-background-color: transparent;" +
+                        "-fx-text-fill: #8B5E3C;" +
+                        "-fx-font-size: 12px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-padding: 6 0;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: transparent;" +
+                        "-fx-underline: true;");
+        return btn;
+    }
+
+    private void applyToggleHover(Button btn) {
+        btn.setOnMouseEntered(e -> btn.setStyle(
+                "-fx-background-color: transparent;" +
+                        "-fx-text-fill: #6F4A2F;" +
+                        "-fx-font-size: 12px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-padding: 6 0;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: transparent;" +
+                        "-fx-underline: true;"));
+        btn.setOnMouseExited(e -> btn.setStyle(
+                "-fx-background-color: transparent;" +
+                        "-fx-text-fill: #8B5E3C;" +
+                        "-fx-font-size: 12px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-padding: 6 0;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: transparent;" +
+                        "-fx-underline: true;"));
     }
 
     private void loadSuggestions() {
@@ -75,8 +186,20 @@ public class CustomerDashboardController {
         }
 
         for (FoodItem item : suggestions) {
-            suggestionsContainer.getChildren().add(createSuggestionCard(item));
+            Restaurant owner = findRestaurantForItem(item);
+            suggestionsContainer.getChildren().add(createSuggestionCard(item, owner));
         }
+    }
+
+    private Restaurant findRestaurantForItem(FoodItem item) {
+        for (Restaurant r : restaurants) {
+            for (FoodItem fi : r.getMenu().getItems()) {
+                if (fi.getFoodID().equals(item.getFoodID())) {
+                    return r;
+                }
+            }
+        }
+        return null;
     }
 
     private VBox createRestaurantCard(Restaurant restaurant) {
@@ -116,7 +239,7 @@ public class CustomerDashboardController {
         return card;
     }
 
-    private VBox createSuggestionCard(FoodItem item) {
+    private VBox createSuggestionCard(FoodItem item, Restaurant owner) {
         VBox card = new VBox(8);
         card.getStyleClass().add("dashboard-suggestion-card");
         card.setPrefWidth(280);
@@ -132,7 +255,19 @@ public class CustomerDashboardController {
         Label priceLabel = new Label("Rs. " + (int) item.getPrice());
         priceLabel.getStyleClass().add("dashboard-suggestion-price");
 
-        card.getChildren().addAll(nameLabel, detailLabel, priceLabel);
+        if (owner != null) {
+            Label restLabel = new Label(owner.getName());
+            restLabel.setStyle("-fx-text-fill: #555555; -fx-font-size: 11px;");
+            card.getChildren().addAll(nameLabel, detailLabel, priceLabel, restLabel);
+
+            card.setOnMouseClicked(e -> {
+                SessionManager.getInstance().setSelectedRestaurant(owner);
+                SceneManager.getInstance().switchTo("MenuView");
+            });
+        } else {
+            card.getChildren().addAll(nameLabel, detailLabel, priceLabel);
+        }
+
         return card;
     }
 
@@ -157,7 +292,7 @@ public class CustomerDashboardController {
 
     @FXML
     private void goBrowse() {
-        SceneManager.getInstance().switchTo("CustomerDashboard");
+        SceneManager.getInstance().switchTo("RestaurantBrowse");
     }
 
     @FXML
@@ -191,5 +326,19 @@ public class CustomerDashboardController {
         }
         SessionManager.getInstance().logout();
         SceneManager.getInstance().switchTo("Login");
+    }
+
+    private void saveCustomer() {
+        FileHandler<Customer> fh = new FileHandler<>();
+        Customer[] all = fh.loadArray("customers.dat");
+        if (all != null) {
+            for (int i = 0; i < all.length; i++) {
+                if (all[i].getUsername().equals(customer.getUsername())) {
+                    all[i] = customer;
+                    break;
+                }
+            }
+            fh.saveArray(all, "customers.dat");
+        }
     }
 }

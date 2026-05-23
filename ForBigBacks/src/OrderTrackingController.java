@@ -365,7 +365,7 @@ public class OrderTrackingController {
     @FXML
     private void goBrowse() {
         stopAutoRefresh();
-        SceneManager.getInstance().switchTo("CustomerDashboard");
+        SceneManager.getInstance().switchTo("RestaurantBrowse");
     }
 
     @FXML

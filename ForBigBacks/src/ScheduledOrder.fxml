@@ -15,9 +15,12 @@
     <!-- SIDEBAR -->
     <VBox prefHeight="800" prefWidth="200" styleClass="dashboard-sidebar">
 
-        <Label styleClass="dashboard-sidebar-logo" text="FORBIGBACKS">
-            <VBox.margin><Insets bottom="16" left="20" top="20" /></VBox.margin>
-        </Label>
+        <HBox>
+    <VBox.margin><Insets bottom="16" left="20" top="20" /></VBox.margin>
+    <Label styleClass="dashboard-sidebar-logo" text="FOR" />
+    <Label styleClass="dashboard-sidebar-logo" text="BIG" style="-fx-text-fill: #8B5E3C;" />
+    <Label styleClass="dashboard-sidebar-logo" text="BACKS" />
+</HBox>
 
         <Region maxWidth="200" prefHeight="1" style="-fx-background-color: #2a2a2a;">
             <VBox.margin><Insets bottom="8" /></VBox.margin>

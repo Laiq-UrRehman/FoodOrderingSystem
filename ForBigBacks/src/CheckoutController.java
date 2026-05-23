@@ -292,7 +292,7 @@ public class CheckoutController {
 
     @FXML
     private void goBrowse() {
-        SceneManager.getInstance().switchTo("CustomerDashboard");
+        SceneManager.getInstance().switchTo("RestaurantBrowse");
     }
 
     @FXML

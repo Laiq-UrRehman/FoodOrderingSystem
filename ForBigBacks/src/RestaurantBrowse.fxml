@@ -4,51 +4,55 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<HBox prefHeight="800" prefWidth="1280" style="-fx-background-color: #111111;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="OrderHistoryController">
+<HBox prefHeight="800" prefWidth="1280" style="-fx-background-color: #111111;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RestaurantBrowseController">
 
     <!-- SIDEBAR -->
     <VBox prefHeight="800" prefWidth="200" styleClass="dashboard-sidebar">
-
         <HBox>
     <VBox.margin><Insets bottom="16" left="20" top="20" /></VBox.margin>
     <Label styleClass="dashboard-sidebar-logo" text="FOR" />
     <Label styleClass="dashboard-sidebar-logo" text="BIG" style="-fx-text-fill: #8B5E3C;" />
     <Label styleClass="dashboard-sidebar-logo" text="BACKS" />
 </HBox>
-
         <Region maxWidth="200" prefHeight="1" style="-fx-background-color: #2a2a2a;">
             <VBox.margin><Insets bottom="8" /></VBox.margin>
         </Region>
-
         <Button maxWidth="200" onAction="#goHome" styleClass="dashboard-nav-button" text="  Home" />
-        <Button maxWidth="200" onAction="#goBrowse" styleClass="dashboard-nav-button" text="  Browse" />
+        <Button maxWidth="200" onAction="#goBrowse" styleClass="dashboard-nav-button-active" text="  Browse" />
         <Button maxWidth="200" onAction="#goCart" styleClass="dashboard-nav-button" text="  Cart" />
-        <Button maxWidth="200" onAction="#goOrders" styleClass="dashboard-nav-button-active" text="  Orders" />
+        <Button maxWidth="200" onAction="#goOrders" styleClass="dashboard-nav-button" text="  Orders" />
         <Button maxWidth="200" onAction="#goTracking" styleClass="dashboard-nav-button" text="  Tracking" />
-
     </VBox>
 
     <!-- MAIN -->
     <VBox prefHeight="800" prefWidth="1080" style="-fx-background-color: #111111;">
 
         <!-- TOP BAR -->
-        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="dashboard-topbar">
-            <HBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS" />
-            <Label fx:id="orderCountLabel" styleClass="dashboard-points-badge" text="0 orders" />
+        <HBox alignment="CENTER_RIGHT" spacing="12" styleClass="dashboard-topbar">
         </HBox>
 
         <!-- CONTENT -->
         <ScrollPane fitToWidth="true" style="-fx-background-color: #111111; -fx-background: #111111;" VBox.vgrow="ALWAYS">
-            <VBox spacing="12" styleClass="dashboard-content-area">
-                <Label styleClass="dashboard-section-title" text="YOUR ORDERS" />
-                <VBox fx:id="ordersContainer" spacing="12" />
+            <VBox spacing="20" styleClass="dashboard-content-area">
+
+                <!-- SEARCH BAR -->
+                <TextField fx:id="searchField" promptText="Search restaurants or dishes..." styleClass="input-text-field" onKeyReleased="#handleSearch" />
+
+                <!-- SEARCH SUGGESTIONS -->
+                <VBox fx:id="suggestionsDropdown" spacing="0" style="-fx-background-color: #1a1a1a; -fx-background-radius: 8; -fx-border-color: #2a2a2a; -fx-border-radius: 8;" managed="false" visible="false" />
+
+                <!-- RESULTS / ALL RESTAURANTS -->
+                <Label fx:id="sectionLabel" styleClass="dashboard-section-title" text="ALL RESTAURANTS" />
+                <FlowPane fx:id="resultsContainer" hgap="14" vgap="14" />
+
             </VBox>
         </ScrollPane>
 
     </VBox>
-
 </HBox>
