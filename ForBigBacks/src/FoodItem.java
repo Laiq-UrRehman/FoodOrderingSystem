@@ -1,6 +1,8 @@
+
 // Updated: Added rating, totalRatings fields and rate() method for item-level ratings
 // Updated: Added orderCount field and incrementOrderCount() for popularity tracking
-
+import java.util.HashMap;
+import java.util.Map;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,18 +114,35 @@ public class FoodItem implements Serializable {
     }
 
     private List<CustomizationGroup> customizationGroups = new ArrayList<>();
+
+    private Map<String, String> selectedCustomizations = new HashMap<>();
+
     public List<CustomizationGroup> getCustomizationGroups() {
         return customizationGroups;
     }
+
     public void addCustomizationGroup(CustomizationGroup group) {
         customizationGroups.add(group);
     }
+
     public void removeCustomizationGroup(String groupName) {
         customizationGroups.removeIf(g -> g.getGroupName().equalsIgnoreCase(groupName));
     }
+
+    public Map<String, String> getSelectedCustomizations() {
+        return selectedCustomizations;
+    }
+
+    public void setSelectedCustomization(String groupName, String selectedOption) {
+        selectedCustomizations.put(groupName, selectedOption);
+    }
+
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
         in.defaultReadObject();
-        if (customizationGroups == null) customizationGroups = new ArrayList<>();
+        if (customizationGroups == null)
+            customizationGroups = new ArrayList<>();
+        if (selectedCustomizations == null)
+            selectedCustomizations = new HashMap<>();
     }
 
 }

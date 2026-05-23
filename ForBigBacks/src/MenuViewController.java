@@ -4,7 +4,11 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MenuViewController {
 
@@ -41,18 +45,19 @@ public class MenuViewController {
 
     private void loadMenuItems() {
         menuContainer.getChildren().clear();
-        List<FoodItem> items = restaurant.getMenu().getItems();
-        for (FoodItem item : items) {
+        for (FoodItem item : restaurant.getMenu().getItems())
             menuContainer.getChildren().add(createMenuItemRow(item));
-        }
     }
 
-    private HBox createMenuItemRow(FoodItem item) {
+    // Returns VBox (wrapper row + optional customization panel)
+    private VBox createMenuItemRow(FoodItem item) {
+        VBox wrapper = new VBox(0);
+
         HBox row = new HBox(12);
         row.getStyleClass().add("dashboard-menu-item-row");
         row.setAlignment(Pos.CENTER_LEFT);
 
-        // Info section
+        // Info
         VBox info = new VBox(3);
         HBox.setHgrow(info, Priority.ALWAYS);
 
@@ -62,18 +67,18 @@ public class MenuViewController {
         Label categoryLabel = new Label(item.getCategory());
         categoryLabel.getStyleClass().add("dashboard-menu-item-category");
 
-        Label ratingLabel = new Label(String.format("★ %.1f  ·  %d orders",
+        Label itemRatingLabel = new Label(String.format("★ %.1f  ·  %d orders",
                 item.getRating(), item.getOrderCount()));
-        ratingLabel.getStyleClass().add("dashboard-menu-item-rating");
+        itemRatingLabel.getStyleClass().add("dashboard-menu-item-rating");
 
-        info.getChildren().addAll(nameLabel, categoryLabel, ratingLabel);
+        info.getChildren().addAll(nameLabel, categoryLabel, itemRatingLabel);
 
-        // Price
+        // Base price (may update when customization with extra charge is selected)
         Label priceLabel = new Label("Rs. " + (int) item.getPrice());
         priceLabel.getStyleClass().add("dashboard-menu-item-price");
         priceLabel.setMinWidth(90);
 
-        // Quantity spinner
+        // Qty spinner
         Spinner<Integer> qtySpinner = new Spinner<>(1, 10, 1);
         qtySpinner.setPrefWidth(75);
         qtySpinner.setStyle(
@@ -81,44 +86,195 @@ public class MenuViewController {
                         "-fx-border-color: #444444;" +
                         "-fx-border-radius: 6;");
 
-        // Add to cart button
-        Button addBtn = new Button("Add to Cart");
-        addBtn.getStyleClass().add("dashboard-add-button");
-        addBtn.setOnAction(e -> {
-            int qty = qtySpinner.getValue();
-            FoodItem toAdd = new FoodItem(
-                    item.getFoodID(), item.getName(),
-                    item.getPrice(), item.getCategory(), qty);
-            customer.getCart().addItem(toAdd);
-            updateCartTotal();
+        boolean hasGroups = !item.getCustomizationGroups().isEmpty();
 
-            // Visual feedback
-            addBtn.setText("Added ✓");
-            addBtn.setStyle(
-                    "-fx-background-color: #4a7c59;" +
-                            "-fx-text-fill: white;" +
-                            "-fx-font-size: 12px;" +
-                            "-fx-font-weight: bold;" +
-                            "-fx-padding: 6 14;" +
-                            "-fx-background-radius: 6;" +
-                            "-fx-cursor: hand;");
+        if (hasGroups) {
+            Button customizeBtn = new Button("Customize & Add");
+            customizeBtn.getStyleClass().add("dashboard-add-button");
 
-            // Reset button after 1.5 seconds
-            new Thread(() -> {
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException ex) {
+            VBox customPanel = buildCustomizationSelector(item, qtySpinner, priceLabel, customizeBtn);
+            customPanel.setVisible(false);
+            customPanel.setManaged(false);
+
+            customizeBtn.setOnAction(e -> {
+                boolean show = !customPanel.isVisible();
+                customPanel.setVisible(show);
+                customPanel.setManaged(show);
+                if (show) {
+                    customizeBtn.setText("Cancel  ✕");
+                    customizeBtn.setStyle(
+                            "-fx-background-color: #2a2a2a; -fx-text-fill: #888888;" +
+                                    "-fx-font-size: 13px; -fx-font-weight: bold;" +
+                                    "-fx-padding: 8 16; -fx-background-radius: 6; -fx-cursor: hand;");
+                } else {
+                    customizeBtn.setText("Customize & Add");
+                    customizeBtn.setStyle("");
+                    customizeBtn.getStyleClass().setAll("dashboard-add-button");
+                    // Reset price label to base price
+                    priceLabel.setText("Rs. " + (int) item.getPrice());
                 }
-                Platform.runLater(() -> {
-                    addBtn.setText("Add to Cart");
-                    addBtn.setStyle("");
-                    addBtn.getStyleClass().setAll("dashboard-add-button");
+            });
+
+            row.getChildren().addAll(info, priceLabel, qtySpinner, customizeBtn);
+            wrapper.getChildren().addAll(row, customPanel);
+
+        } else {
+            Button addBtn = new Button("Add to Cart");
+            addBtn.getStyleClass().add("dashboard-add-button");
+            addBtn.setOnAction(e -> addToCart(item, qtySpinner.getValue(), null, addBtn, item.getPrice()));
+
+            row.getChildren().addAll(info, priceLabel, qtySpinner, addBtn);
+            wrapper.getChildren().add(row);
+        }
+
+        return wrapper;
+    }
+
+    // Builds the inline customization selector panel for a food item
+    private VBox buildCustomizationSelector(FoodItem item, Spinner<Integer> qtySpinner,
+            Label priceLabel, Button triggerBtn) {
+
+        VBox panel = new VBox(14);
+        panel.getStyleClass().add("menu-customization-panel");
+
+        // Track selections: group name → chosen option name
+        Map<String, String> selections = new LinkedHashMap<>();
+        Map<String, Double> extraCharges = new HashMap<>();
+
+        for (CustomizationGroup group : item.getCustomizationGroups()) {
+            selections.put(group.getGroupName(), null);
+            extraCharges.put(group.getGroupName(), 0.0);
+        }
+
+        Label confirmError = new Label("");
+        confirmError.getStyleClass().add("text-error-message");
+
+        // Build one section per group
+        for (CustomizationGroup group : item.getCustomizationGroups()) {
+            VBox groupSection = new VBox(8);
+
+            Label groupLabel = new Label(group.getGroupName().toUpperCase());
+            groupLabel.getStyleClass().add("menu-customization-group-label");
+
+            FlowPane optionsFlow = new FlowPane(8, 8);
+            optionsFlow.setAlignment(Pos.CENTER_LEFT);
+
+            List<Button> optionBtns = new ArrayList<>();
+
+            for (int i = 0; i < group.getOptions().size(); i++) {
+                final int idx = i;
+                final String optName = group.getOptions().get(i);
+                final double charge = group.getExtraCharges().get(i);
+
+                String btnLabel = optName + (charge > 0 ? "  +Rs." + (int) charge : "  free");
+
+                Button optBtn = new Button(btnLabel);
+                optBtn.getStyleClass().add("menu-customization-option-btn");
+
+                optBtn.setOnAction(e -> {
+                    // Deselect all in this group
+                    for (Button b : optionBtns) {
+                        b.getStyleClass().remove("menu-customization-option-btn-selected");
+                        if (!b.getStyleClass().contains("menu-customization-option-btn"))
+                            b.getStyleClass().add("menu-customization-option-btn");
+                    }
+                    // Select this one
+                    optBtn.getStyleClass().remove("menu-customization-option-btn");
+                    optBtn.getStyleClass().add("menu-customization-option-btn-selected");
+
+                    // Record selection + extra charge
+                    selections.put(group.getGroupName(), optName);
+                    extraCharges.put(group.getGroupName(), charge);
+
+                    // Update displayed price
+                    double totalExtra = extraCharges.values().stream()
+                            .mapToDouble(Double::doubleValue).sum();
+                    priceLabel.setText("Rs. " + (int) (item.getPrice() + totalExtra));
+
+                    confirmError.setText("");
                 });
-            }).start();
+
+                optionBtns.add(optBtn);
+                optionsFlow.getChildren().add(optBtn);
+            }
+
+            groupSection.getChildren().addAll(groupLabel, optionsFlow);
+            panel.getChildren().add(groupSection);
+        }
+
+        // Confirm button
+        Button confirmBtn = new Button("Confirm & Add to Cart");
+        confirmBtn.getStyleClass().add("menu-customization-confirm-btn");
+
+        confirmBtn.setOnAction(e -> {
+            // Ensure every group has a selection
+            for (CustomizationGroup group : item.getCustomizationGroups()) {
+                if (selections.get(group.getGroupName()) == null) {
+                    confirmError.setText("Please select an option for: " + group.getGroupName());
+                    return;
+                }
+            }
+
+            double totalExtra = extraCharges.values().stream()
+                    .mapToDouble(Double::doubleValue).sum();
+            double finalPrice = item.getPrice() + totalExtra;
+
+            addToCart(item, qtySpinner.getValue(), selections, triggerBtn, finalPrice);
+
+            // Collapse panel and reset trigger button
+            panel.setVisible(false);
+            panel.setManaged(false);
+            priceLabel.setText("Rs. " + (int) item.getPrice());
+            triggerBtn.setText("Customize & Add");
+            triggerBtn.setStyle("");
+            triggerBtn.getStyleClass().setAll("dashboard-add-button");
         });
 
-        row.getChildren().addAll(info, priceLabel, qtySpinner, addBtn);
-        return row;
+        HBox confirmRow = new HBox(12);
+        confirmRow.setAlignment(Pos.CENTER_LEFT);
+        confirmRow.getChildren().addAll(confirmBtn, confirmError);
+        panel.getChildren().add(confirmRow);
+
+        return panel;
+    }
+
+    // Adds item to cart; selectedCustomizations may be null for plain items
+    private void addToCart(FoodItem item, int qty,
+            Map<String, String> selectedCustomizations,
+            Button feedbackBtn, double finalPrice) {
+
+        FoodItem toAdd = new FoodItem(
+                item.getFoodID(), item.getName(),
+                finalPrice, item.getCategory(), qty);
+
+        if (selectedCustomizations != null) {
+            for (Map.Entry<String, String> entry : selectedCustomizations.entrySet())
+                toAdd.setSelectedCustomization(entry.getKey(), entry.getValue());
+        }
+
+        customer.getCart().addItem(toAdd);
+        updateCartTotal();
+
+        // Green "Added ✓" feedback
+        feedbackBtn.setText("Added ✓");
+        feedbackBtn.setStyle(
+                "-fx-background-color: #4a7c59; -fx-text-fill: white;" +
+                        "-fx-font-size: 12px; -fx-font-weight: bold;" +
+                        "-fx-padding: 6 14; -fx-background-radius: 6; -fx-cursor: hand;");
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException ex) {
+            }
+            Platform.runLater(() -> {
+                feedbackBtn.setText(selectedCustomizations != null
+                        ? "Customize & Add"
+                        : "Add to Cart");
+                feedbackBtn.setStyle("");
+                feedbackBtn.getStyleClass().setAll("dashboard-add-button");
+            });
+        }).start();
     }
 
     private void updateCartTotal() {

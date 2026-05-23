@@ -119,3 +119,59 @@
     -fx-font-size: 13px;
     -fx-padding: 20 0;
 }
+
+/* ── Customization Toggle Button ─────────────────────────────── */
+
+.admin-customization-toggle {
+    -fx-background-color: #1f1510;
+    -fx-text-fill: #8B5E3C;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 7 14;
+    -fx-background-radius: 6;
+    -fx-border-color: #5a3e28;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+
+.admin-customization-toggle:hover {
+    -fx-background-color: #2a1d0d;
+    -fx-border-color: #8B5E3C;
+}
+
+/* ── Customization Panel (below the item row) ────────────────── */
+
+.admin-customization-panel {
+    -fx-background-color: #141414;
+    -fx-background-radius: 0 0 8 8;
+    -fx-border-color: #2a2a2a transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 16;
+}
+
+/* ── Existing group rows inside the panel ────────────────────── */
+
+.admin-customization-group-row {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 6;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 6;
+    -fx-padding: 10 12;
+}
+
+/* ── Add Another Option link button ─────────────────────────── */
+
+.admin-customization-add-option-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #8B5E3C;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 0;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-underline: true;
+}
+
+.admin-customization-add-option-btn:hover {
+    -fx-text-fill: #6F4A2F;
+}

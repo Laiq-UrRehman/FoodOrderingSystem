@@ -7,27 +7,21 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AdminDashboardController {
 
-    // ── Top bar ───────────────────────────────────────────────────────────
     @FXML
     private Label restaurantBadge;
-
-    // ── Sidebar nav ───────────────────────────────────────────────────────
     @FXML
     private Button menuNavButton;
     @FXML
     private Button offersNavButton;
-
-    // ── Panels ────────────────────────────────────────────────────────────
     @FXML
     private VBox menuPanel;
     @FXML
     private VBox offersPanel;
-
-    // ── Menu form ─────────────────────────────────────────────────────────
     @FXML
     private TextField newItemName;
     @FXML
@@ -42,8 +36,6 @@ public class AdminDashboardController {
     private VBox menuItemsContainer;
     @FXML
     private Label menuCountLabel;
-
-    // ── Offer form ────────────────────────────────────────────────────────
     @FXML
     private TextField newOfferCode;
     @FXML
@@ -61,7 +53,6 @@ public class AdminDashboardController {
     @FXML
     private Label offerCountLabel;
 
-    // ── State ─────────────────────────────────────────────────────────────
     private RestaurantAdmin admin;
     private LoyaltyOfferManager offerManager;
 
@@ -76,23 +67,18 @@ public class AdminDashboardController {
             SceneManager.getInstance().switchTo("Login");
             return;
         }
-
-        if (admin.getRestaurant() != null) {
+        if (admin.getRestaurant() != null)
             restaurantBadge.setText(admin.getRestaurant().getName());
-        }
 
-        // Reuse the admin's own offerManager so adds/removes are immediately visible
         offerManager = admin.getOfferManager();
-
         loadMenuItems();
         loadOffers();
-
         setNavActive(menuNavButton);
         setNavInactive(offersNavButton);
     }
 
     // ═════════════════════════════════════════════════════════════════════
-    // Nav switching
+    // Nav
     // ═════════════════════════════════════════════════════════════════════
 
     @FXML
@@ -128,7 +114,7 @@ public class AdminDashboardController {
     }
 
     // ═════════════════════════════════════════════════════════════════════
-    // Menu Items — load + add + remove
+    // Menu Items
     // ═════════════════════════════════════════════════════════════════════
 
     private void loadMenuItems() {
@@ -148,12 +134,15 @@ public class AdminDashboardController {
             return;
         }
 
-        for (FoodItem item : items) {
+        for (FoodItem item : items)
             menuItemsContainer.getChildren().add(buildMenuItemRow(item));
-        }
     }
 
-    private HBox buildMenuItemRow(FoodItem item) {
+    // Returns a VBox: the item row on top + collapsible customization panel below
+    private VBox buildMenuItemRow(FoodItem item) {
+        VBox wrapper = new VBox(0);
+
+        // ── Main row ──
         HBox row = new HBox(12);
         row.getStyleClass().add("admin-item-row");
         row.setAlignment(Pos.CENTER_LEFT);
@@ -176,15 +165,177 @@ public class AdminDashboardController {
         Label priceLabel = new Label("Rs. " + (int) item.getPrice());
         priceLabel.getStyleClass().add("admin-item-price");
 
+        // Customization toggle button
+        int groupCount = item.getCustomizationGroups().size();
+        Button customBtn = new Button(
+                groupCount > 0 ? "Customizations (" + groupCount + ")" : "Customizations");
+        customBtn.getStyleClass().add("admin-customization-toggle");
+
         Button removeBtn = new Button("Remove");
         removeBtn.getStyleClass().add("admin-remove-button");
         removeBtn.setOnAction(e -> {
-            // removeFoodItem() inside RestaurantAdmin now calls persistRestaurant() internally
             admin.removeFoodItem(item);
             loadMenuItems();
         });
 
-        row.getChildren().addAll(info, priceLabel, removeBtn);
+        // ── Customization panel ──
+        VBox customPanel = buildCustomizationPanel(item);
+        customPanel.setVisible(false);
+        customPanel.setManaged(false);
+
+        customBtn.setOnAction(e -> {
+            boolean show = !customPanel.isVisible();
+            customPanel.setVisible(show);
+            customPanel.setManaged(show);
+            int cnt = item.getCustomizationGroups().size();
+            customBtn.setText(show ? "Hide Customizations"
+                    : (cnt > 0 ? "Customizations (" + cnt + ")" : "Customizations"));
+        });
+
+        row.getChildren().addAll(info, priceLabel, customBtn, removeBtn);
+        wrapper.getChildren().addAll(row, customPanel);
+        return wrapper;
+    }
+
+    private VBox buildCustomizationPanel(FoodItem item) {
+        VBox panel = new VBox(12);
+        panel.getStyleClass().add("admin-customization-panel");
+
+        // ── Existing groups ──
+        List<CustomizationGroup> groups = item.getCustomizationGroups();
+        if (!groups.isEmpty()) {
+            Label existingTitle = new Label("EXISTING GROUPS");
+            existingTitle.getStyleClass().add("admin-form-label");
+            panel.getChildren().add(existingTitle);
+
+            for (CustomizationGroup group : groups) {
+                HBox groupRow = new HBox(10);
+                groupRow.getStyleClass().add("admin-customization-group-row");
+                groupRow.setAlignment(Pos.CENTER_LEFT);
+
+                VBox groupInfo = new VBox(3);
+                HBox.setHgrow(groupInfo, Priority.ALWAYS);
+
+                Label groupNameLabel = new Label(group.getGroupName());
+                groupNameLabel.setStyle(
+                        "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #cccccc;");
+
+                List<String> optionParts = new ArrayList<>();
+                for (int i = 0; i < group.getOptions().size(); i++) {
+                    double charge = group.getExtraCharges().get(i);
+                    optionParts.add(group.getOptions().get(i)
+                            + (charge > 0 ? " (+Rs." + (int) charge + ")" : " (free)"));
+                }
+                Label optionsLabel = new Label(String.join("  ·  ", optionParts));
+                optionsLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555555;");
+
+                groupInfo.getChildren().addAll(groupNameLabel, optionsLabel);
+
+                Button removeGroupBtn = new Button("Remove");
+                removeGroupBtn.getStyleClass().add("admin-remove-button");
+                removeGroupBtn.setOnAction(e -> {
+                    admin.removeCustomization(item.getFoodID(), group.getGroupName());
+                    loadMenuItems();
+                });
+
+                groupRow.getChildren().addAll(groupInfo, removeGroupBtn);
+                panel.getChildren().add(groupRow);
+            }
+        }
+
+        // ── Add new group form ──
+        Label addTitle = new Label("ADD NEW GROUP");
+        addTitle.getStyleClass().add("admin-form-label");
+
+        TextField groupNameField = new TextField();
+        groupNameField.setPromptText("Group name  (e.g. Size, Spice Level, Add-ons)");
+        groupNameField.getStyleClass().add("input-text-field");
+
+        // Dynamic option rows
+        VBox optionRowsContainer = new VBox(8);
+        optionRowsContainer.getChildren().add(buildOptionInputRow());
+
+        Button addOptionRowBtn = new Button("+ Add Another Option");
+        addOptionRowBtn.getStyleClass().add("admin-customization-add-option-btn");
+        addOptionRowBtn.setOnAction(e -> optionRowsContainer.getChildren().add(buildOptionInputRow()));
+
+        Label saveError = new Label("");
+        saveError.getStyleClass().add("text-error-message");
+
+        Button saveGroupBtn = new Button("Save Group");
+        saveGroupBtn.getStyleClass().add("action-button-brown");
+        saveGroupBtn.setOnAction(e -> {
+            saveError.setText("");
+            String gName = groupNameField.getText().trim();
+            if (gName.isEmpty()) {
+                saveError.setText("Group name is required.");
+                return;
+            }
+            for (CustomizationGroup existing : item.getCustomizationGroups()) {
+                if (existing.getGroupName().equalsIgnoreCase(gName)) {
+                    saveError.setText("A group named '" + gName + "' already exists.");
+                    return;
+                }
+            }
+            CustomizationGroup newGroup = new CustomizationGroup(gName);
+            boolean hasOptions = false;
+            for (javafx.scene.Node node : optionRowsContainer.getChildren()) {
+                if (!(node instanceof HBox))
+                    continue;
+                HBox optRow = (HBox) node;
+                TextField optName = (TextField) optRow.getChildren().get(0);
+                TextField optCharge = (TextField) optRow.getChildren().get(1);
+                String nameText = optName.getText().trim();
+                if (nameText.isEmpty())
+                    continue;
+                double charge = 0;
+                try {
+                    String chargeText = optCharge.getText().trim();
+                    if (!chargeText.isEmpty())
+                        charge = Double.parseDouble(chargeText);
+                } catch (NumberFormatException ex) {
+                    saveError.setText("Extra charge must be a valid number.");
+                    return;
+                }
+                if (charge < 0) {
+                    saveError.setText("Extra charge cannot be negative.");
+                    return;
+                }
+                newGroup.addOption(nameText, charge);
+                hasOptions = true;
+            }
+            if (!hasOptions) {
+                saveError.setText("Add at least one option.");
+                return;
+            }
+            admin.addCustomization(item.getFoodID(), newGroup);
+            loadMenuItems();
+        });
+
+        HBox btnRow = new HBox(10);
+        btnRow.setAlignment(Pos.CENTER_LEFT);
+        btnRow.getChildren().addAll(saveGroupBtn, addOptionRowBtn, saveError);
+
+        panel.getChildren().addAll(addTitle, groupNameField, optionRowsContainer, btnRow);
+        return panel;
+    }
+
+    // One name + extra-charge pair row for the add-group form
+    private HBox buildOptionInputRow() {
+        HBox row = new HBox(8);
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        TextField optName = new TextField();
+        optName.setPromptText("Option name  (e.g. Large, Extra Spicy)");
+        optName.getStyleClass().add("input-text-field");
+        HBox.setHgrow(optName, Priority.ALWAYS);
+
+        TextField optCharge = new TextField();
+        optCharge.setPromptText("Extra charge Rs.  (0 = free)");
+        optCharge.getStyleClass().add("input-text-field");
+        optCharge.setPrefWidth(180);
+
+        row.getChildren().addAll(optName, optCharge);
         return row;
     }
 
@@ -192,24 +343,19 @@ public class AdminDashboardController {
     private void handleAddMenuItem() {
         menuFormError.setText("");
 
-        String name     = newItemName.getText().trim();
+        String name = newItemName.getText().trim();
         String category = newItemCategory.getText().trim();
         String priceStr = newItemPrice.getText().trim();
-        String qtyStr   = newItemQuantity.getText().trim();
+        String qtyStr = newItemQuantity.getText().trim();
 
-        // Empty check
         if (name.isEmpty() || category.isEmpty() || priceStr.isEmpty() || qtyStr.isEmpty()) {
             menuFormError.setText("All fields are required.");
             return;
         }
-
-        // Name: must start with a letter, 2–50 chars, letters/digits/spaces/common punctuation
         if (!name.matches("[a-zA-Z][a-zA-Z0-9 '',.-]{1,49}")) {
             menuFormError.setText("Item name must start with a letter, 2–50 characters.");
             return;
         }
-
-        // Category: letters and spaces only, 2–30 chars
         if (!category.matches("[a-zA-Z ]{2,30}")) {
             menuFormError.setText("Category must be 2–30 letters only.");
             return;
@@ -219,46 +365,36 @@ public class AdminDashboardController {
         int qty;
         try {
             price = Double.parseDouble(priceStr);
-            qty   = Integer.parseInt(qtyStr);
+            qty = Integer.parseInt(qtyStr);
         } catch (NumberFormatException e) {
             menuFormError.setText("Price and quantity must be valid numbers.");
             return;
         }
-
-        // Price range
         if (price <= 0 || price > 100000) {
             menuFormError.setText("Price must be between 1 and 100,000 PKR.");
             return;
         }
-
-        // Quantity range
         if (qty < 0 || qty > 9999) {
             menuFormError.setText("Quantity must be between 0 and 9999.");
             return;
         }
 
-        String foodID = "FI" + System.currentTimeMillis();
-        FoodItem newItem = new FoodItem(foodID, name, price, category, qty);
-
-        // addFoodItem() inside RestaurantAdmin now calls persistRestaurant() internally
+        FoodItem newItem = new FoodItem("FI" + System.currentTimeMillis(), name, price, category, qty);
         admin.addFoodItem(newItem);
 
         newItemName.clear();
         newItemCategory.clear();
         newItemPrice.clear();
         newItemQuantity.clear();
-
         loadMenuItems();
     }
 
     // ═════════════════════════════════════════════════════════════════════
-    // Loyalty Offers — load + add + remove
+    // Loyalty Offers
     // ═════════════════════════════════════════════════════════════════════
 
     private void loadOffers() {
         offersContainer.getChildren().clear();
-
-        // refresh() re-reads loyalty_offers.txt so the list is always current
         offerManager.refresh();
 
         List<LoyaltyOffer> offers = offerManager.getAllOffers();
@@ -268,10 +404,8 @@ public class AdminDashboardController {
             offersContainer.getChildren().add(makeEmptyLabel("No loyalty offers yet. Add one above."));
             return;
         }
-
-        for (LoyaltyOffer offer : offers) {
+        for (LoyaltyOffer offer : offers)
             offersContainer.getChildren().add(buildOfferRow(offer));
-        }
     }
 
     private HBox buildOfferRow(LoyaltyOffer offer) {
@@ -299,7 +433,6 @@ public class AdminDashboardController {
         Button removeBtn = new Button("Remove");
         removeBtn.getStyleClass().add("admin-remove-button");
         removeBtn.setOnAction(e -> {
-            // removeOffer() saves to loyalty_offers.txt automatically via LoyaltyOfferManager
             offerManager.removeOffer(offer.getOfferCode());
             loadOffers();
         });
@@ -312,9 +445,9 @@ public class AdminDashboardController {
     private void handleAddOffer() {
         offerFormError.setText("");
 
-        String code        = newOfferCode.getText().trim();
-        String desc        = newOfferDescription.getText().trim();
-        String pointsStr   = newOfferPoints.getText().trim();
+        String code = newOfferCode.getText().trim();
+        String desc = newOfferDescription.getText().trim();
+        String pointsStr = newOfferPoints.getText().trim();
         String discountStr = newOfferDiscount.getText().trim();
         String minOrderStr = newOfferMinOrder.getText().trim();
 
@@ -327,33 +460,28 @@ public class AdminDashboardController {
         int points;
         double discount, minOrder;
         try {
-            points   = Integer.parseInt(pointsStr);
+            points = Integer.parseInt(pointsStr);
             discount = Double.parseDouble(discountStr);
             minOrder = Double.parseDouble(minOrderStr);
         } catch (NumberFormatException e) {
             offerFormError.setText("Points, discount, and min order must be valid numbers.");
             return;
         }
-
         if (points <= 0 || discount <= 0 || minOrder <= 0) {
             offerFormError.setText("All numeric values must be positive.");
             return;
         }
-
         if (offerManager.findByCode(code) != null) {
             offerFormError.setText("An offer with code " + code + " already exists.");
             return;
         }
 
-        // addOffer() saves to loyalty_offers.txt automatically via LoyaltyOfferManager
         offerManager.addOffer(new LoyaltyOffer(code, desc, points, discount, minOrder));
-
         newOfferCode.clear();
         newOfferDescription.clear();
         newOfferPoints.clear();
         newOfferDiscount.clear();
         newOfferMinOrder.clear();
-
         loadOffers();
     }
 

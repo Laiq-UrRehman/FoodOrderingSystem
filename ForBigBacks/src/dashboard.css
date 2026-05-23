@@ -726,3 +726,62 @@
     -fx-background-color: #2a1d0d;
     -fx-border-color: #8B5E3C;
 }
+
+/* ── Menu Item Customization Selector (customer) ─────────────── */
+
+.menu-customization-panel {
+    -fx-background-color: #141414;
+    -fx-background-radius: 0 0 8 8;
+    -fx-border-color: #2a2a2a transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 16;
+}
+
+.menu-customization-group-label {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #555555;
+}
+
+.menu-customization-option-btn {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #aaaaaa;
+    -fx-font-size: 13px;
+    -fx-padding: 7 14;
+    -fx-background-radius: 6;
+    -fx-border-color: #3a3a3a;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+
+.menu-customization-option-btn:hover {
+    -fx-background-color: #333333;
+    -fx-text-fill: #cccccc;
+    -fx-border-color: #555555;
+}
+
+.menu-customization-option-btn-selected {
+    -fx-background-color: #1f1510;
+    -fx-text-fill: #8B5E3C;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 7 14;
+    -fx-background-radius: 6;
+    -fx-border-color: #8B5E3C;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+
+.menu-customization-confirm-btn {
+    -fx-background-color: #8B5E3C;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 20;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.menu-customization-confirm-btn:hover {
+    -fx-background-color: #6F4A2F;
+}
