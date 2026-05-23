@@ -3,38 +3,28 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CheckoutController {
 
-    @FXML
-    private VBox orderItemsContainer;
-    @FXML
-    private Label subtotalLabel;
-    @FXML
-    private Label discountLabel;
-    @FXML
-    private Label totalLabel;
-    @FXML
-    private VBox cardFieldsContainer;
-    @FXML
-    private TextField cardNumberField;
-    @FXML
-    private TextField cardHolderField;
-    @FXML
-    private TextField expiryField;
-    @FXML
-    private VBox offersContainer;
-    @FXML
-    private Label offersStatusLabel;
-    @FXML
-    private Label errorLabel;
-    @FXML
-    private Button cashButton;
-    @FXML
-    private Button cardButton;
+    @FXML private VBox orderItemsContainer;
+    @FXML private Label subtotalLabel;
+    @FXML private Label discountLabel;
+    @FXML private Label totalLabel;
+    @FXML private VBox cardFieldsContainer;
+    @FXML private TextField cardNumberField;
+    @FXML private TextField cardHolderField;
+    @FXML private TextField expiryField;
+    @FXML private VBox offersContainer;
+    @FXML private Label offersStatusLabel;
+    @FXML private Label errorLabel;
+    @FXML private Button cashButton;
+    @FXML private Button cardButton;
 
     private Customer customer;
     private Restaurant restaurant;
@@ -98,8 +88,7 @@ public class CheckoutController {
         offersContainer.getChildren().clear();
 
         if (offers.isEmpty()) {
-            offersStatusLabel.setText(
-                    "No offers available. Keep ordering to earn more points!");
+            offersStatusLabel.setText("No offers available. Keep ordering to earn more points!");
             return;
         }
 
@@ -195,27 +184,63 @@ public class CheckoutController {
         errorLabel.setText("");
     }
 
+    // ── Card Validation ──────────────────────────────────────────────────────
+
+    private boolean validateCardFields() {
+        String cardNumber  = cardNumberField.getText().trim();
+        String cardHolder  = cardHolderField.getText().trim();
+        String expiry      = expiryField.getText().trim();
+
+        // Empty check
+        if (cardNumber.isEmpty() || cardHolder.isEmpty() || expiry.isEmpty()) {
+            errorLabel.setText("Please fill in all card details.");
+            return false;
+        }
+
+        // Card number: exactly 16 digits
+        if (!cardNumber.matches("\\d{16}")) {
+            errorLabel.setText("Card number must be exactly 16 digits.");
+            return false;
+        }
+
+        // Card holder: letters and spaces only
+        if (!cardHolder.matches("[a-zA-Z ]{2,50}")) {
+            errorLabel.setText("Card holder name must be letters only.");
+            return false;
+        }
+
+        // Expiry: MM/YY format and not expired
+        if (!expiry.matches("(0[1-9]|1[0-2])/\\d{2}")) {
+            errorLabel.setText("Expiry must be in MM/YY format (e.g. 08/27).");
+            return false;
+        }
+        try {
+            YearMonth cardExpiry = YearMonth.parse(expiry, DateTimeFormatter.ofPattern("MM/yy"));
+            if (cardExpiry.isBefore(YearMonth.now())) {
+                errorLabel.setText("This card has expired.");
+                return false;
+            }
+        } catch (DateTimeParseException e) {
+            errorLabel.setText("Expiry must be in MM/YY format (e.g. 08/27).");
+            return false;
+        }
+
+        return true;
+    }
+
     // ── Place Order ──────────────────────────────────────────────────────────
 
     @FXML
     private void placeOrder() {
         errorLabel.setText("");
 
-        if (isCardPayment) {
-            if (cardNumberField.getText().trim().isEmpty()
-                    || cardHolderField.getText().trim().isEmpty()
-                    || expiryField.getText().trim().isEmpty()) {
-                errorLabel.setText("Please fill in all card details.");
-                return;
-            }
-        }
+        if (isCardPayment && !validateCardFields()) return;
 
         Order order;
         if (selectedOffer != null) {
             RedeemCode code = cart.selectOffer(customer, selectedOffer);
             if (code == null) {
-                errorLabel.setText(
-                        "Could not generate redeem code. Check your points balance.");
+                errorLabel.setText("Could not generate redeem code. Check your points balance.");
                 return;
             }
             order = (restaurant != null)
@@ -231,7 +256,6 @@ public class CheckoutController {
 
         FileHandler<Rider> riderFH = new FileHandler<>();
         Rider[] ridersArr = riderFH.loadArray("riders.dat");
-        // Use ArrayList so OrderTracking can freely mutate the list
         List<Rider> riders = (ridersArr != null)
                 ? new ArrayList<>(Arrays.asList(ridersArr))
                 : new ArrayList<>();
@@ -248,7 +272,6 @@ public class CheckoutController {
             }
         }
 
-        // Save updated rider statuses back to disk
         if (ridersArr != null) {
             riderFH.saveArray(riders.toArray(new Rider[0]), "riders.dat");
         }
@@ -275,33 +298,12 @@ public class CheckoutController {
 
     // ── Navigation ───────────────────────────────────────────────────────────
 
-    @FXML
-    private void goBack() {
-        SceneManager.getInstance().switchTo("Cart");
-    }
-
-    @FXML
-    private void goHome() {
-        SceneManager.getInstance().switchTo("CustomerDashboard");
-    }
-
-    @FXML
-    private void goBrowse() {
-        SceneManager.getInstance().switchTo("RestaurantBrowse");
-    }
-
-    @FXML
-    private void goCart() {
-        SceneManager.getInstance().switchTo("Cart");
-    }
-
-    @FXML
-    private void goOrders() {
-        SceneManager.getInstance().switchTo("OrderHistory");
-    }
-
-    @FXML
-    private void goTracking() {
+    @FXML private void goBack()     { SceneManager.getInstance().switchTo("Cart"); }
+    @FXML private void goHome()     { SceneManager.getInstance().switchTo("CustomerDashboard"); }
+    @FXML private void goBrowse()   { SceneManager.getInstance().switchTo("RestaurantBrowse"); }
+    @FXML private void goCart()     { SceneManager.getInstance().switchTo("Cart"); }
+    @FXML private void goOrders()   { SceneManager.getInstance().switchTo("OrderHistory"); }
+    @FXML private void goTracking() {
         SessionManager.getInstance().setSelectedOrder(null);
         SceneManager.getInstance().switchTo("OrderTracking");
     }
