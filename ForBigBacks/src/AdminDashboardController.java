@@ -81,13 +81,12 @@ public class AdminDashboardController {
             restaurantBadge.setText(admin.getRestaurant().getName());
         }
 
-        offerManager = new LoyaltyOfferManager();
+        // Reuse the admin's own offerManager so adds/removes are immediately visible
+        offerManager = admin.getOfferManager();
 
         loadMenuItems();
         loadOffers();
 
-        // start on menu panel (it is already visible in FXML, but call anyway
-        // so nav button states are guaranteed correct)
         setNavActive(menuNavButton);
         setNavInactive(offersNavButton);
     }
@@ -159,7 +158,6 @@ public class AdminDashboardController {
         row.getStyleClass().add("admin-item-row");
         row.setAlignment(Pos.CENTER_LEFT);
 
-        // Left: name + detail line
         VBox info = new VBox(4);
         HBox.setHgrow(info, Priority.ALWAYS);
 
@@ -175,16 +173,14 @@ public class AdminDashboardController {
 
         info.getChildren().addAll(nameLabel, detailLabel);
 
-        // Price
         Label priceLabel = new Label("Rs. " + (int) item.getPrice());
         priceLabel.getStyleClass().add("admin-item-price");
 
-        // Remove
         Button removeBtn = new Button("Remove");
         removeBtn.getStyleClass().add("admin-remove-button");
         removeBtn.setOnAction(e -> {
+            // removeFoodItem() inside RestaurantAdmin now calls persistRestaurant() internally
             admin.removeFoodItem(item);
-            persistChanges();
             loadMenuItems();
         });
 
@@ -196,10 +192,10 @@ public class AdminDashboardController {
     private void handleAddMenuItem() {
         menuFormError.setText("");
 
-        String name = newItemName.getText().trim();
+        String name     = newItemName.getText().trim();
         String category = newItemCategory.getText().trim();
         String priceStr = newItemPrice.getText().trim();
-        String qtyStr = newItemQuantity.getText().trim();
+        String qtyStr   = newItemQuantity.getText().trim();
 
         if (name.isEmpty() || category.isEmpty() || priceStr.isEmpty() || qtyStr.isEmpty()) {
             menuFormError.setText("All fields are required.");
@@ -210,7 +206,7 @@ public class AdminDashboardController {
         int qty;
         try {
             price = Double.parseDouble(priceStr);
-            qty = Integer.parseInt(qtyStr);
+            qty   = Integer.parseInt(qtyStr);
         } catch (NumberFormatException e) {
             menuFormError.setText("Price and quantity must be valid numbers.");
             return;
@@ -223,8 +219,9 @@ public class AdminDashboardController {
 
         String foodID = "FI" + System.currentTimeMillis();
         FoodItem newItem = new FoodItem(foodID, name, price, category, qty);
+
+        // addFoodItem() inside RestaurantAdmin now calls persistRestaurant() internally
         admin.addFoodItem(newItem);
-        persistChanges();
 
         newItemName.clear();
         newItemCategory.clear();
@@ -240,6 +237,8 @@ public class AdminDashboardController {
 
     private void loadOffers() {
         offersContainer.getChildren().clear();
+
+        // refresh() re-reads loyalty_offers.txt so the list is always current
         offerManager.refresh();
 
         List<LoyaltyOffer> offers = offerManager.getAllOffers();
@@ -260,7 +259,6 @@ public class AdminDashboardController {
         row.getStyleClass().add("admin-item-row");
         row.setAlignment(Pos.CENTER_LEFT);
 
-        // Left: code + description + meta
         VBox info = new VBox(4);
         HBox.setHgrow(info, Priority.ALWAYS);
 
@@ -278,10 +276,10 @@ public class AdminDashboardController {
 
         info.getChildren().addAll(codeLabel, descLabel, metaLabel);
 
-        // Remove
         Button removeBtn = new Button("Remove");
         removeBtn.getStyleClass().add("admin-remove-button");
         removeBtn.setOnAction(e -> {
+            // removeOffer() saves to loyalty_offers.txt automatically via LoyaltyOfferManager
             offerManager.removeOffer(offer.getOfferCode());
             loadOffers();
         });
@@ -294,9 +292,9 @@ public class AdminDashboardController {
     private void handleAddOffer() {
         offerFormError.setText("");
 
-        String code = newOfferCode.getText().trim();
-        String desc = newOfferDescription.getText().trim();
-        String pointsStr = newOfferPoints.getText().trim();
+        String code        = newOfferCode.getText().trim();
+        String desc        = newOfferDescription.getText().trim();
+        String pointsStr   = newOfferPoints.getText().trim();
         String discountStr = newOfferDiscount.getText().trim();
         String minOrderStr = newOfferMinOrder.getText().trim();
 
@@ -309,7 +307,7 @@ public class AdminDashboardController {
         int points;
         double discount, minOrder;
         try {
-            points = Integer.parseInt(pointsStr);
+            points   = Integer.parseInt(pointsStr);
             discount = Double.parseDouble(discountStr);
             minOrder = Double.parseDouble(minOrderStr);
         } catch (NumberFormatException e) {
@@ -327,6 +325,7 @@ public class AdminDashboardController {
             return;
         }
 
+        // addOffer() saves to loyalty_offers.txt automatically via LoyaltyOfferManager
         offerManager.addOffer(new LoyaltyOffer(code, desc, points, discount, minOrder));
 
         newOfferCode.clear();
@@ -336,46 +335,6 @@ public class AdminDashboardController {
         newOfferMinOrder.clear();
 
         loadOffers();
-    }
-
-    // ═════════════════════════════════════════════════════════════════════
-    // Persistence
-    // ═════════════════════════════════════════════════════════════════════
-
-    /**
-     * Writes the updated admin (and its embedded restaurant) to admins.dat,
-     * then also patches restaurants.dat so the customer-side sees the changes.
-     */
-    private void persistChanges() {
-        // 1. admins.dat
-        FileHandler<RestaurantAdmin> adminFH = new FileHandler<>();
-        RestaurantAdmin[] admins = adminFH.loadArray("admins.dat");
-        if (admins != null) {
-            for (int i = 0; i < admins.length; i++) {
-                if (admins[i].getUsername().equals(admin.getUsername())) {
-                    admins[i] = admin;
-                    break;
-                }
-            }
-            adminFH.saveArray(admins, "admins.dat");
-        }
-
-        // 2. restaurants.dat (so customers see the updated menu)
-        if (admin.getRestaurant() == null)
-            return;
-
-        FileHandler<Restaurant> restFH = new FileHandler<>();
-        Restaurant[] restaurants = restFH.loadArray("restaurants.dat");
-        if (restaurants != null) {
-            String rid = admin.getRestaurant().getRestaurantID();
-            for (int i = 0; i < restaurants.length; i++) {
-                if (restaurants[i].getRestaurantID().equals(rid)) {
-                    restaurants[i] = admin.getRestaurant();
-                    break;
-                }
-            }
-            restFH.saveArray(restaurants, "restaurants.dat");
-        }
     }
 
     // ═════════════════════════════════════════════════════════════════════

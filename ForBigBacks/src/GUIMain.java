@@ -17,11 +17,9 @@ public class GUIMain extends Application {
     }
 
     static void seedIfNeeded() {
-        File restaurantFile = new File("restaurants.dat");
-        File customerFile = new File("customers.dat");
-        if (!restaurantFile.exists())
-            DataSeeder.seedRestaurants();
-        if (!customerFile.exists())
-            CustomerSeeder.seedCustomers();
+        if (!new File("restaurants.dat").exists())        DataSeeder.seedRestaurants();
+        if (!new File("customers.dat").exists())          CustomerSeeder.seedCustomers();
+        if (!new File("riders.dat").exists())             RiderSeeder.seedRiders();
+        if (!new File("admin_credentials.dat").exists())  AdminCredentialsSeeder.seedAdminCredentials();
     }
 }

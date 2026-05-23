@@ -1,4 +1,6 @@
 // Updated: addOffer() and removeOffer() now reuse a single LoyaltyOfferManager instance instead of creating a new one each call
+// Updated: persistRestaurant() added to save back changes to restaurants.dat after every mutation
+// Updated: getOfferManager() getter added so AdminDashboardController can reuse the same instance
 
 public class RestaurantAdmin extends Person implements Account {
 
@@ -21,34 +23,42 @@ public class RestaurantAdmin extends Person implements Account {
     }
 
     @Override
-    public String getUsername() {
-        return username;
-    }
+    public String getUsername() { return username; }
 
     @Override
-    public String getPassword() {
-        return password;
-    }
+    public String getPassword() { return password; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public void setUsername(String username) { this.username = username; }
+    public void setPassword(String password) { this.password = password; }
+    public Restaurant getRestaurant() { return restaurant; }
+    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public LoyaltyOfferManager getOfferManager() { return offerManager; }
 
-    public Restaurant getRestaurant() {
-        return restaurant;
-    }
+    // ── Saves the current restaurant state back to restaurants.dat ──────────
+    private void persistRestaurant() {
+        FileHandler<Restaurant> fh = new FileHandler<>();
+        Restaurant[] restaurants = fh.loadArray("restaurants.dat");
 
-    public void setRestaurant(Restaurant restaurant) {
-        this.restaurant = restaurant;
+        if (restaurants == null) {
+            System.out.println("Could not load restaurants.dat for saving.");
+            return;
+        }
+
+        for (int i = 0; i < restaurants.length; i++) {
+            if (restaurants[i].getRestaurantID().equals(restaurant.getRestaurantID())) {
+                restaurants[i] = restaurant;
+                break;
+            }
+        }
+
+        fh.saveArray(restaurants, "restaurants.dat");
     }
 
     public void addFoodItem(FoodItem item) {
         if (restaurant != null) {
             restaurant.getMenu().addItem(item);
+            persistRestaurant();
             System.out.println(item.getName() + " added successfully.");
         }
     }
@@ -56,6 +66,7 @@ public class RestaurantAdmin extends Person implements Account {
     public void removeFoodItem(FoodItem item) {
         if (restaurant != null) {
             restaurant.getMenu().removeItem(item);
+            persistRestaurant();
             System.out.println(item.getName() + " removed successfully.");
         }
     }

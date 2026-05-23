@@ -59,7 +59,6 @@ public class CheckoutController {
             return;
         }
 
-        // Card fields hidden until card payment is selected
         cardFieldsContainer.setVisible(false);
         cardFieldsContainer.setManaged(false);
 
@@ -108,7 +107,6 @@ public class CheckoutController {
 
         ToggleGroup group = new ToggleGroup();
 
-        // "No offer" option
         RadioButton noneRb = new RadioButton("No offer");
         noneRb.setToggleGroup(group);
         noneRb.setStyle("-fx-text-fill: #888888; -fx-font-size: 13px;");
@@ -123,7 +121,6 @@ public class CheckoutController {
         });
         offersContainer.getChildren().add(noneRb);
 
-        // One card per offer
         for (LoyaltyOffer offer : offers) {
             VBox offerCard = new VBox(6);
             offerCard.getStyleClass().add("dashboard-offer-card");
@@ -157,9 +154,7 @@ public class CheckoutController {
                 }
             });
 
-            // Clicking the card itself also selects the radio button
             offerCard.setOnMouseClicked(e -> rb.setSelected(true));
-
             offersContainer.getChildren().add(offerCard);
         }
     }
@@ -206,7 +201,6 @@ public class CheckoutController {
     private void placeOrder() {
         errorLabel.setText("");
 
-        // Validate card fields if card payment selected
         if (isCardPayment) {
             if (cardNumberField.getText().trim().isEmpty()
                     || cardHolderField.getText().trim().isEmpty()
@@ -216,7 +210,6 @@ public class CheckoutController {
             }
         }
 
-        // Checkout — generates redeem code + clears cart
         Order order;
         if (selectedOffer != null) {
             RedeemCode code = cart.selectOffer(customer, selectedOffer);
@@ -234,14 +227,13 @@ public class CheckoutController {
                     : cart.checkOut();
         }
 
-        // Add to customer's order history
         customer.placeOrder(order);
 
-        // Process payment + start tracking
         FileHandler<Rider> riderFH = new FileHandler<>();
         Rider[] ridersArr = riderFH.loadArray("riders.dat");
+        // Use ArrayList so OrderTracking can freely mutate the list
         List<Rider> riders = (ridersArr != null)
-                ? Arrays.asList(ridersArr)
+                ? new ArrayList<>(Arrays.asList(ridersArr))
                 : new ArrayList<>();
 
         if (restaurant != null) {
@@ -256,9 +248,12 @@ public class CheckoutController {
             }
         }
 
-        // Persist updated customer
-        saveCustomer();
+        // Save updated rider statuses back to disk
+        if (ridersArr != null) {
+            riderFH.saveArray(riders.toArray(new Rider[0]), "riders.dat");
+        }
 
+        saveCustomer();
         SceneManager.getInstance().switchTo("OrderHistory");
     }
 
