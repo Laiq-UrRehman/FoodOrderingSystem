@@ -197,8 +197,21 @@ public class AdminDashboardController {
         String priceStr = newItemPrice.getText().trim();
         String qtyStr   = newItemQuantity.getText().trim();
 
+        // Empty check
         if (name.isEmpty() || category.isEmpty() || priceStr.isEmpty() || qtyStr.isEmpty()) {
             menuFormError.setText("All fields are required.");
+            return;
+        }
+
+        // Name: must start with a letter, 2–50 chars, letters/digits/spaces/common punctuation
+        if (!name.matches("[a-zA-Z][a-zA-Z0-9 '',.-]{1,49}")) {
+            menuFormError.setText("Item name must start with a letter, 2–50 characters.");
+            return;
+        }
+
+        // Category: letters and spaces only, 2–30 chars
+        if (!category.matches("[a-zA-Z ]{2,30}")) {
+            menuFormError.setText("Category must be 2–30 letters only.");
             return;
         }
 
@@ -212,8 +225,15 @@ public class AdminDashboardController {
             return;
         }
 
-        if (price <= 0 || qty < 0) {
-            menuFormError.setText("Price must be positive; quantity cannot be negative.");
+        // Price range
+        if (price <= 0 || price > 100000) {
+            menuFormError.setText("Price must be between 1 and 100,000 PKR.");
+            return;
+        }
+
+        // Quantity range
+        if (qty < 0 || qty > 9999) {
+            menuFormError.setText("Quantity must be between 0 and 9999.");
             return;
         }
 
