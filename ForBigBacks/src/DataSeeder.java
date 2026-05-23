@@ -17,10 +17,26 @@ public class DataSeeder {
         f001.rate(4.5);
         f001.rate(4.8);
         f001.rate(5.0);
+        CustomizationGroup spiceGroup = new CustomizationGroup("Spice Level");
+        spiceGroup.addOption("Mild", 0);
+        spiceGroup.addOption("Medium", 0);
+        spiceGroup.addOption("Hot", 0);
+        f001.addCustomizationGroup(spiceGroup);
+
+        CustomizationGroup cheeseGroup = new CustomizationGroup("Extra Cheese");
+        cheeseGroup.addOption("No", 0);
+        cheeseGroup.addOption("Yes", 50);
+        f001.addCustomizationGroup(cheeseGroup);
 
         FoodItem f002 = new FoodItem("F002", "Fries", 180, "Sides", 1);
         f002.rate(3.8);
         f002.rate(4.0);
+
+        CustomizationGroup sizeGroupFries = new CustomizationGroup("Size");
+        sizeGroupFries.addOption("Small", 0);
+        sizeGroupFries.addOption("Medium", 50);
+        sizeGroupFries.addOption("Large", 100);
+        f002.addCustomizationGroup(sizeGroupFries);
 
         menu1.addItem(f001);
         menu1.addItem(f002);
@@ -49,6 +65,11 @@ public class DataSeeder {
         FoodItem f003 = new FoodItem("F003", "Pepperoni Pizza", 900, "Pizza", 1);
         f003.rate(4.9);
         f003.rate(4.8);
+        CustomizationGroup sizeGroupPizza = new CustomizationGroup("Size");
+        sizeGroupPizza.addOption("Small", 0);
+        sizeGroupPizza.addOption("Medium", 500);
+        sizeGroupPizza.addOption("Large", 700);
+        f003.addCustomizationGroup(sizeGroupPizza);
 
         FoodItem f004 = new FoodItem("F004", "Garlic Bread", 250, "Sides", 1);
         f004.rate(4.0);
@@ -80,6 +101,7 @@ public class DataSeeder {
         FoodItem f005 = new FoodItem("F005", "Chicken Karahi", 1200, "Desi", 1);
         f005.rate(5.0);
         f005.rate(4.9);
+        f005.addCustomizationGroup(spiceGroup);
 
         FoodItem f006 = new FoodItem("F006", "Naan", 60, "Bread", 1);
         f006.rate(4.2);

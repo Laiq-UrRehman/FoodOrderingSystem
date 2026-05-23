@@ -96,4 +96,27 @@ public class RestaurantAdmin extends Person implements Account {
         in.defaultReadObject();
         this.offerManager = new LoyaltyOfferManager();
     }
+
+    public void addCustomization(String foodID, CustomizationGroup group) {
+        for (FoodItem item : restaurant.getMenu().getItems()) {
+            if (item.getFoodID().equals(foodID)) {
+                item.addCustomizationGroup(group);
+                persistRestaurant();
+                System.out.println("Customization added to " + item.getName());
+                return;
+            }
+        }
+        System.out.println("Food item not found.");
+    }
+    public void removeCustomization(String foodID, String groupName) {
+        for (FoodItem item : restaurant.getMenu().getItems()) {
+            if (item.getFoodID().equals(foodID)) {
+                item.removeCustomizationGroup(groupName);
+                persistRestaurant();
+                System.out.println("Customization '" + groupName + "' removed from " + item.getName());
+                return;
+            }
+        }
+        System.out.println("Food item not found.");
+    }
 }

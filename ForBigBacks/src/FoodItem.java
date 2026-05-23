@@ -2,6 +2,8 @@
 // Updated: Added orderCount field and incrementOrderCount() for popularity tracking
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FoodItem implements Serializable {
 
@@ -108,4 +110,20 @@ public class FoodItem implements Serializable {
                 + " x" + quantity + " | Rating: " + String.format("%.1f", rating)
                 + " (" + totalRatings + ") | Orders: " + orderCount;
     }
+
+    private List<CustomizationGroup> customizationGroups = new ArrayList<>();
+    public List<CustomizationGroup> getCustomizationGroups() {
+        return customizationGroups;
+    }
+    public void addCustomizationGroup(CustomizationGroup group) {
+        customizationGroups.add(group);
+    }
+    public void removeCustomizationGroup(String groupName) {
+        customizationGroups.removeIf(g -> g.getGroupName().equalsIgnoreCase(groupName));
+    }
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (customizationGroups == null) customizationGroups = new ArrayList<>();
+    }
+
 }

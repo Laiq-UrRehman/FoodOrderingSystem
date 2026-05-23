@@ -1,7 +1,7 @@
-// Updated: checkoutNormal() and checkoutScheduled() now pass selectedRestaurant into cart.checkOut() variants
-// Updated: Added full Search & Browse menu with SearchManager integration
+// Updated: Added Rate an Order option (12) — works after OrderTracking marks order as Delivered
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -47,9 +47,9 @@ public class ConsoleMain {
 
     static void seedIfNeeded() {
         java.io.File restaurantFile = new java.io.File("restaurants.dat");
-        java.io.File customerFile = new java.io.File("customers.dat");
-        java.io.File riderFile = new java.io.File("riders.dat");
-        java.io.File adminCredFile = new java.io.File("admin_credentials.dat");
+        java.io.File customerFile   = new java.io.File("customers.dat");
+        java.io.File riderFile      = new java.io.File("riders.dat");
+        java.io.File adminCredFile  = new java.io.File("admin_credentials.dat");
 
         if (!restaurantFile.exists()) {
             System.out.println("Seeding restaurant data...");
@@ -81,8 +81,7 @@ public class ConsoleMain {
         String password = scanner.nextLine().trim();
 
         Customer customer = loginManager.loginCustomer(username, password);
-        if (customer == null)
-            return;
+        if (customer == null) return;
         customerMenu(customer);
     }
 
@@ -116,8 +115,7 @@ public class ConsoleMain {
         Customer newCustomer = new Customer(newID, name, address, phone, username, password, new Location(0, 0));
 
         Customer[] updated = new Customer[count + 1];
-        if (existing != null)
-            System.arraycopy(existing, 0, updated, 0, count);
+        if (existing != null) System.arraycopy(existing, 0, updated, 0, count);
         updated[count] = newCustomer;
         fh.saveArray(updated, "customers.dat");
 
@@ -157,24 +155,26 @@ public class ConsoleMain {
             System.out.println("  9.  View Available Loyalty Offers");
             System.out.println("  10. View Scheduled Orders");
             System.out.println("  11. Track Order");
+            System.out.println("  12. Rate an Order");          // ← NEW
             System.out.println("  0.  Logout");
             System.out.print("Enter choice: ");
 
             String choice = scanner.nextLine().trim();
 
             switch (choice) {
-                case "1" -> searchAndBrowseMenu(customer);
-                case "2" -> addToCartFromSelected(customer);
-                case "3" -> customer.getCart().viewCart();
-                case "4" -> checkoutNormal(customer);
-                case "5" -> checkoutScheduled(customer);
-                case "6" -> viewOrderHistory(customer);
-                case "7" -> cancelOrder(customer);
-                case "8" -> customer.getLoyaltyPoints().printBalance();
-                case "9" -> customer.getLoyaltyPoints().printAvailableOffers(customer.getCart().getTotal());
+                case "1"  -> searchAndBrowseMenu(customer);
+                case "2"  -> addToCartFromSelected(customer);
+                case "3"  -> customer.getCart().viewCart();
+                case "4"  -> checkoutNormal(customer);
+                case "5"  -> checkoutScheduled(customer);
+                case "6"  -> viewOrderHistory(customer);
+                case "7"  -> cancelOrder(customer);
+                case "8"  -> customer.getLoyaltyPoints().printBalance();
+                case "9"  -> customer.getLoyaltyPoints().printAvailableOffers(customer.getCart().getTotal());
                 case "10" -> viewScheduledOrders(customer);
                 case "11" -> trackOrder(customer);
-                case "0" -> {
+                case "12" -> rateOrder(customer);               // ← NEW
+                case "0"  -> {
                     saveCustomer(customer);
                     System.out.println("Logged out.");
                     return;
@@ -232,10 +232,7 @@ public class ConsoleMain {
                 }
                 case "4" -> {
                     Restaurant r = pickRestaurant(all);
-                    if (r != null) {
-                        selectedRestaurant = r;
-                        printMenu(r);
-                    }
+                    if (r != null) { selectedRestaurant = r; printMenu(r); }
                 }
                 case "5" -> {
                     Restaurant r = pickRestaurant(all);
@@ -277,38 +274,25 @@ public class ConsoleMain {
                     System.out.println("\n--- Suggested For You ---");
                     searchManager.printItems(suggestions);
                 }
-                case "0" -> {
-                    return;
-                }
-                default -> System.out.println("Invalid choice.");
+                case "0" -> { return; }
+                default  -> System.out.println("Invalid choice.");
             }
         }
     }
 
-    /**
-     * Lets the customer pick a restaurant from a filtered/searched list
-     * and sets it as selectedRestaurant.
-     */
     static void selectRestaurantFromList(List<Restaurant> list) {
-        if (list.isEmpty())
-            return;
+        if (list.isEmpty()) return;
         System.out.print("Select a restaurant by number to browse (or 0 to skip): ");
         int pick;
         try {
             pick = Integer.parseInt(scanner.nextLine().trim()) - 1;
-        } catch (NumberFormatException e) {
-            return;
-        }
-        if (pick < 0 || pick >= list.size())
-            return;
+        } catch (NumberFormatException e) { return; }
+        if (pick < 0 || pick >= list.size()) return;
         selectedRestaurant = list.get(pick);
         System.out.println("Selected: " + selectedRestaurant.getName());
         printMenu(selectedRestaurant);
     }
 
-    /**
-     * Shows all restaurants and lets the customer pick one by number.
-     */
     static Restaurant pickRestaurant(Restaurant[] all) {
         System.out.println("\n--- All Restaurants ---");
         for (int i = 0; i < all.length; i++) {
@@ -375,8 +359,33 @@ public class ConsoleMain {
         }
 
         FoodItem chosen = menuItems.get(iChoice);
+
+        // ── Customization prompt ───────────────────────────────────────────
+        double extraTotal = 0;
+        List<CustomizationGroup> groups = chosen.getCustomizationGroups();
+        if (!groups.isEmpty()) {
+            System.out.println("\n--- Customize your " + chosen.getName() + " ---");
+            for (CustomizationGroup group : groups) {
+                System.out.println(group.getGroupName() + ":");
+                List<String> opts = group.getOptions();
+                for (int i = 0; i < opts.size(); i++) {
+                    double charge = group.getExtraCharge(i);
+                    System.out.println("  " + (i + 1) + ". " + opts.get(i)
+                            + (charge > 0 ? " (+Rs." + charge + ")" : " (free)"));
+                }
+                System.out.print("Choose (number): ");
+                int optPick = 0;
+                try { optPick = Integer.parseInt(scanner.nextLine().trim()) - 1; }
+                catch (NumberFormatException e) { optPick = 0; }
+                if (optPick < 0 || optPick >= opts.size()) optPick = 0;
+                extraTotal += group.getExtraCharge(optPick);
+                System.out.println("Selected: " + opts.get(optPick));
+            }
+        }
+        // ──────────────────────────────────────────────────────────────────
+
         FoodItem toAdd = new FoodItem(chosen.getFoodID(), chosen.getName(),
-                chosen.getPrice(), chosen.getCategory(), qty);
+                chosen.getPrice() + extraTotal, chosen.getCategory(), qty);
         customer.getCart().addItem(toAdd);
         System.out.println(qty + "x " + chosen.getName() + " added to cart. Cart total: Rs."
                 + customer.getCart().getTotal());
@@ -427,20 +436,29 @@ public class ConsoleMain {
 
         if (payChoice.equals("2")) {
             System.out.print("Card Number: ");
-            String cardNum = scanner.nextLine().trim();
+            String cardNum    = scanner.nextLine().trim();
             System.out.print("Card Holder Name: ");
             String holderName = scanner.nextLine().trim();
             System.out.print("Expiry Date (MM/YY): ");
-            String expiry = scanner.nextLine().trim();
+            String expiry     = scanner.nextLine().trim();
             order.proceedWithCardPayment(cardNum, holderName, expiry, selectedRestaurant, customer, riders);
         } else {
             order.proceedWithCashPayment(selectedRestaurant, customer, riders);
         }
 
         customer.placeOrder(order);
-        System.out.println("Order placed successfully! Total paid: Rs." + order.getTotalAmount());
+        System.out.println("Order placed! Total: Rs." + order.getTotalAmount());
+
         if (order.getTracking() != null)
             System.out.println(order.getTracking().getSummary());
+
+        // ── Tell the customer how long until they can rate ──────────────────
+        if (order.getTracking() != null) {
+            int eta = order.getTracking().getEstimatedDeliveryMinutes();
+            System.out.println("\n[INFO] Your order will be delivered in ~" + eta
+                    + " seconds (simulated).");
+            System.out.println("[INFO] Come back to option 12 after delivery to rate your items.");
+        }
 
         riderFH.saveArray(riders.toArray(new Rider[0]), "riders.dat");
     }
@@ -476,8 +494,7 @@ public class ConsoleMain {
             order = cart.checkOutScheduled(customer, scheduledTime, selectedRestaurant);
         }
 
-        if (order == null)
-            return;
+        if (order == null) return;
 
         order.confirm();
         customer.placeOrder(order);
@@ -486,12 +503,10 @@ public class ConsoleMain {
 
     static RedeemCode offerSelectionFlow(Customer customer, Cart cart) {
         List<LoyaltyOffer> offers = cart.showLoyaltyOffers(customer);
-        if (offers.isEmpty())
-            return null;
+        if (offers.isEmpty()) return null;
 
         System.out.print("Apply a loyalty offer? (y/n): ");
-        if (!scanner.nextLine().trim().equalsIgnoreCase("y"))
-            return null;
+        if (!scanner.nextLine().trim().equalsIgnoreCase("y")) return null;
 
         System.out.print("Enter offer code (e.g. LOYAL-A): ");
         String code = scanner.nextLine().trim();
@@ -518,7 +533,8 @@ public class ConsoleMain {
         }
         System.out.println("\n--- Order History ---");
         for (Order o : history) {
-            System.out.println("  [" + o.getOrderID() + "] Status: " + o.getStatus() + " | Rs." + o.getTotalAmount());
+            System.out.println("  [" + o.getOrderID() + "] Status: " + o.getStatus()
+                    + " | Rs." + o.getTotalAmount());
             for (FoodItem item : o.getItems()) {
                 System.out.println("    - " + item.getName() + " x" + item.getQuantity());
             }
@@ -544,7 +560,7 @@ public class ConsoleMain {
     }
 
     static void trackOrder(Customer customer) {
-        java.util.List<Order> history = customer.viewOrderHistory();
+        List<Order> history = customer.viewOrderHistory();
         if (history.isEmpty()) {
             System.out.println("No orders to track.");
             return;
@@ -562,10 +578,97 @@ public class ConsoleMain {
                 }
                 System.out.println("\n--- Tracking Info ---");
                 System.out.println(tracking.getSummary());
+                System.out.println("Current Status: " + o.getStatus());
                 return;
             }
         }
         System.out.println("Order ID not found.");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RATING  ← NEW
+    // ─────────────────────────────────────────────────────────────────────────
+
+    static void rateOrder(Customer customer) {
+        List<Order> history = customer.viewOrderHistory();
+
+        // Collect only Delivered orders
+        List<Order> delivered = new ArrayList<>();
+        for (Order o : history) {
+            if (o.getStatus().equals("Delivered")) {
+                delivered.add(o);
+            }
+        }
+
+        if (delivered.isEmpty()) {
+            System.out.println("No delivered orders yet.");
+            System.out.println("Tip: Place an order and wait for it to be delivered,");
+            System.out.println("     then come back here to rate.");
+            return;
+        }
+
+        // Show delivered orders
+        System.out.println("\n--- Delivered Orders ---");
+        for (int i = 0; i < delivered.size(); i++) {
+            Order o = delivered.get(i);
+            System.out.println("  " + (i + 1) + ". [" + o.getOrderID() + "]"
+                    + " | Rs." + o.getTotalAmount());
+        }
+
+        System.out.print("Select order to rate (number): ");
+        int orderPick;
+        try {
+            orderPick = Integer.parseInt(scanner.nextLine().trim()) - 1;
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input.");
+            return;
+        }
+        if (orderPick < 0 || orderPick >= delivered.size()) {
+            System.out.println("Invalid selection.");
+            return;
+        }
+
+        Order order = delivered.get(orderPick);
+        List<FoodItem> items = order.getItems();
+
+        // Show items, flag already-rated ones
+        System.out.println("\n--- Items in Order [" + order.getOrderID() + "] ---");
+        for (int i = 0; i < items.size(); i++) {
+            FoodItem item = items.get(i);
+            String tag = order.hasRated(item.getFoodID()) ? " [Already Rated]" : "";
+            System.out.println("  " + (i + 1) + ". " + item.getName()
+                    + " | Current Rating: " + String.format("%.1f", item.getRating())
+                    + tag);
+        }
+
+        System.out.print("Select item to rate (number): ");
+        int itemPick;
+        try {
+            itemPick = Integer.parseInt(scanner.nextLine().trim()) - 1;
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input.");
+            return;
+        }
+        if (itemPick < 0 || itemPick >= items.size()) {
+            System.out.println("Invalid selection.");
+            return;
+        }
+
+        System.out.print("Enter stars (1.0 - 5.0): ");
+        double stars;
+        try {
+            stars = Double.parseDouble(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input.");
+            return;
+        }
+
+        // Delegate all logic to RatingService
+        Rating ratingService = new Rating();
+        ratingService.rateFoodItem(customer, order, items.get(itemPick).getFoodID(), stars);
+
+        // Save customer (persists ratedFoodIDs inside the order)
+        saveCustomer(customer);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -580,8 +683,7 @@ public class ConsoleMain {
         String password = scanner.nextLine().trim();
 
         RestaurantAdmin admin = loginManager.loginAdmin(username, password);
-        if (admin == null)
-            return;
+        if (admin == null) return;
         adminMenu(admin);
     }
 
@@ -614,6 +716,8 @@ public class ConsoleMain {
             System.out.println("  4. View All Loyalty Offers");
             System.out.println("  5. Add Loyalty Offer");
             System.out.println("  6. Remove Loyalty Offer");
+            System.out.println("  7. Add Customization to Food Item");
+            System.out.println("  8. Remove Customization from Food Item");
             System.out.println("  0. Logout");
             System.out.print("Enter choice: ");
 
@@ -629,6 +733,8 @@ public class ConsoleMain {
                 }
                 case "5" -> addLoyaltyOffer(admin);
                 case "6" -> removeLoyaltyOffer(admin);
+                case "7" -> addCustomizationToItem(admin);
+                case "8" -> removeCustomizationFromItem(admin);
                 case "0" -> {
                     saveRestaurant(admin.getRestaurant());
                     System.out.println("Logged out.");
@@ -721,5 +827,44 @@ public class ConsoleMain {
         System.out.print("Enter Offer Code to remove: ");
         String code = scanner.nextLine().trim();
         admin.removeOffer(code);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CUSTOMIZATION
+    // ─────────────────────────────────────────────────────────────────────────
+
+    static void addCustomizationToItem(RestaurantAdmin admin) {
+        admin.viewMenu();
+        System.out.print("Enter Food ID to add customization to: ");
+        String foodID = scanner.nextLine().trim();
+
+        System.out.print("Group name (e.g. Size, Crust, Spice Level): ");
+        String groupName = scanner.nextLine().trim();
+        CustomizationGroup group = new CustomizationGroup(groupName);
+
+        boolean addingOptions = true;
+        while (addingOptions) {
+            System.out.print("  Option name (e.g. Large): ");
+            String optName = scanner.nextLine().trim();
+            System.out.print("  Extra charge (0 if free): ");
+            double charge = 0;
+            try { charge = Double.parseDouble(scanner.nextLine().trim()); }
+            catch (NumberFormatException e) { charge = 0; }
+            group.addOption(optName, charge);
+
+            System.out.print("  Add another option? (y/n): ");
+            addingOptions = scanner.nextLine().trim().equalsIgnoreCase("y");
+        }
+
+        admin.addCustomization(foodID, group);
+    }
+
+    static void removeCustomizationFromItem(RestaurantAdmin admin) {
+        admin.viewMenu();
+        System.out.print("Enter Food ID to remove customization from: ");
+        String foodID = scanner.nextLine().trim();
+        System.out.print("Enter group name to remove (e.g. Size): ");
+        String groupName = scanner.nextLine().trim();
+        admin.removeCustomization(foodID, groupName);
     }
 }

@@ -47,6 +47,15 @@ public class Order implements Serializable {
         updateStatus("Cancelled");
     }
 
+    // rating logic (i connected it to Rating.java)
+    private List<String> ratedFoodIDs = new ArrayList<>();
+    public boolean hasRated(String foodID) {
+        return ratedFoodIDs.contains(foodID);
+    }
+    public void markRated(String foodID) {
+        ratedFoodIDs.add(foodID);
+    }
+
     public void proceedWithCashPayment(Restaurant restaurant, Customer customer, java.util.List<Rider> riders) {
         if ("Cancelled".equals(status)) {
             System.out.println("Cannot proceed to payment. Order is cancelled.");
@@ -83,5 +92,13 @@ public class Order implements Serializable {
 
     public OrderTracking getTracking() {
         return tracking;
+    }
+
+    private void readObject(java.io.ObjectInputStream in)
+            throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (ratedFoodIDs == null) {
+            ratedFoodIDs = new ArrayList<>();
+        }
     }
 }
