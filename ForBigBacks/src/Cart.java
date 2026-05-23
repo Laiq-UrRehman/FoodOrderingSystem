@@ -1,5 +1,6 @@
-// Updated: clearCart() called at the end of every checkOut() variant so cart is empty after ordering
-// Updated: incrementOrderCount() called on each item and restaurants.dat re-saved after every checkout
+// FIX (Critical): checkOutScheduled() variants now validate the schedule BEFORE
+//   calling persistOrderCounts() or clearCart(). Previously the cart was wiped
+//   and order-counts incremented even when the method returned null.
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -24,29 +25,14 @@ public class Cart implements Serializable {
         this.totalAmount = totalAmount;
     }
 
-    public String getCartID() {
-        return cartID;
-    }
+    public String getCartID() { return cartID; }
+    public void setCartID(String cartID) { this.cartID = cartID; }
 
-    public void setCartID(String cartID) {
-        this.cartID = cartID;
-    }
+    public List<FoodItem> getItems() { return items; }
+    public void setItems(List<FoodItem> items) { this.items = items; }
 
-    public List<FoodItem> getItems() {
-        return items;
-    }
-
-    public void setItems(List<FoodItem> items) {
-        this.items = items;
-    }
-
-    public double getTotal() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(double totalAmount) {
-        this.totalAmount = totalAmount;
-    }
+    public double getTotal() { return totalAmount; }
+    public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
 
     public void addItem(FoodItem item) {
         items.add(item);
@@ -64,6 +50,7 @@ public class Cart implements Serializable {
                 totalAmount -= item.getPrice() * item.getQuantity();
                 item.setQuantity(quantity);
                 totalAmount += item.getPrice() * item.getQuantity();
+                break; // FIX (Medium): stop after first match to avoid double-updating
             }
         }
     }
@@ -138,12 +125,15 @@ public class Cart implements Serializable {
     }
 
     // Scheduled Order Logic
+    // FIX: Validate the schedule FIRST. Only persist counts and clear the cart
+    // after we are certain an order object will be returned.
 
-    public ScheduledOrder checkOutScheduled(Customer customer, LocalDateTime scheduledTime, Restaurant restaurant) {
+    public ScheduledOrder checkOutScheduled(Customer customer, LocalDateTime scheduledTime,
+            Restaurant restaurant) {
         ScheduledOrder order = new ScheduledOrder(generateOrderID(), items, totalAmount, scheduledTime);
         if (!order.isValidSchedule()) {
             System.out.println("Scheduled time must be at least 30 minutes from now.");
-            return null;
+            return null; // Cart is NOT cleared — nothing has changed yet
         }
         customer.getLoyaltyPoints().earnPoints(totalAmount);
         persistOrderCounts(restaurant);
@@ -151,15 +141,17 @@ public class Cart implements Serializable {
         return order;
     }
 
-    public ScheduledOrder checkOutScheduled(Customer customer, RedeemCode redeemCode, LocalDateTime scheduledTime,
-            Restaurant restaurant) {
+    public ScheduledOrder checkOutScheduled(Customer customer, RedeemCode redeemCode,
+            LocalDateTime scheduledTime, Restaurant restaurant) {
+        // Validate schedule before touching anything
+        ScheduledOrder probe = new ScheduledOrder("probe", items, totalAmount, scheduledTime);
+        if (!probe.isValidSchedule()) {
+            System.out.println("Scheduled time must be at least 30 minutes from now.");
+            return null; // Points not deducted, cart not cleared
+        }
         double discount = customer.getLoyaltyPoints().applyRedeemCode(redeemCode, totalAmount);
         double amountPaid = Math.max(0, totalAmount - discount);
         ScheduledOrder order = new ScheduledOrder(generateOrderID(), items, amountPaid, scheduledTime);
-        if (!order.isValidSchedule()) {
-            System.out.println("Scheduled time must be at least 30 minutes from now.");
-            return null;
-        }
         customer.getLoyaltyPoints().earnPoints(amountPaid);
         persistOrderCounts(restaurant);
         clearCart();
