@@ -1,24 +1,33 @@
-import java.util.ArrayList;
+// FIX (Critical): The old signup() called fileHandler.loadText() on customers.dat,
+//   which is a binary serialised object array — not a CSV file. Reading binary
+//   data as text lines produces garbage or exceptions, so the duplicate-username
+//   check never worked. Fixed by loading the array with loadArray() and comparing
+//   usernames against the actual Customer objects.
 
-public class SignUpManager<T extends Account> {
+public class SignUpManager {
 
-    private FileHandler<T> fileHandler = new FileHandler<T>();
+    public boolean signup(Customer account, String fileName) {
+        FileHandler<Customer> fileHandler = new FileHandler<>();
+        Customer[] existing = fileHandler.loadArray(fileName);
 
-    public boolean signup(T account, String fileName) {
-
-        ArrayList<String> accounts = fileHandler.loadText(fileName); // ← loadAccounts → loadText
-
-        for (String line : accounts) {
-            String[] data = line.split(",");
-            String savedUsername = data[0];
-
-            if (savedUsername.equals(account.getUsername())) {
-                System.out.println("Username already exists.");
-                return false;
+        if (existing != null) {
+            for (Customer c : existing) {
+                if (c.getUsername().equals(account.getUsername())) {
+                    System.out.println("Username already exists.");
+                    return false;
+                }
             }
         }
 
-        fileHandler.saveText(account.getUsername() + "," + account.getPassword(), fileName); // ← saveAccount → saveText
+        // Build updated array and save
+        int oldLen = (existing != null) ? existing.length : 0;
+        Customer[] updated = new Customer[oldLen + 1];
+        if (existing != null) {
+            System.arraycopy(existing, 0, updated, 0, oldLen);
+        }
+        updated[oldLen] = account;
+        fileHandler.saveArray(updated, fileName);
+
         System.out.println("Signup successful.");
         return true;
     }
