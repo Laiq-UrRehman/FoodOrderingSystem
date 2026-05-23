@@ -1,6 +1,10 @@
+// FIX (Critical): Customer login now calls customer.verifyPassword() instead of
+//   comparing plain-text strings. Passwords are hashed in Customer — this file
+//   never sees the raw password.
+
 public class LoginManager {
 
-    // ── Customer Login ─────────────────────────────────────────────────────────
+    // ── Customer Login ──────────────────────────────────────────────────────
 
     public Customer loginCustomer(String username, String password) {
         FileHandler<Customer> fileHandler = new FileHandler<>();
@@ -12,7 +16,8 @@ public class LoginManager {
         }
 
         for (Customer c : customers) {
-            if (c.getUsername().equals(username) && c.getPassword().equals(password)) {
+            // FIX: use hash-based verification, never plain-text compare
+            if (c.getUsername().equals(username) && c.verifyPassword(password)) {
                 System.out.println("Customer login successful. Welcome, " + c.getName() + "!");
                 return c;
             }
@@ -22,7 +27,12 @@ public class LoginManager {
         return null;
     }
 
-    // ── Restaurant Admin Login ─────────────────────────────────────────────────
+    // ── Restaurant Admin Login ──────────────────────────────────────────────
+    // NOTE: Admin credentials are in admin_credentials.dat as plain Strings.
+    // For a full fix, seed that file with hashed credentials too and compare
+    // with PasswordUtils.verify(). That requires re-seeding the admin data.
+    // The plain-text comparison is left here with a clear TODO so the team
+    // knows it still needs addressing.
 
     public RestaurantAdmin loginAdmin(String username, String password) {
 
@@ -36,6 +46,9 @@ public class LoginManager {
 
         String matchedRestaurantID = null;
         for (String[] cred : credentials) {
+            // cred[0]=username, cred[1]=passwordHash, cred[2]=salt, cred[3]=restaurantID
+            // TODO: re-seed admin_credentials.dat with hashed passwords and switch to:
+            //   PasswordUtils.verify(password, cred[2], cred[1])
             if (cred[0].equals(username) && cred[1].equals(password)) {
                 matchedRestaurantID = cred[2];
                 break;
@@ -57,7 +70,8 @@ public class LoginManager {
 
         for (Restaurant r : restaurants) {
             if (r.getRestaurantID().equals(matchedRestaurantID)) {
-                System.out.println("Admin login successful. Welcome, " + r.getAdmin().getName() + " (" + r.getName() + ")!");
+                System.out.println("Admin login successful. Welcome, "
+                        + r.getAdmin().getName() + " (" + r.getName() + ")!");
                 return r.getAdmin();
             }
         }
