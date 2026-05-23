@@ -207,13 +207,26 @@ public class CustomerDashboardController {
         card.getStyleClass().add("dashboard-restaurant-card");
         card.setPrefWidth(280);
 
-        VBox header = new VBox();
-        header.getStyleClass().add("dashboard-restaurant-card-header");
+        // Banner
+        javafx.scene.layout.StackPane header = new javafx.scene.layout.StackPane();
         header.setPrefHeight(100);
         header.setAlignment(Pos.CENTER);
-        Label emoji = new Label(getCuisineEmoji(restaurant.getCuisineType()));
-        emoji.setStyle("-fx-font-size: 36px;");
-        header.getChildren().add(emoji);
+
+        String[] bannerColors = getBannerColors(restaurant.getName());
+        header.setStyle("-fx-background-color: " + bannerColors[0] + "; -fx-background-radius: 10 10 0 0;");
+
+        VBox bannerContent = new VBox(6);
+        bannerContent.setAlignment(Pos.CENTER);
+
+        Label icon = new Label(getCuisineEmoji(restaurant.getCuisineType()));
+        icon.setStyle("-fx-font-size: 28px;");
+
+        Label bannerName = new Label(restaurant.getName().toUpperCase());
+        bannerName.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: " + bannerColors[1]
+                + "; -fx-letter-spacing: 1px;");
+
+        bannerContent.getChildren().addAll(icon, bannerName);
+        header.getChildren().add(bannerContent);
 
         VBox body = new VBox(6);
         body.setPadding(new Insets(12));
@@ -237,6 +250,45 @@ public class CustomerDashboardController {
         });
 
         return card;
+    }
+
+    private String[] getBannerColors(String name) {
+        if (name == null)
+            return new String[] { "#1a1a1a", "#8B5E3C" };
+        switch (name) {
+            case "Burger Palace":
+                return new String[] { "#1a0d00", "#d4751a" };
+            case "Pizza Hub":
+                return new String[] { "#1a0000", "#d43a3a" };
+            case "Desi Dhaba":
+                return new String[] { "#0d1a00", "#7ab83a" };
+            case "Sushi House":
+                return new String[] { "#00101a", "#3aaed4" };
+            case "Taco Fiesta":
+                return new String[] { "#1a1000", "#d4b03a" };
+            case "Spice Garden":
+                return new String[] { "#1a0010", "#d43a9e" };
+            case "BBQ Nation":
+                return new String[] { "#1a0500", "#d45a1a" };
+            case "Pasta Point":
+                return new String[] { "#0a001a", "#8a3ad4" };
+            case "Cafe Mocha":
+                return new String[] { "#100a00", "#c4853a" };
+            case "Shawarma Express":
+                return new String[] { "#001a15", "#3ad4a0" };
+            case "China Town":
+                return new String[] { "#1a0000", "#d43a3a" };
+            case "Turkish Grill":
+                return new String[] { "#001015", "#3a8ad4" };
+            case "Sea Food Bay":
+                return new String[] { "#00101a", "#3aaed4" };
+            case "Healthy Bites":
+                return new String[] { "#051a00", "#4ad43a" };
+            case "Hot n Spicy":
+                return new String[] { "#1a0000", "#d43a3a" };
+            default:
+                return new String[] { "#1a1a1a", "#8B5E3C" };
+        }
     }
 
     private VBox createSuggestionCard(FoodItem item, Restaurant owner) {
