@@ -1,0 +1,121 @@
+/* ══════════════════════════════════════════════════════════════
+   admin.css  —  Admin Dashboard only
+   Loaded by SceneManager on top of global.css + dashboard.css
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Restaurant Badge (topbar) ───────────────────────────────── */
+
+.admin-restaurant-badge {
+    -fx-background-color: #1f1510;
+    -fx-text-fill: #8B5E3C;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 14;
+    -fx-background-radius: 20;
+    -fx-border-color: #5a3e28;
+    -fx-border-radius: 20;
+}
+
+/* ── Add-Item / Add-Offer Form Card ─────────────────────────── */
+
+.admin-form-card {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 10;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 10;
+    -fx-padding: 20;
+}
+
+/* ── Field group labels inside forms ────────────────────────── */
+
+.admin-form-label {
+    -fx-text-fill: #555555;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+/* ── Menu item rows ──────────────────────────────────────────── */
+
+.admin-item-row {
+    -fx-background-color: #1a1a1a;
+    -fx-background-radius: 8;
+    -fx-border-color: #2a2a2a;
+    -fx-border-radius: 8;
+    -fx-padding: 14 16;
+}
+
+.admin-item-row:hover {
+    -fx-border-color: #3a3a3a;
+}
+
+.admin-item-name {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.admin-item-detail {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666666;
+}
+
+.admin-item-price {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8B5E3C;
+    -fx-min-width: 90;
+    -fx-alignment: CENTER_RIGHT;
+}
+
+/* ── Offer rows ──────────────────────────────────────────────── */
+
+.admin-offer-code {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8B5E3C;
+}
+
+.admin-offer-description {
+    -fx-font-size: 13px;
+    -fx-text-fill: #cccccc;
+}
+
+.admin-offer-meta {
+    -fx-font-size: 12px;
+    -fx-text-fill: #555555;
+}
+
+/* ── Remove button ───────────────────────────────────────────── */
+
+.admin-remove-button {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #cc5555;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 7 14;
+    -fx-background-radius: 6;
+    -fx-border-color: #663333;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+
+.admin-remove-button:hover {
+    -fx-background-color: #2a1111;
+    -fx-border-color: #ff4444;
+    -fx-text-fill: #ff4444;
+}
+
+/* ── Panel count pill next to section title ──────────────────── */
+
+.admin-panel-count {
+    -fx-font-size: 12px;
+    -fx-text-fill: #444444;
+}
+
+/* ── Empty-state message inside list containers ──────────────── */
+
+.admin-empty-label {
+    -fx-text-fill: #444444;
+    -fx-font-size: 13px;
+    -fx-padding: 20 0;
+}

@@ -1,10 +1,230 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.*?>
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="AdminDashboardController"
-      style="-fx-background-color: #1a1a1a;"
-      alignment="CENTER" prefWidth="1280" prefHeight="800">
-    <Label text="Admin Dashboard"
-           style="-fx-text-fill: white; -fx-font-size: 24px;"/>
-</VBox>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox prefHeight="800" prefWidth="1280"
+      style="-fx-background-color: #111111;"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="AdminDashboardController">
+
+    <!-- ═══════════════════════════════════════════════
+         SIDEBAR
+    ═══════════════════════════════════════════════ -->
+    <VBox prefHeight="800" prefWidth="200" styleClass="dashboard-sidebar">
+
+        <!-- Logo -->
+        <HBox>
+            <VBox.margin><Insets bottom="16" left="20" top="20"/></VBox.margin>
+            <Label styleClass="dashboard-sidebar-logo" text="FOR"/>
+            <Label style="-fx-text-fill: #8B5E3C;" styleClass="dashboard-sidebar-logo" text="BIG"/>
+            <Label styleClass="dashboard-sidebar-logo" text="BACKS"/>
+        </HBox>
+
+        <!-- Divider -->
+        <Region maxWidth="200" prefHeight="1" style="-fx-background-color: #2a2a2a;">
+            <VBox.margin><Insets bottom="8"/></VBox.margin>
+        </Region>
+
+        <!-- Nav -->
+        <Button fx:id="menuNavButton" maxWidth="200"
+                onAction="#showMenuPanel"
+                styleClass="dashboard-nav-button-active"
+                text="  Menu Items"/>
+        <Button fx:id="offersNavButton" maxWidth="200"
+                onAction="#showOffersPanel"
+                styleClass="dashboard-nav-button"
+                text="  Offers"/>
+
+        <!-- Push logout to bottom -->
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <Button maxWidth="200"
+                onAction="#handleLogout"
+                styleClass="dashboard-nav-button"
+                text="  Logout">
+            <VBox.margin><Insets bottom="12"/></VBox.margin>
+        </Button>
+
+    </VBox>
+
+    <!-- ═══════════════════════════════════════════════
+         MAIN AREA
+    ═══════════════════════════════════════════════ -->
+    <VBox HBox.hgrow="ALWAYS" style="-fx-background-color: #111111;">
+
+        <!-- TOP BAR -->
+        <HBox alignment="CENTER_LEFT" spacing="8" styleClass="dashboard-topbar">
+            
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="restaurantBadge" styleClass="admin-restaurant-badge" text=""/>
+            <Button onAction="#handleLogout"
+                    styleClass="dashboard-logout-button"
+                    text="Logout"/>
+        </HBox>
+
+        <!-- CONTENT SCROLL -->
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color: #111111; -fx-background: #111111;"
+                    VBox.vgrow="ALWAYS">
+
+            <VBox styleClass="dashboard-content-area" spacing="0">
+
+                <!-- ─────────────────────────────────────
+                     MENU ITEMS PANEL
+                ───────────────────────────────────── -->
+                <VBox fx:id="menuPanel" spacing="16">
+
+                    <!-- Section header -->
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label styleClass="dashboard-section-title" text="MENU ITEMS"/>
+                        <Label fx:id="menuCountLabel" styleClass="admin-panel-count" text=""/>
+                    </HBox>
+
+                    <!-- Add Item form -->
+                    <VBox spacing="14" styleClass="admin-form-card">
+
+                        <Label styleClass="dashboard-section-title" text="ADD NEW ITEM"/>
+
+                        <!-- Row 1: Name + Category -->
+                        <HBox spacing="12">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label styleClass="admin-form-label" text="ITEM NAME"/>
+                                <TextField fx:id="newItemName"
+                                           maxWidth="1.7976931348623157E308"
+                                           promptText="e.g. Chicken Burger"
+                                           styleClass="input-text-field"/>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label styleClass="admin-form-label" text="CATEGORY"/>
+                                <TextField fx:id="newItemCategory"
+                                           maxWidth="1.7976931348623157E308"
+                                           promptText="e.g. Burgers"
+                                           styleClass="input-text-field"/>
+                            </VBox>
+                        </HBox>
+
+                        <!-- Row 2: Price + Quantity -->
+                        <HBox spacing="12">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label styleClass="admin-form-label" text="PRICE (PKR)"/>
+                                <TextField fx:id="newItemPrice"
+                                           maxWidth="1.7976931348623157E308"
+                                           promptText="e.g. 450"
+                                           styleClass="input-text-field"/>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label styleClass="admin-form-label" text="STOCK QUANTITY"/>
+                                <TextField fx:id="newItemQuantity"
+                                           maxWidth="1.7976931348623157E308"
+                                           promptText="e.g. 50"
+                                           styleClass="input-text-field"/>
+                            </VBox>
+                        </HBox>
+
+                        <!-- Submit row -->
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <Button onAction="#handleAddMenuItem"
+                                    styleClass="action-button-brown"
+                                    text="Add Item"/>
+                            <Label fx:id="menuFormError"
+                                   styleClass="text-error-message"
+                                   text=""/>
+                        </HBox>
+
+                    </VBox>
+
+                    <!-- Items list (populated by controller) -->
+                    <VBox fx:id="menuItemsContainer" spacing="8"/>
+
+                </VBox>
+
+                <!-- ─────────────────────────────────────
+                     LOYALTY OFFERS PANEL  (hidden on load)
+                ───────────────────────────────────── -->
+                <VBox fx:id="offersPanel" managed="false" spacing="16" visible="false">
+
+                    <!-- Section header -->
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label styleClass="dashboard-section-title" text="LOYALTY OFFERS"/>
+                        <Label fx:id="offerCountLabel" styleClass="admin-panel-count" text=""/>
+                    </HBox>
+
+                    <!-- Add Offer form -->
+                    <VBox spacing="14" styleClass="admin-form-card">
+
+                        <Label styleClass="dashboard-section-title" text="ADD NEW OFFER"/>
+
+                        <!-- Row 1: Code + Description -->
+                        <HBox spacing="12">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label styleClass="admin-form-label" text="OFFER CODE"/>
+                                <TextField fx:id="newOfferCode"
+                                           maxWidth="1.7976931348623157E308"
+                                           promptText="e.g. SAVE100"
+                                           styleClass="input-text-field"/>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label styleClass="admin-form-label" text="DESCRIPTION"/>
+                                <TextField fx:id="newOfferDescription"
+                                           maxWidth="1.7976931348623157E308"
+                                           promptText="e.g. Rs.100 off on orders above Rs.500"
+                                           styleClass="input-text-field"/>
+                            </VBox>
+                        </HBox>
+
+                        <!-- Row 2: Points + Discount + Min Order -->
+                        <HBox spacing="12">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label styleClass="admin-form-label" text="POINTS REQUIRED"/>
+                                <TextField fx:id="newOfferPoints"
+                                           maxWidth="1.7976931348623157E308"
+                                           promptText="e.g. 100"
+                                           styleClass="input-text-field"/>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label styleClass="admin-form-label" text="DISCOUNT (PKR)"/>
+                                <TextField fx:id="newOfferDiscount"
+                                           maxWidth="1.7976931348623157E308"
+                                           promptText="e.g. 100"
+                                           styleClass="input-text-field"/>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label styleClass="admin-form-label" text="MIN ORDER (PKR)"/>
+                                <TextField fx:id="newOfferMinOrder"
+                                           maxWidth="1.7976931348623157E308"
+                                           promptText="e.g. 500"
+                                           styleClass="input-text-field"/>
+                            </VBox>
+                        </HBox>
+
+                        <!-- Submit row -->
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <Button onAction="#handleAddOffer"
+                                    styleClass="action-button-brown"
+                                    text="Add Offer"/>
+                            <Label fx:id="offerFormError"
+                                   styleClass="text-error-message"
+                                   text=""/>
+                        </HBox>
+
+                    </VBox>
+
+                    <!-- Offers list (populated by controller) -->
+                    <VBox fx:id="offersContainer" spacing="8"/>
+
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+
+    </VBox>
+
+</HBox>

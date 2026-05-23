@@ -56,7 +56,7 @@ public class SceneManager {
             scene.getStylesheets().add(
                     getClass().getResource("/global.css").toExternalForm());
 
-            // auth.css only for login and signup
+            // auth.css only for Login and Signup
             if (screenName.equals("Login") || screenName.equals("Signup")) {
                 scene.getStylesheets().add(
                         getClass().getResource("/auth.css").toExternalForm());
@@ -70,6 +70,12 @@ public class SceneManager {
                     || screenName.equals("RestaurantBrowse")) {
                 scene.getStylesheets().add(
                         getClass().getResource("/dashboard.css").toExternalForm());
+            }
+
+            // admin.css only for AdminDashboard (loaded on top of dashboard.css)
+            if (screenName.equals("AdminDashboard")) {
+                scene.getStylesheets().add(
+                        getClass().getResource("/admin.css").toExternalForm());
             }
 
             stage.setScene(scene);
