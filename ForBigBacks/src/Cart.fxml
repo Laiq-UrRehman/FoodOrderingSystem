@@ -53,8 +53,6 @@
             <!-- LEFT: Cart Items -->
             <VBox spacing="12" HBox.hgrow="ALWAYS">
 
-                <Label text="CART ITEMS" styleClass="dashboard-section-title"/>
-
                 <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
                             style="-fx-background-color: #111111; -fx-background: #111111;">
                     <VBox fx:id="cartItemsContainer" spacing="10"/>

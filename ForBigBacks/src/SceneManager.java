@@ -42,7 +42,7 @@ public class SceneManager {
         String workingDir = new java.io.File(".").getAbsolutePath();
         System.out.println("Looking for icon in: " + workingDir);
 
-        java.io.File iconFile = new java.io.File("FORBIGBACKS Logo.png");
+        java.io.File iconFile = new java.io.File("src/FORBIGBACKS_Logo.png");
         System.out.println("Icon exists: " + iconFile.exists() + " at " + iconFile.getAbsolutePath());
 
         if (iconFile.exists()) {
