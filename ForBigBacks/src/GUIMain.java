@@ -12,7 +12,6 @@ public class GUIMain extends Application {
     }
 
     public static void main(String[] args) {
-        System.out.println("Working dir: " + new java.io.File(".").getAbsolutePath());
         seedIfNeeded();
         launch(args);
     }
