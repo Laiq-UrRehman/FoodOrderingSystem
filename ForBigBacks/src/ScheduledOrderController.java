@@ -210,7 +210,7 @@ public class ScheduledOrderController {
         // Build the LocalDateTime
         LocalDateTime scheduledTime = parseScheduledTime();
         if (scheduledTime == null)
-            return; // scheduleErrorLabel already set
+            return;
 
         // Validate 30 min rule
         long minutesAhead = java.time.Duration.between(
@@ -250,7 +250,6 @@ public class ScheduledOrderController {
         }
 
         if (order == null) {
-            // Shouldn't happen since we already validated 30 min, but guard anyway
             scheduleErrorLabel.setText(
                     "Could not schedule order. Please check the time and try again.");
             return;
@@ -264,10 +263,6 @@ public class ScheduledOrderController {
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    /**
-     * Parses the date picker + hour/minute fields into a LocalDateTime.
-     * Sets scheduleErrorLabel and returns null on any parse failure.
-     */
     private LocalDateTime parseScheduledTime() {
         LocalDate date = datePicker.getValue();
         if (date == null) {
@@ -341,11 +336,5 @@ public class ScheduledOrderController {
     @FXML
     private void goOrders() {
         SceneManager.getInstance().switchTo("OrderHistory");
-    }
-
-    @FXML
-    private void goTracking() {
-        SessionManager.getInstance().setSelectedOrder(null);
-        SceneManager.getInstance().switchTo("OrderTracking");
     }
 }

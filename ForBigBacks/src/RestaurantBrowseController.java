@@ -167,7 +167,7 @@ public class RestaurantBrowseController {
         suggestionsDropdown.getChildren().clear();
     }
 
-    // ── Restaurant Card (same as dashboard) ──────────────────────────────────
+    // ── Restaurant Card ───────────────────────────────────────────────────────
 
     private VBox createRestaurantCard(Restaurant restaurant) {
         VBox card = new VBox();
@@ -240,10 +240,5 @@ public class RestaurantBrowseController {
     @FXML
     private void goOrders() {
         SceneManager.getInstance().switchTo("OrderHistory");
-    }
-
-    @FXML
-    private void goTracking() {
-        SceneManager.getInstance().switchTo("OrderTracking");
     }
 }

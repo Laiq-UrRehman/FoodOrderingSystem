@@ -27,7 +27,6 @@
         <Button maxWidth="200" onAction="#goBrowse" styleClass="dashboard-nav-button" text="  Browse" />
         <Button maxWidth="200" onAction="#goCart" styleClass="dashboard-nav-button" text="  Cart" />
         <Button maxWidth="200" onAction="#goOrders" styleClass="dashboard-nav-button-active" text="  Orders" />
-        <Button maxWidth="200" onAction="#goTracking" styleClass="dashboard-nav-button" text="  Tracking" />
 
     </VBox>
 

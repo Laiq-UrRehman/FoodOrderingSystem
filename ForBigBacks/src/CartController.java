@@ -188,10 +188,4 @@ public class CartController {
     private void goOrders() {
         SceneManager.getInstance().switchTo("OrderHistory");
     }
-
-    @FXML
-    private void goTracking() {
-        SessionManager.getInstance().setSelectedOrder(null);
-        SceneManager.getInstance().switchTo("OrderTracking");
-    }
 }

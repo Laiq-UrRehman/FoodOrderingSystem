@@ -305,9 +305,4 @@ public class MenuViewController {
     private void goOrders() {
         SceneManager.getInstance().switchTo("OrderHistory");
     }
-
-    @FXML
-    private void goTracking() {
-        SceneManager.getInstance().switchTo("OrderTracking");
-    }
 }

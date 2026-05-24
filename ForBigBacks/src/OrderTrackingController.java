@@ -46,7 +46,7 @@ public class OrderTrackingController {
     // ── Auto Refresh ──────────────────────────────────────────────────────────
 
     private void startAutoRefresh() {
-        stopAutoRefresh(); // cancel any previous timeline
+        stopAutoRefresh();
 
         autoRefresh = new Timeline(new KeyFrame(
                 Duration.seconds(REFRESH_SECONDS),
@@ -62,20 +62,14 @@ public class OrderTrackingController {
         }
     }
 
-    /**
-     * Called every REFRESH_SECONDS by the Timeline — runs on the JavaFX thread.
-     * Only rebuilds the status section (top part) so cards don't flicker.
-     */
     private void refreshStatus() {
         if (tracking == null)
             return;
 
-        // Replace the status section (always index 0 in trackingContent)
         if (!trackingContent.getChildren().isEmpty()) {
             trackingContent.getChildren().set(0, buildStatusSection());
         }
 
-        // Stop the timer once the order is in a terminal state
         String status = tracking.getCurrentStatus();
         if ("Delivered".equals(status) || "Cancelled".equals(status)) {
             stopAutoRefresh();
@@ -87,9 +81,8 @@ public class OrderTrackingController {
     private void buildTrackingUI() {
         trackingContent.getChildren().clear();
         trackingContent.getChildren().addAll(
-                buildStatusSection(), // index 0 — replaced by refreshStatus()
-                buildInfoRow() // index 1 — static, never changes
-        );
+                buildStatusSection(),
+                buildInfoRow());
     }
 
     // ── Status Section ────────────────────────────────────────────────────────
@@ -104,7 +97,6 @@ public class OrderTrackingController {
         Label bigStatus = new Label(current);
         bigStatus.getStyleClass().add("dashboard-tracking-big-status");
 
-        // ETA countdown label
         int etaMins = tracking.getEstimatedDeliveryMinutes();
         Label etaLabel = new Label(buildEtaText(current, etaMins));
         etaLabel.getStyleClass().add("dashboard-tracking-eta");
@@ -295,7 +287,6 @@ public class OrderTrackingController {
 
     private Order findMostRecentTrackedOrder() {
         List<Order> history = customer.viewOrderHistory();
-        // Only return an order that is actively in progress
         for (int i = history.size() - 1; i >= 0; i--) {
             Order o = history.get(i);
             if (o.getTracking() != null
@@ -304,7 +295,6 @@ public class OrderTrackingController {
                 return o;
             }
         }
-        // No active order — show empty state
         return null;
     }
 
@@ -332,7 +322,7 @@ public class OrderTrackingController {
         return div;
     }
 
-    // ── Navigation — always stop the timeline before leaving ──────────────────
+    // ── Navigation ────────────────────────────────────────────────────────────
 
     @FXML
     private void refresh() {
@@ -379,8 +369,4 @@ public class OrderTrackingController {
         stopAutoRefresh();
         SceneManager.getInstance().switchTo("OrderHistory");
     }
-
-    @FXML
-    private void goTracking() {
-        /* already here */ }
 }

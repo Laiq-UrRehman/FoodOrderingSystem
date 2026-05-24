@@ -12,19 +12,32 @@ import java.util.List;
 
 public class CheckoutController {
 
-    @FXML private VBox orderItemsContainer;
-    @FXML private Label subtotalLabel;
-    @FXML private Label discountLabel;
-    @FXML private Label totalLabel;
-    @FXML private VBox cardFieldsContainer;
-    @FXML private TextField cardNumberField;
-    @FXML private TextField cardHolderField;
-    @FXML private TextField expiryField;
-    @FXML private VBox offersContainer;
-    @FXML private Label offersStatusLabel;
-    @FXML private Label errorLabel;
-    @FXML private Button cashButton;
-    @FXML private Button cardButton;
+    @FXML
+    private VBox orderItemsContainer;
+    @FXML
+    private Label subtotalLabel;
+    @FXML
+    private Label discountLabel;
+    @FXML
+    private Label totalLabel;
+    @FXML
+    private VBox cardFieldsContainer;
+    @FXML
+    private TextField cardNumberField;
+    @FXML
+    private TextField cardHolderField;
+    @FXML
+    private TextField expiryField;
+    @FXML
+    private VBox offersContainer;
+    @FXML
+    private Label offersStatusLabel;
+    @FXML
+    private Label errorLabel;
+    @FXML
+    private Button cashButton;
+    @FXML
+    private Button cardButton;
 
     private Customer customer;
     private Restaurant restaurant;
@@ -187,29 +200,25 @@ public class CheckoutController {
     // ── Card Validation ──────────────────────────────────────────────────────
 
     private boolean validateCardFields() {
-        String cardNumber  = cardNumberField.getText().trim();
-        String cardHolder  = cardHolderField.getText().trim();
-        String expiry      = expiryField.getText().trim();
+        String cardNumber = cardNumberField.getText().trim();
+        String cardHolder = cardHolderField.getText().trim();
+        String expiry = expiryField.getText().trim();
 
-        // Empty check
         if (cardNumber.isEmpty() || cardHolder.isEmpty() || expiry.isEmpty()) {
             errorLabel.setText("Please fill in all card details.");
             return false;
         }
 
-        // Card number: exactly 16 digits
         if (!cardNumber.matches("\\d{16}")) {
             errorLabel.setText("Card number must be exactly 16 digits.");
             return false;
         }
 
-        // Card holder: letters and spaces only
         if (!cardHolder.matches("[a-zA-Z ]{2,50}")) {
             errorLabel.setText("Card holder name must be letters only.");
             return false;
         }
 
-        // Expiry: MM/YY format and not expired
         if (!expiry.matches("(0[1-9]|1[0-2])/\\d{2}")) {
             errorLabel.setText("Expiry must be in MM/YY format (e.g. 08/27).");
             return false;
@@ -234,7 +243,8 @@ public class CheckoutController {
     private void placeOrder() {
         errorLabel.setText("");
 
-        if (isCardPayment && !validateCardFields()) return;
+        if (isCardPayment && !validateCardFields())
+            return;
 
         Order order;
         if (selectedOffer != null) {
@@ -298,13 +308,28 @@ public class CheckoutController {
 
     // ── Navigation ───────────────────────────────────────────────────────────
 
-    @FXML private void goBack()     { SceneManager.getInstance().switchTo("Cart"); }
-    @FXML private void goHome()     { SceneManager.getInstance().switchTo("CustomerDashboard"); }
-    @FXML private void goBrowse()   { SceneManager.getInstance().switchTo("RestaurantBrowse"); }
-    @FXML private void goCart()     { SceneManager.getInstance().switchTo("Cart"); }
-    @FXML private void goOrders()   { SceneManager.getInstance().switchTo("OrderHistory"); }
-    @FXML private void goTracking() {
-        SessionManager.getInstance().setSelectedOrder(null);
-        SceneManager.getInstance().switchTo("OrderTracking");
+    @FXML
+    private void goBack() {
+        SceneManager.getInstance().switchTo("Cart");
+    }
+
+    @FXML
+    private void goHome() {
+        SceneManager.getInstance().switchTo("CustomerDashboard");
+    }
+
+    @FXML
+    private void goBrowse() {
+        SceneManager.getInstance().switchTo("RestaurantBrowse");
+    }
+
+    @FXML
+    private void goCart() {
+        SceneManager.getInstance().switchTo("Cart");
+    }
+
+    @FXML
+    private void goOrders() {
+        SceneManager.getInstance().switchTo("OrderHistory");
     }
 }

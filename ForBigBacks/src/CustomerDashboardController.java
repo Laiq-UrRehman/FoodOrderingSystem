@@ -358,12 +358,6 @@ public class CustomerDashboardController {
     }
 
     @FXML
-    private void goTracking() {
-        SessionManager.getInstance().setSelectedOrder(null);
-        SceneManager.getInstance().switchTo("OrderTracking");
-    }
-
-    @FXML
     private void handleLogout() {
         FileHandler<Customer> fh = new FileHandler<>();
         Customer[] existing = fh.loadArray("customers.dat");

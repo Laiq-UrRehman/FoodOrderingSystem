@@ -125,6 +125,7 @@ public class OrderHistoryController {
         footer.getStyleClass().add("dashboard-order-card-footer");
         footer.setAlignment(Pos.CENTER_RIGHT);
 
+        // "Track Order →" button — navigates to the tracking page for this order
         if (order.getTracking() != null && !order.getStatus().equals("Cancelled")) {
             Button trackBtn = new Button("Track Order →");
             trackBtn.getStyleClass().add("dashboard-order-track-button");
@@ -204,13 +205,12 @@ public class OrderHistoryController {
                     final int starValue = s;
                     Button starBtn = new Button("★");
                     starBtn.getStyleClass().add("dashboard-order-star-button");
-                    // Hover: light up all stars up to this one
                     starBtn.setOnMouseEntered(e -> highlightStars(stars, starValue));
                     starBtn.setOnMouseExited(e -> resetStars(stars));
                     starBtn.setOnAction(e -> {
                         ratingService.rateFoodItem(customer, order, item.getFoodID(), starValue);
                         saveCustomer();
-                        loadOrders(); // rebuild cards to reflect new state
+                        loadOrders();
                     });
                     stars.getChildren().add(starBtn);
                 }
@@ -322,9 +322,4 @@ public class OrderHistoryController {
     @FXML
     private void goOrders() {
         /* already here */ }
-
-    @FXML
-    private void goTracking() {
-        SceneManager.getInstance().switchTo("OrderTracking");
-    }
 }
