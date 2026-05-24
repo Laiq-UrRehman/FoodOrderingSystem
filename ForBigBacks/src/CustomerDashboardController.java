@@ -1,3 +1,5 @@
+// Updated: loadRestaurants() and saveCustomer() and handleLogout() now catch FileHandler.FileOperationException
+
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -46,11 +48,16 @@ public class CustomerDashboardController {
 
     private void loadRestaurants() {
         FileHandler<Restaurant> fh = new FileHandler<>();
-        restaurants = fh.loadArray("restaurants.dat");
+        try {
+            restaurants = fh.loadArray("restaurants.dat");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Could not load restaurants: " + e.getMessage());
+            return;
+        }
+
         if (restaurants == null)
             return;
 
-        // Sort by rating descending
         java.util.Arrays.sort(restaurants,
                 (a, b) -> Double.compare(b.getRating(), a.getRating()));
 
@@ -207,7 +214,6 @@ public class CustomerDashboardController {
         card.getStyleClass().add("dashboard-restaurant-card");
         card.setPrefWidth(280);
 
-        // Banner
         javafx.scene.layout.StackPane header = new javafx.scene.layout.StackPane();
         header.setPrefHeight(100);
         header.setAlignment(Pos.CENTER);
@@ -360,15 +366,19 @@ public class CustomerDashboardController {
     @FXML
     private void handleLogout() {
         FileHandler<Customer> fh = new FileHandler<>();
-        Customer[] existing = fh.loadArray("customers.dat");
-        if (existing != null) {
-            for (int i = 0; i < existing.length; i++) {
-                if (existing[i].getUsername().equals(customer.getUsername())) {
-                    existing[i] = customer;
-                    break;
+        try {
+            Customer[] existing = fh.loadArray("customers.dat");
+            if (existing != null) {
+                for (int i = 0; i < existing.length; i++) {
+                    if (existing[i].getUsername().equals(customer.getUsername())) {
+                        existing[i] = customer;
+                        break;
+                    }
                 }
+                fh.saveArray(existing, "customers.dat");
             }
-            fh.saveArray(existing, "customers.dat");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Warning: Could not save customer on logout: " + e.getMessage());
         }
         SessionManager.getInstance().logout();
         SceneManager.getInstance().switchTo("Login");
@@ -376,15 +386,19 @@ public class CustomerDashboardController {
 
     private void saveCustomer() {
         FileHandler<Customer> fh = new FileHandler<>();
-        Customer[] all = fh.loadArray("customers.dat");
-        if (all != null) {
-            for (int i = 0; i < all.length; i++) {
-                if (all[i].getUsername().equals(customer.getUsername())) {
-                    all[i] = customer;
-                    break;
+        try {
+            Customer[] all = fh.loadArray("customers.dat");
+            if (all != null) {
+                for (int i = 0; i < all.length; i++) {
+                    if (all[i].getUsername().equals(customer.getUsername())) {
+                        all[i] = customer;
+                        break;
+                    }
                 }
+                fh.saveArray(all, "customers.dat");
             }
-            fh.saveArray(all, "customers.dat");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Warning: Could not save customer data: " + e.getMessage());
         }
     }
 }
