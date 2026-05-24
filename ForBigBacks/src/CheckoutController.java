@@ -1,6 +1,3 @@
-// Updated: saveCustomer() and rider load/save now catch FileHandler.FileOperationException
-// Updated: placeOrder() catches IllegalStateException from Cart.checkOut() and shows it in the error label
-
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -73,6 +70,8 @@ public class CheckoutController {
         updateTotalDisplay();
     }
 
+    // ── Order Summary ────────────────────────────────────────────────────────
+
     private void loadOrderSummary() {
         orderItemsContainer.getChildren().clear();
 
@@ -93,6 +92,8 @@ public class CheckoutController {
             orderItemsContainer.getChildren().add(row);
         }
     }
+
+    // ── Loyalty Offers ───────────────────────────────────────────────────────
 
     private void loadOffers() {
         List<LoyaltyOffer> offers = customer.getLoyaltyPoints().getAvailableOffers(cart.getTotal());
@@ -164,6 +165,8 @@ public class CheckoutController {
         offersContainer.getChildren().forEach(node -> node.getStyleClass().remove("dashboard-offer-card-selected"));
     }
 
+    // ── Totals Display ───────────────────────────────────────────────────────
+
     private void updateTotalDisplay() {
         int subtotal = (int) cart.getTotal();
         int total = (int) Math.max(0, subtotal - discount);
@@ -171,6 +174,8 @@ public class CheckoutController {
         discountLabel.setText("- Rs. " + (int) discount);
         totalLabel.setText("Rs. " + total);
     }
+
+    // ── Payment Toggle ───────────────────────────────────────────────────────
 
     @FXML
     private void selectCash() {
@@ -192,6 +197,8 @@ public class CheckoutController {
         errorLabel.setText("");
     }
 
+    // ── Card Validation ──────────────────────────────────────────────────────
+
     private boolean validateCardFields() {
         String cardNumber = cardNumberField.getText().trim();
         String cardHolder = cardHolderField.getText().trim();
@@ -201,14 +208,17 @@ public class CheckoutController {
             errorLabel.setText("Please fill in all card details.");
             return false;
         }
+
         if (!cardNumber.matches("\\d{16}")) {
             errorLabel.setText("Card number must be exactly 16 digits.");
             return false;
         }
+
         if (!cardHolder.matches("[a-zA-Z ]{2,50}")) {
             errorLabel.setText("Card holder name must be letters only.");
             return false;
         }
+
         if (!expiry.matches("(0[1-9]|1[0-2])/\\d{2}")) {
             errorLabel.setText("Expiry must be in MM/YY format (e.g. 08/27).");
             return false;
@@ -223,8 +233,11 @@ public class CheckoutController {
             errorLabel.setText("Expiry must be in MM/YY format (e.g. 08/27).");
             return false;
         }
+
         return true;
     }
+
+    // ── Place Order ──────────────────────────────────────────────────────────
 
     @FXML
     private void placeOrder() {
@@ -234,36 +247,25 @@ public class CheckoutController {
             return;
 
         Order order;
-        try {
-            if (selectedOffer != null) {
-                RedeemCode code = cart.selectOffer(customer, selectedOffer);
-                if (code == null) {
-                    errorLabel.setText("Could not generate redeem code. Check your points balance.");
-                    return;
-                }
-                order = (restaurant != null)
-                        ? cart.checkOut(customer, code, restaurant)
-                        : cart.checkOut();
-            } else {
-                order = (restaurant != null)
-                        ? cart.checkOut(customer, restaurant)
-                        : cart.checkOut();
+        if (selectedOffer != null) {
+            RedeemCode code = cart.selectOffer(customer, selectedOffer);
+            if (code == null) {
+                errorLabel.setText("Could not generate redeem code. Check your points balance.");
+                return;
             }
-        } catch (IllegalStateException e) {
-            errorLabel.setText(e.getMessage());
-            return;
+            order = (restaurant != null)
+                    ? cart.checkOut(customer, code, restaurant)
+                    : cart.checkOut();
+        } else {
+            order = (restaurant != null)
+                    ? cart.checkOut(customer, restaurant)
+                    : cart.checkOut();
         }
 
         customer.placeOrder(order);
 
         FileHandler<Rider> riderFH = new FileHandler<>();
-        Rider[] ridersArr = null;
-        try {
-            ridersArr = riderFH.loadArray("riders.dat");
-        } catch (FileHandler.FileOperationException e) {
-            System.out.println("Warning: Could not load rider data: " + e.getMessage());
-        }
-
+        Rider[] ridersArr = riderFH.loadArray("riders.dat");
         List<Rider> riders = (ridersArr != null)
                 ? new ArrayList<>(Arrays.asList(ridersArr))
                 : new ArrayList<>();
@@ -281,21 +283,19 @@ public class CheckoutController {
         }
 
         if (ridersArr != null) {
-            try {
-                riderFH.saveArray(riders.toArray(new Rider[0]), "riders.dat");
-            } catch (FileHandler.FileOperationException e) {
-                System.out.println("Warning: Could not save rider data: " + e.getMessage());
-            }
+            riderFH.saveArray(riders.toArray(new Rider[0]), "riders.dat");
         }
 
         saveCustomer();
         SceneManager.getInstance().switchTo("OrderHistory");
     }
 
+    // ── Persistence ──────────────────────────────────────────────────────────
+
     private void saveCustomer() {
         FileHandler<Customer> fh = new FileHandler<>();
-        try {
-            Customer[] all = fh.loadArray("customers.dat");
+        Customer[] all = fh.loadArray("customers.dat");
+        if (all != null) {
             for (int i = 0; i < all.length; i++) {
                 if (all[i].getUsername().equals(customer.getUsername())) {
                     all[i] = customer;
@@ -303,10 +303,10 @@ public class CheckoutController {
                 }
             }
             fh.saveArray(all, "customers.dat");
-        } catch (FileHandler.FileOperationException e) {
-            System.out.println("Warning: Could not save customer data: " + e.getMessage());
         }
     }
+
+    // ── Navigation ───────────────────────────────────────────────────────────
 
     @FXML
     private void goBack() {

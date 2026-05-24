@@ -1,10 +1,11 @@
-// Updated: earnPoints() throws IllegalArgumentException for negative order totals
-// Updated: generateRedeemCode() throws IllegalArgumentException for null offer
-// Updated: applyRedeemCode() throws IllegalArgumentException for null redeemCode
-
 import java.io.Serializable;
 import java.util.List;
 
+// 10 points per 100 PKR
+// FIX (Critical): Points are no longer deducted inside generateRedeemCode().
+//   Deduction now happens only inside applyRedeemCode(), which is called at
+//   checkout after the order is confirmed. This prevents points being lost
+//   when payment fails or the order is never placed.
 public class LoyaltyPoints implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -14,6 +15,7 @@ public class LoyaltyPoints implements Serializable {
 
     private static final int POINTS_PER_100_PKR = 10;
 
+    // transient: LoyaltyOfferManager does file I/O only, no need to serialize it
     private transient LoyaltyOfferManager offerManager;
 
     public LoyaltyPoints() {
@@ -22,13 +24,12 @@ public class LoyaltyPoints implements Serializable {
     }
 
     public LoyaltyPoints(String loyaltyID, int pointsBalance) {
-        if (pointsBalance < 0)
-            throw new IllegalArgumentException("Points balance cannot be negative, got: " + pointsBalance);
         this.loyaltyID = loyaltyID;
         this.pointsBalance = pointsBalance;
         this.offerManager = new LoyaltyOfferManager();
     }
 
+    // Recreate transient field after deserialization
     private void readObject(java.io.ObjectInputStream in)
             throws java.io.IOException, ClassNotFoundException {
         in.defaultReadObject();
@@ -48,20 +49,21 @@ public class LoyaltyPoints implements Serializable {
     }
 
     public void earnPoints(double orderTotalPKR) {
-        if (orderTotalPKR < 0)
-            throw new IllegalArgumentException("Order total cannot be negative, got: " + orderTotalPKR);
         int earned = (int) (orderTotalPKR / 100) * POINTS_PER_100_PKR;
         pointsBalance += earned;
-        System.out.println("You earned " + earned + " points! Balance: " + pointsBalance + " pts.");
+        System.out.println("You earned " + earned +
+                " points! Balance: " + pointsBalance + " pts.");
     }
 
     public List<LoyaltyOffer> getAvailableOffers(double cartTotalPKR) {
         return offerManager.getAvailableOffers(pointsBalance, cartTotalPKR);
     }
 
+    // Redeem Code Logic
+    // FIX: Points are NO LONGER deducted here. This method now only validates
+    // eligibility and creates the code object. The actual deduction happens in
+    // applyRedeemCode() at the moment the code is consumed at checkout.
     public RedeemCode generateRedeemCode(LoyaltyOffer offer, double cartTotalPKR) {
-        if (offer == null)
-            throw new IllegalArgumentException("Offer cannot be null");
 
         if (pointsBalance < offer.getPointsRequired()) {
             System.out.println("Not enough points. You have "
@@ -78,6 +80,7 @@ public class LoyaltyPoints implements Serializable {
             return null;
         }
 
+        // No deduction here — deduction happens in applyRedeemCode()
         RedeemCode code = new RedeemCode(offer);
         System.out.println("Code generated: " + code.getCode()
                 + " | Will deduct " + offer.getPointsRequired()
@@ -86,6 +89,7 @@ public class LoyaltyPoints implements Serializable {
     }
 
     public double applyRedeemCode(RedeemCode redeemCode, double cartTotalPKR) {
+
         if (redeemCode == null) {
             System.out.println("No redeem code provided.");
             return 0;
@@ -102,6 +106,8 @@ public class LoyaltyPoints implements Serializable {
             return 0;
         }
 
+        // FIX: Points are deducted HERE, only when the code is actually consumed
+        // at checkout — not when the code was generated.
         pointsBalance -= redeemCode.getOffer().getPointsRequired();
         redeemCode.consume();
 

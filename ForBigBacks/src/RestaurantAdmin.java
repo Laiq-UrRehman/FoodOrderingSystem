@@ -1,6 +1,6 @@
-// Updated: persistRestaurant() catches FileHandler.FileOperationException instead of checking null return
-// Updated: addFoodItem() and removeFoodItem() throw IllegalArgumentException for null items
-// Updated: addCustomization() and removeCustomization() throw IllegalArgumentException for null/blank arguments
+// Updated: addOffer() and removeOffer() now reuse a single LoyaltyOfferManager instance instead of creating a new one each call
+// Updated: persistRestaurant() added to save back changes to restaurants.dat after every mutation
+// Updated: getOfferManager() getter added so AdminDashboardController can reuse the same instance
 
 public class RestaurantAdmin extends Person implements Account {
 
@@ -23,69 +23,52 @@ public class RestaurantAdmin extends Person implements Account {
     }
 
     @Override
-    public String getUsername() {
-        return username;
-    }
+    public String getUsername() { return username; }
 
     @Override
-    public String getPassword() {
-        return password;
-    }
+    public String getPassword() { return password; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public void setUsername(String username) { this.username = username; }
+    public void setPassword(String password) { this.password = password; }
+    public Restaurant getRestaurant() { return restaurant; }
+    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public LoyaltyOfferManager getOfferManager() { return offerManager; }
 
-    public Restaurant getRestaurant() {
-        return restaurant;
-    }
-
-    public void setRestaurant(Restaurant restaurant) {
-        this.restaurant = restaurant;
-    }
-
-    public LoyaltyOfferManager getOfferManager() {
-        return offerManager;
-    }
-
+    // ── Saves the current restaurant state back to restaurants.dat ──────────
     private void persistRestaurant() {
         FileHandler<Restaurant> fh = new FileHandler<>();
-        try {
-            Restaurant[] restaurants = fh.loadArray("restaurants.dat");
-            for (int i = 0; i < restaurants.length; i++) {
-                if (restaurants[i].getRestaurantID().equals(restaurant.getRestaurantID())) {
-                    restaurants[i] = restaurant;
-                    break;
-                }
-            }
-            fh.saveArray(restaurants, "restaurants.dat");
-        } catch (FileHandler.FileOperationException e) {
-            System.out.println("Warning: Could not persist restaurant changes: " + e.getMessage());
+        Restaurant[] restaurants = fh.loadArray("restaurants.dat");
+
+        if (restaurants == null) {
+            System.out.println("Could not load restaurants.dat for saving.");
+            return;
         }
+
+        for (int i = 0; i < restaurants.length; i++) {
+            if (restaurants[i].getRestaurantID().equals(restaurant.getRestaurantID())) {
+                restaurants[i] = restaurant;
+                break;
+            }
+        }
+
+        fh.saveArray(restaurants, "restaurants.dat");
     }
 
     public void addFoodItem(FoodItem item) {
-        if (item == null)
-            throw new IllegalArgumentException("Food item cannot be null");
-        if (restaurant == null)
-            throw new IllegalStateException("No restaurant assigned to this admin");
-        restaurant.getMenu().addItem(item);
-        persistRestaurant();
-        System.out.println(item.getName() + " added successfully.");
+        if (restaurant != null) {
+            restaurant.getMenu().addItem(item);
+            persistRestaurant();
+            System.out.println(item.getName() + " added successfully.");
+        }
     }
 
     public void removeFoodItem(FoodItem item) {
-        if (item == null)
-            throw new IllegalArgumentException("Food item cannot be null");
-        if (restaurant == null)
-            throw new IllegalStateException("No restaurant assigned to this admin");
-        restaurant.getMenu().removeItem(item);
-        persistRestaurant();
-        System.out.println(item.getName() + " removed successfully.");
+        if (restaurant != null) {
+            restaurant.getMenu().removeItem(item);
+            persistRestaurant();
+            System.out.println(item.getName() + " removed successfully.");
+        }
     }
 
     public void viewMenu() {
@@ -101,14 +84,10 @@ public class RestaurantAdmin extends Person implements Account {
     }
 
     public void addOffer(LoyaltyOffer offer) {
-        if (offer == null)
-            throw new IllegalArgumentException("Offer cannot be null");
         offerManager.addOffer(offer);
     }
 
     public void removeOffer(String offerCode) {
-        if (offerCode == null || offerCode.isBlank())
-            throw new IllegalArgumentException("Offer code cannot be null or empty");
         offerManager.removeOffer(offerCode);
     }
 
@@ -119,13 +98,6 @@ public class RestaurantAdmin extends Person implements Account {
     }
 
     public void addCustomization(String foodID, CustomizationGroup group) {
-        if (foodID == null || foodID.isBlank())
-            throw new IllegalArgumentException("Food ID cannot be null or empty");
-        if (group == null)
-            throw new IllegalArgumentException("Customization group cannot be null");
-        if (restaurant == null)
-            throw new IllegalStateException("No restaurant assigned to this admin");
-
         for (FoodItem item : restaurant.getMenu().getItems()) {
             if (item.getFoodID().equals(foodID)) {
                 item.addCustomizationGroup(group);
@@ -134,17 +106,9 @@ public class RestaurantAdmin extends Person implements Account {
                 return;
             }
         }
-        System.out.println("Food item not found: " + foodID);
+        System.out.println("Food item not found.");
     }
-
     public void removeCustomization(String foodID, String groupName) {
-        if (foodID == null || foodID.isBlank())
-            throw new IllegalArgumentException("Food ID cannot be null or empty");
-        if (groupName == null || groupName.isBlank())
-            throw new IllegalArgumentException("Group name cannot be null or empty");
-        if (restaurant == null)
-            throw new IllegalStateException("No restaurant assigned to this admin");
-
         for (FoodItem item : restaurant.getMenu().getItems()) {
             if (item.getFoodID().equals(foodID)) {
                 item.removeCustomizationGroup(groupName);
@@ -153,6 +117,6 @@ public class RestaurantAdmin extends Person implements Account {
                 return;
             }
         }
-        System.out.println("Food item not found: " + foodID);
+        System.out.println("Food item not found.");
     }
 }

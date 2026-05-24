@@ -1,7 +1,6 @@
-// Updated: addItem() throws IllegalArgumentException for null items
-// Updated: removeItem() throws IllegalArgumentException for null or items not in cart
-// Updated: updateQuantity() throws IllegalArgumentException for null foodID or non-positive quantity
-// Updated: checkOut() variants throw IllegalStateException when cart is empty
+// FIX (Critical): checkOutScheduled() variants now validate the schedule BEFORE
+//   calling persistOrderCounts() or clearCart(). Previously the cart was wiped
+//   and order-counts incremented even when the method returned null.
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -26,65 +25,39 @@ public class Cart implements Serializable {
         this.totalAmount = totalAmount;
     }
 
-    public String getCartID() {
-        return cartID;
-    }
+    public String getCartID() { return cartID; }
+    public void setCartID(String cartID) { this.cartID = cartID; }
 
-    public void setCartID(String cartID) {
-        this.cartID = cartID;
-    }
+    public List<FoodItem> getItems() { return items; }
+    public void setItems(List<FoodItem> items) { this.items = items; }
 
-    public List<FoodItem> getItems() {
-        return items;
-    }
-
-    public void setItems(List<FoodItem> items) {
-        this.items = items;
-    }
-
-    public double getTotal() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(double totalAmount) {
-        this.totalAmount = totalAmount;
-    }
+    public double getTotal() { return totalAmount; }
+    public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
 
     public void addItem(FoodItem item) {
-        if (item == null)
-            throw new IllegalArgumentException("Cannot add null item to cart");
         items.add(item);
         totalAmount += item.getPrice() * item.getQuantity();
     }
 
     public void removeItem(FoodItem item) {
-        if (item == null)
-            throw new IllegalArgumentException("Cannot remove null item from cart");
-        if (!items.contains(item))
-            throw new IllegalArgumentException("Item not found in cart: " + item.getName());
         items.remove(item);
         totalAmount -= item.getPrice() * item.getQuantity();
     }
 
     public void updateQuantity(String foodID, int quantity) {
-        if (foodID == null || foodID.isBlank())
-            throw new IllegalArgumentException("Food ID cannot be null or empty");
-        if (quantity <= 0)
-            throw new IllegalArgumentException("Quantity must be positive, got: " + quantity);
-
         for (FoodItem item : items) {
             if (item.getFoodID().equals(foodID)) {
                 totalAmount -= item.getPrice() * item.getQuantity();
                 item.setQuantity(quantity);
                 totalAmount += item.getPrice() * item.getQuantity();
-                break;
+                break; // FIX (Medium): stop after first match to avoid double-updating
             }
         }
     }
 
+    // Loyalty and Redeem Code Logic
+
     public List<LoyaltyOffer> showLoyaltyOffers(Customer customer) {
-        if (customer == null)
-            throw new IllegalArgumentException("Customer cannot be null");
         List<LoyaltyOffer> available = customer.getLoyaltyPoints().getAvailableOffers(totalAmount);
         if (available.isEmpty()) {
             System.out.println("No loyalty offers available for your current points or cart total.");
@@ -98,10 +71,6 @@ public class Cart implements Serializable {
     }
 
     public RedeemCode selectOffer(Customer customer, LoyaltyOffer offer) {
-        if (customer == null)
-            throw new IllegalArgumentException("Customer cannot be null");
-        if (offer == null)
-            throw new IllegalArgumentException("Offer cannot be null");
         return customer.getLoyaltyPoints().generateRedeemCode(offer, totalAmount);
     }
 
@@ -110,8 +79,6 @@ public class Cart implements Serializable {
     }
 
     private void persistOrderCounts(Restaurant restaurant) {
-        if (restaurant == null)
-            throw new IllegalArgumentException("Restaurant cannot be null");
         for (FoodItem cartItem : items) {
             for (FoodItem menuItem : restaurant.getMenu().getItems()) {
                 if (menuItem.getFoodID().equals(cartItem.getFoodID())) {
@@ -120,29 +87,20 @@ public class Cart implements Serializable {
             }
         }
         FileHandler<Restaurant> fileHandler = new FileHandler<>();
-        try {
-            Restaurant[] all = fileHandler.loadArray("restaurants.dat");
-            if (all != null) {
-                for (int i = 0; i < all.length; i++) {
-                    if (all[i].getRestaurantID().equals(restaurant.getRestaurantID())) {
-                        all[i] = restaurant;
-                    }
+        Restaurant[] all = fileHandler.loadArray("restaurants.dat");
+        if (all != null) {
+            for (int i = 0; i < all.length; i++) {
+                if (all[i].getRestaurantID().equals(restaurant.getRestaurantID())) {
+                    all[i] = restaurant;
                 }
-                fileHandler.saveArray(all, "restaurants.dat");
             }
-        } catch (FileHandler.FileOperationException e) {
-            System.out.println("Warning: Could not persist order counts: " + e.getMessage());
+            fileHandler.saveArray(all, "restaurants.dat");
         }
     }
 
-    public Order checkOut(Customer customer, RedeemCode redeemCode, Restaurant restaurant) {
-        if (items.isEmpty())
-            throw new IllegalStateException("Cannot check out with an empty cart");
-        if (customer == null)
-            throw new IllegalArgumentException("Customer cannot be null");
-        if (restaurant == null)
-            throw new IllegalArgumentException("Restaurant cannot be null");
+    // Checkout Logic
 
+    public Order checkOut(Customer customer, RedeemCode redeemCode, Restaurant restaurant) {
         double discount = customer.getLoyaltyPoints().applyRedeemCode(redeemCode, totalAmount);
         double amountPaid = Math.max(0, totalAmount - discount);
         customer.getLoyaltyPoints().earnPoints(amountPaid);
@@ -153,13 +111,6 @@ public class Cart implements Serializable {
     }
 
     public Order checkOut(Customer customer, Restaurant restaurant) {
-        if (items.isEmpty())
-            throw new IllegalStateException("Cannot check out with an empty cart");
-        if (customer == null)
-            throw new IllegalArgumentException("Customer cannot be null");
-        if (restaurant == null)
-            throw new IllegalArgumentException("Restaurant cannot be null");
-
         customer.getLoyaltyPoints().earnPoints(totalAmount);
         Order order = new Order(generateOrderID(), "Pending", items, totalAmount);
         persistOrderCounts(restaurant);
@@ -168,28 +119,21 @@ public class Cart implements Serializable {
     }
 
     public Order checkOut() {
-        if (items.isEmpty())
-            throw new IllegalStateException("Cannot check out with an empty cart");
         Order order = new Order(generateOrderID(), "Pending", items, totalAmount);
         clearCart();
         return order;
     }
 
+    // Scheduled Order Logic
+    // FIX: Validate the schedule FIRST. Only persist counts and clear the cart
+    // after we are certain an order object will be returned.
+
     public ScheduledOrder checkOutScheduled(Customer customer, LocalDateTime scheduledTime,
             Restaurant restaurant) {
-        if (items.isEmpty())
-            throw new IllegalStateException("Cannot check out with an empty cart");
-        if (customer == null)
-            throw new IllegalArgumentException("Customer cannot be null");
-        if (scheduledTime == null)
-            throw new IllegalArgumentException("Scheduled time cannot be null");
-        if (restaurant == null)
-            throw new IllegalArgumentException("Restaurant cannot be null");
-
         ScheduledOrder order = new ScheduledOrder(generateOrderID(), items, totalAmount, scheduledTime);
         if (!order.isValidSchedule()) {
             System.out.println("Scheduled time must be at least 30 minutes from now.");
-            return null;
+            return null; // Cart is NOT cleared — nothing has changed yet
         }
         customer.getLoyaltyPoints().earnPoints(totalAmount);
         persistOrderCounts(restaurant);
@@ -199,19 +143,11 @@ public class Cart implements Serializable {
 
     public ScheduledOrder checkOutScheduled(Customer customer, RedeemCode redeemCode,
             LocalDateTime scheduledTime, Restaurant restaurant) {
-        if (items.isEmpty())
-            throw new IllegalStateException("Cannot check out with an empty cart");
-        if (customer == null)
-            throw new IllegalArgumentException("Customer cannot be null");
-        if (scheduledTime == null)
-            throw new IllegalArgumentException("Scheduled time cannot be null");
-        if (restaurant == null)
-            throw new IllegalArgumentException("Restaurant cannot be null");
-
+        // Validate schedule before touching anything
         ScheduledOrder probe = new ScheduledOrder("probe", items, totalAmount, scheduledTime);
         if (!probe.isValidSchedule()) {
             System.out.println("Scheduled time must be at least 30 minutes from now.");
-            return null;
+            return null; // Points not deducted, cart not cleared
         }
         double discount = customer.getLoyaltyPoints().applyRedeemCode(redeemCode, totalAmount);
         double amountPaid = Math.max(0, totalAmount - discount);

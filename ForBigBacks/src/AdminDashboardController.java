@@ -1,6 +1,3 @@
-// Updated: handleAddOffer() catches IllegalArgumentException from LoyaltyOfferManager.addOffer() and shows it in the error label
-// Updated: handleAddMenuItem() catches IllegalArgumentException from FoodItem constructor and shows it in the error label
-
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -59,6 +56,10 @@ public class AdminDashboardController {
     private RestaurantAdmin admin;
     private LoyaltyOfferManager offerManager;
 
+    // ═════════════════════════════════════════════════════════════════════
+    // Init
+    // ═════════════════════════════════════════════════════════════════════
+
     @FXML
     public void initialize() {
         admin = SessionManager.getInstance().getCurrentAdmin();
@@ -75,6 +76,10 @@ public class AdminDashboardController {
         setNavActive(menuNavButton);
         setNavInactive(offersNavButton);
     }
+
+    // ═════════════════════════════════════════════════════════════════════
+    // Nav
+    // ═════════════════════════════════════════════════════════════════════
 
     @FXML
     private void showMenuPanel() {
@@ -108,6 +113,10 @@ public class AdminDashboardController {
             btn.getStyleClass().add("dashboard-nav-button");
     }
 
+    // ═════════════════════════════════════════════════════════════════════
+    // Menu Items
+    // ═════════════════════════════════════════════════════════════════════
+
     private void loadMenuItems() {
         menuItemsContainer.getChildren().clear();
 
@@ -129,9 +138,11 @@ public class AdminDashboardController {
             menuItemsContainer.getChildren().add(buildMenuItemRow(item));
     }
 
+    // Returns a VBox: the item row on top + collapsible customization panel below
     private VBox buildMenuItemRow(FoodItem item) {
         VBox wrapper = new VBox(0);
 
+        // ── Main row ──
         HBox row = new HBox(12);
         row.getStyleClass().add("admin-item-row");
         row.setAlignment(Pos.CENTER_LEFT);
@@ -154,6 +165,7 @@ public class AdminDashboardController {
         Label priceLabel = new Label("Rs. " + (int) item.getPrice());
         priceLabel.getStyleClass().add("admin-item-price");
 
+        // Customization toggle button
         int groupCount = item.getCustomizationGroups().size();
         Button customBtn = new Button(
                 groupCount > 0 ? "Customizations (" + groupCount + ")" : "Customizations");
@@ -166,6 +178,7 @@ public class AdminDashboardController {
             loadMenuItems();
         });
 
+        // ── Customization panel ──
         VBox customPanel = buildCustomizationPanel(item);
         customPanel.setVisible(false);
         customPanel.setManaged(false);
@@ -188,6 +201,7 @@ public class AdminDashboardController {
         VBox panel = new VBox(12);
         panel.getStyleClass().add("admin-customization-panel");
 
+        // ── Existing groups ──
         List<CustomizationGroup> groups = item.getCustomizationGroups();
         if (!groups.isEmpty()) {
             Label existingTitle = new Label("EXISTING GROUPS");
@@ -229,6 +243,7 @@ public class AdminDashboardController {
             }
         }
 
+        // ── Add new group form ──
         Label addTitle = new Label("ADD NEW GROUP");
         addTitle.getStyleClass().add("admin-form-label");
 
@@ -236,6 +251,7 @@ public class AdminDashboardController {
         groupNameField.setPromptText("Group name  (e.g. Size, Spice Level, Add-ons)");
         groupNameField.getStyleClass().add("input-text-field");
 
+        // Dynamic option rows
         VBox optionRowsContainer = new VBox(8);
         optionRowsContainer.getChildren().add(buildOptionInputRow());
 
@@ -304,6 +320,7 @@ public class AdminDashboardController {
         return panel;
     }
 
+    // One name + extra-charge pair row for the add-group form
     private HBox buildOptionInputRow() {
         HBox row = new HBox(8);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -353,7 +370,6 @@ public class AdminDashboardController {
             menuFormError.setText("Price and quantity must be valid numbers.");
             return;
         }
-
         if (price <= 0 || price > 100000) {
             menuFormError.setText("Price must be between 1 and 100,000 PKR.");
             return;
@@ -363,13 +379,8 @@ public class AdminDashboardController {
             return;
         }
 
-        try {
-            FoodItem newItem = new FoodItem("FI" + System.currentTimeMillis(), name, price, category, qty);
-            admin.addFoodItem(newItem);
-        } catch (IllegalArgumentException e) {
-            menuFormError.setText(e.getMessage());
-            return;
-        }
+        FoodItem newItem = new FoodItem("FI" + System.currentTimeMillis(), name, price, category, qty);
+        admin.addFoodItem(newItem);
 
         newItemName.clear();
         newItemCategory.clear();
@@ -377,6 +388,10 @@ public class AdminDashboardController {
         newItemQuantity.clear();
         loadMenuItems();
     }
+
+    // ═════════════════════════════════════════════════════════════════════
+    // Loyalty Offers
+    // ═════════════════════════════════════════════════════════════════════
 
     private void loadOffers() {
         offersContainer.getChildren().clear();
@@ -452,19 +467,16 @@ public class AdminDashboardController {
             offerFormError.setText("Points, discount, and min order must be valid numbers.");
             return;
         }
-
         if (points <= 0 || discount <= 0 || minOrder <= 0) {
             offerFormError.setText("All numeric values must be positive.");
             return;
         }
-
-        try {
-            offerManager.addOffer(new LoyaltyOffer(code, desc, points, discount, minOrder));
-        } catch (IllegalArgumentException e) {
-            offerFormError.setText(e.getMessage());
+        if (offerManager.findByCode(code) != null) {
+            offerFormError.setText("An offer with code " + code + " already exists.");
             return;
         }
 
+        offerManager.addOffer(new LoyaltyOffer(code, desc, points, discount, minOrder));
         newOfferCode.clear();
         newOfferDescription.clear();
         newOfferPoints.clear();
@@ -472,6 +484,10 @@ public class AdminDashboardController {
         newOfferMinOrder.clear();
         loadOffers();
     }
+
+    // ═════════════════════════════════════════════════════════════════════
+    // Helpers
+    // ═════════════════════════════════════════════════════════════════════
 
     private Label makeEmptyLabel(String text) {
         Label lbl = new Label(text);
