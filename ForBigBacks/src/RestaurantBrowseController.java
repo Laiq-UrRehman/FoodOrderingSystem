@@ -1,3 +1,5 @@
+// Updated: getAllRestaurants() failure is now handled via SearchManager which catches FileHandler.FileOperationException
+
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -31,8 +33,6 @@ public class RestaurantBrowseController {
         restaurants = searchManager.getAllRestaurants();
         loadSuggestions();
     }
-
-    // ── Search ────────────────────────────────────────────────────────────────
 
     private void loadSuggestions() {
         sectionLabel.setText("SUGGESTED FOR YOU");
@@ -167,8 +167,6 @@ public class RestaurantBrowseController {
         suggestionsDropdown.getChildren().clear();
     }
 
-    // ── Restaurant Card ───────────────────────────────────────────────────────
-
     private VBox createRestaurantCard(Restaurant restaurant) {
         VBox card = new VBox();
         card.getStyleClass().add("dashboard-restaurant-card");
@@ -221,8 +219,6 @@ public class RestaurantBrowseController {
         }
     }
 
-    // ── Navigation ────────────────────────────────────────────────────────────
-
     @FXML
     private void goHome() {
         SceneManager.getInstance().switchTo("CustomerDashboard");
@@ -230,7 +226,7 @@ public class RestaurantBrowseController {
 
     @FXML
     private void goBrowse() {
-        /* already here */ }
+    }
 
     @FXML
     private void goCart() {

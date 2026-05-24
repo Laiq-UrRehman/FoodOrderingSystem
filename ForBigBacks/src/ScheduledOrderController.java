@@ -1,3 +1,6 @@
+// Updated: saveCustomer() now catches FileHandler.FileOperationException
+// Updated: placeScheduledOrder() catches IllegalStateException from Cart.checkOutScheduled()
+
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -6,8 +9,6 @@ import javafx.geometry.Pos;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ScheduledOrderController {
@@ -69,7 +70,6 @@ public class ScheduledOrderController {
         cardFieldsContainer.setVisible(false);
         cardFieldsContainer.setManaged(false);
 
-        // Restrict date picker to today or later
         datePicker.setDayCellFactory(picker -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {
@@ -82,8 +82,6 @@ public class ScheduledOrderController {
         loadOrderSummary();
         loadOffers();
     }
-
-    // ── Order Summary ────────────────────────────────────────────────────────
 
     private void loadOrderSummary() {
         orderItemsContainer.getChildren().clear();
@@ -107,16 +105,13 @@ public class ScheduledOrderController {
         totalLabel.setText("Rs. " + (int) cart.getTotal());
     }
 
-    // ── Loyalty Offers ───────────────────────────────────────────────────────
-
     private void loadOffers() {
         List<LoyaltyOffer> offers = customer.getLoyaltyPoints().getAvailableOffers(cart.getTotal());
 
         offersContainer.getChildren().clear();
 
         if (offers.isEmpty()) {
-            offersStatusLabel.setText(
-                    "No offers available. Keep ordering to earn more points!");
+            offersStatusLabel.setText("No offers available. Keep ordering to earn more points!");
             return;
         }
 
@@ -124,7 +119,6 @@ public class ScheduledOrderController {
 
         ToggleGroup group = new ToggleGroup();
 
-        // "No offer" option
         RadioButton noneRb = new RadioButton("No offer");
         noneRb.setToggleGroup(group);
         noneRb.setStyle("-fx-text-fill: #888888; -fx-font-size: 13px;");
@@ -178,8 +172,6 @@ public class ScheduledOrderController {
         offersContainer.getChildren().forEach(node -> node.getStyleClass().remove("dashboard-offer-card-selected"));
     }
 
-    // ── Payment Toggle ───────────────────────────────────────────────────────
-
     @FXML
     private void selectCash() {
         isCardPayment = false;
@@ -200,28 +192,22 @@ public class ScheduledOrderController {
         errorLabel.setText("");
     }
 
-    // ── Place Scheduled Order ─────────────────────────────────────────────────
-
     @FXML
     private void placeScheduledOrder() {
         scheduleErrorLabel.setText("");
         errorLabel.setText("");
 
-        // Build the LocalDateTime
         LocalDateTime scheduledTime = parseScheduledTime();
         if (scheduledTime == null)
             return;
 
-        // Validate 30 min rule
         long minutesAhead = java.time.Duration.between(
                 LocalDateTime.now(), scheduledTime).toMinutes();
         if (minutesAhead < 30) {
-            scheduleErrorLabel.setText(
-                    "Scheduled time must be at least 30 minutes from now.");
+            scheduleErrorLabel.setText("Scheduled time must be at least 30 minutes from now.");
             return;
         }
 
-        // Validate card fields
         if (isCardPayment) {
             if (cardNumberField.getText().trim().isEmpty()
                     || cardHolderField.getText().trim().isEmpty()
@@ -231,27 +217,29 @@ public class ScheduledOrderController {
             }
         }
 
-        // Checkout
         ScheduledOrder order;
-        if (selectedOffer != null) {
-            RedeemCode code = cart.selectOffer(customer, selectedOffer);
-            if (code == null) {
-                errorLabel.setText(
-                        "Could not generate redeem code. Check your points balance.");
-                return;
+        try {
+            if (selectedOffer != null) {
+                RedeemCode code = cart.selectOffer(customer, selectedOffer);
+                if (code == null) {
+                    errorLabel.setText("Could not generate redeem code. Check your points balance.");
+                    return;
+                }
+                order = (restaurant != null)
+                        ? cart.checkOutScheduled(customer, code, scheduledTime, restaurant)
+                        : null;
+            } else {
+                order = (restaurant != null)
+                        ? cart.checkOutScheduled(customer, scheduledTime, restaurant)
+                        : null;
             }
-            order = (restaurant != null)
-                    ? cart.checkOutScheduled(customer, code, scheduledTime, restaurant)
-                    : null;
-        } else {
-            order = (restaurant != null)
-                    ? cart.checkOutScheduled(customer, scheduledTime, restaurant)
-                    : null;
+        } catch (IllegalStateException e) {
+            scheduleErrorLabel.setText(e.getMessage());
+            return;
         }
 
         if (order == null) {
-            scheduleErrorLabel.setText(
-                    "Could not schedule order. Please check the time and try again.");
+            scheduleErrorLabel.setText("Could not schedule order. Please check the time and try again.");
             return;
         }
 
@@ -260,8 +248,6 @@ public class ScheduledOrderController {
 
         SceneManager.getInstance().switchTo("OrderHistory");
     }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
 
     private LocalDateTime parseScheduledTime() {
         LocalDate date = datePicker.getValue();
@@ -299,19 +285,21 @@ public class ScheduledOrderController {
 
     private void saveCustomer() {
         FileHandler<Customer> fh = new FileHandler<>();
-        Customer[] all = fh.loadArray("customers.dat");
-        if (all != null) {
-            for (int i = 0; i < all.length; i++) {
-                if (all[i].getUsername().equals(customer.getUsername())) {
-                    all[i] = customer;
-                    break;
+        try {
+            Customer[] all = fh.loadArray("customers.dat");
+            if (all != null) {
+                for (int i = 0; i < all.length; i++) {
+                    if (all[i].getUsername().equals(customer.getUsername())) {
+                        all[i] = customer;
+                        break;
+                    }
                 }
+                fh.saveArray(all, "customers.dat");
             }
-            fh.saveArray(all, "customers.dat");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Warning: Could not save customer data: " + e.getMessage());
         }
     }
-
-    // ── Navigation ───────────────────────────────────────────────────────────
 
     @FXML
     private void goBack() {

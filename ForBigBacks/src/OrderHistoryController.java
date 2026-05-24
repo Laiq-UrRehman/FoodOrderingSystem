@@ -1,3 +1,5 @@
+// Updated: saveCustomer() now catches FileHandler.FileOperationException
+
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -26,8 +28,6 @@ public class OrderHistoryController {
         loadOrders();
     }
 
-    // ── Load ─────────────────────────────────────────────────────────────────
-
     private void loadOrders() {
         ordersContainer.getChildren().clear();
 
@@ -40,13 +40,10 @@ public class OrderHistoryController {
             return;
         }
 
-        // Newest first
         for (int i = history.size() - 1; i >= 0; i--) {
             ordersContainer.getChildren().add(createOrderCard(history.get(i)));
         }
     }
-
-    // ── Empty State ───────────────────────────────────────────────────────────
 
     private VBox buildEmptyState() {
         VBox box = new VBox(12);
@@ -65,13 +62,10 @@ public class OrderHistoryController {
         return box;
     }
 
-    // ── Order Card ────────────────────────────────────────────────────────────
-
     private VBox createOrderCard(Order order) {
         VBox card = new VBox();
         card.getStyleClass().add("dashboard-order-card");
 
-        // ── Header ──
         HBox header = new HBox(12);
         header.getStyleClass().add("dashboard-order-card-header");
         header.setAlignment(Pos.CENTER_LEFT);
@@ -103,7 +97,6 @@ public class OrderHistoryController {
 
         header.getChildren().addAll(idBox, statusBadge, totalLabel);
 
-        // ── Items ──
         VBox body = new VBox(5);
         body.getStyleClass().add("dashboard-order-card-body");
 
@@ -117,15 +110,12 @@ public class OrderHistoryController {
 
         card.getChildren().addAll(header, body);
 
-        // ── Rating Panel (hidden until toggled) ──
         VBox ratingPanel = buildRatingPanel(order);
 
-        // ── Footer ──
         HBox footer = new HBox(10);
         footer.getStyleClass().add("dashboard-order-card-footer");
         footer.setAlignment(Pos.CENTER_RIGHT);
 
-        // "Track Order →" button — navigates to the tracking page for this order
         if (order.getTracking() != null && !order.getStatus().equals("Cancelled")) {
             Button trackBtn = new Button("Track Order →");
             trackBtn.getStyleClass().add("dashboard-order-track-button");
@@ -147,7 +137,6 @@ public class OrderHistoryController {
             footer.getChildren().add(cancelBtn);
         }
 
-        // Rate button — only for delivered orders that still have unrated items
         if (order.getStatus().equals("Delivered") && hasUnratedItems(order)) {
             Button rateBtn = new Button("Rate Order  ★");
             rateBtn.getStyleClass().add("dashboard-order-rate-button");
@@ -168,8 +157,6 @@ public class OrderHistoryController {
 
         return card;
     }
-
-    // ── Rating Panel ─────────────────────────────────────────────────────────
 
     private VBox buildRatingPanel(Order order) {
         VBox panel = new VBox(10);
@@ -198,7 +185,6 @@ public class OrderHistoryController {
                 ratedLabel.getStyleClass().add("dashboard-order-rated-label");
                 row.getChildren().add(ratedLabel);
             } else {
-                // 5 star buttons
                 HBox stars = new HBox(4);
                 stars.setAlignment(Pos.CENTER_LEFT);
                 for (int s = 1; s <= 5; s++) {
@@ -208,7 +194,11 @@ public class OrderHistoryController {
                     starBtn.setOnMouseEntered(e -> highlightStars(stars, starValue));
                     starBtn.setOnMouseExited(e -> resetStars(stars));
                     starBtn.setOnAction(e -> {
-                        ratingService.rateFoodItem(customer, order, item.getFoodID(), starValue);
+                        try {
+                            ratingService.rateFoodItem(customer, order, item.getFoodID(), starValue);
+                        } catch (IllegalArgumentException ex) {
+                            System.out.println("Rating error: " + ex.getMessage());
+                        }
                         saveCustomer();
                         loadOrders();
                     });
@@ -223,7 +213,6 @@ public class OrderHistoryController {
         return panel;
     }
 
-    /** Lights up stars 1‥upTo on hover. */
     private void highlightStars(HBox stars, int upTo) {
         for (int i = 0; i < stars.getChildren().size(); i++) {
             Button b = (Button) stars.getChildren().get(i);
@@ -237,7 +226,6 @@ public class OrderHistoryController {
         }
     }
 
-    /** Resets all stars to the default (un-hovered) style. */
     private void resetStars(HBox stars) {
         for (javafx.scene.Node n : stars.getChildren()) {
             Button b = (Button) n;
@@ -247,8 +235,6 @@ public class OrderHistoryController {
             }
         }
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private boolean hasUnratedItems(Order order) {
         for (FoodItem item : order.getItems()) {
@@ -290,19 +276,21 @@ public class OrderHistoryController {
 
     private void saveCustomer() {
         FileHandler<Customer> fh = new FileHandler<>();
-        Customer[] all = fh.loadArray("customers.dat");
-        if (all != null) {
-            for (int i = 0; i < all.length; i++) {
-                if (all[i].getUsername().equals(customer.getUsername())) {
-                    all[i] = customer;
-                    break;
+        try {
+            Customer[] all = fh.loadArray("customers.dat");
+            if (all != null) {
+                for (int i = 0; i < all.length; i++) {
+                    if (all[i].getUsername().equals(customer.getUsername())) {
+                        all[i] = customer;
+                        break;
+                    }
                 }
+                fh.saveArray(all, "customers.dat");
             }
-            fh.saveArray(all, "customers.dat");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Warning: Could not save customer data: " + e.getMessage());
         }
     }
-
-    // ── Navigation ────────────────────────────────────────────────────────────
 
     @FXML
     private void goHome() {
@@ -321,5 +309,5 @@ public class OrderHistoryController {
 
     @FXML
     private void goOrders() {
-        /* already here */ }
+    }
 }

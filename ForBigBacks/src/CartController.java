@@ -1,3 +1,6 @@
+// Updated: removeItem() now catches IllegalArgumentException from Cart.removeItem()
+// Updated: updateQuantity() now catches IllegalArgumentException from Cart.updateQuantity()
+
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -31,8 +34,6 @@ public class CartController {
         cart = customer.getCart();
         loadCart();
     }
-
-    // ── Load ────────────────────────────────────────────────────────────────
 
     private void loadCart() {
         cartItemsContainer.getChildren().clear();
@@ -71,14 +72,11 @@ public class CartController {
         return box;
     }
 
-    // ── Cart Item Row ────────────────────────────────────────────────────────
-
     private HBox createCartItemRow(FoodItem item) {
         HBox row = new HBox(12);
         row.getStyleClass().add("dashboard-cart-item-row");
         row.setAlignment(Pos.CENTER_LEFT);
 
-        // Info
         VBox info = new VBox(4);
         HBox.setHgrow(info, Priority.ALWAYS);
 
@@ -90,17 +88,14 @@ public class CartController {
 
         info.getChildren().addAll(nameLabel, catLabel);
 
-        // Unit price
         Label unitPrice = new Label("Rs. " + (int) item.getPrice() + " each");
         unitPrice.getStyleClass().add("dashboard-menu-item-category");
         unitPrice.setMinWidth(110);
 
-        // Item line total — defined before spinner so lambda can capture it
         Label itemTotal = new Label("Rs. " + (int) (item.getPrice() * item.getQuantity()));
         itemTotal.getStyleClass().add("dashboard-menu-item-price");
         itemTotal.setMinWidth(90);
 
-        // Quantity spinner
         Spinner<Integer> qtySpinner = new Spinner<>(1, 10, item.getQuantity());
         qtySpinner.setPrefWidth(80);
         qtySpinner.setStyle(
@@ -109,25 +104,30 @@ public class CartController {
                         "-fx-border-radius: 6;");
 
         qtySpinner.valueProperty().addListener((obs, oldVal, newVal) -> {
-            cart.updateQuantity(item.getFoodID(), newVal);
-            itemTotal.setText("Rs. " + (int) (item.getPrice() * newVal));
-            updateTotals();
-            updateOffersInfo();
+            try {
+                cart.updateQuantity(item.getFoodID(), newVal);
+                itemTotal.setText("Rs. " + (int) (item.getPrice() * newVal));
+                updateTotals();
+                updateOffersInfo();
+            } catch (IllegalArgumentException e) {
+                System.out.println("Quantity update error: " + e.getMessage());
+            }
         });
 
-        // Remove button
         Button removeBtn = new Button("✕");
         removeBtn.getStyleClass().add("dashboard-cart-remove-button");
         removeBtn.setOnAction(e -> {
-            cart.removeItem(item);
+            try {
+                cart.removeItem(item);
+            } catch (IllegalArgumentException ex) {
+                System.out.println("Remove error: " + ex.getMessage());
+            }
             loadCart();
         });
 
         row.getChildren().addAll(info, unitPrice, qtySpinner, itemTotal, removeBtn);
         return row;
     }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
 
     private void updateTotals() {
         int total = (int) cart.getTotal();
@@ -148,8 +148,6 @@ public class CartController {
                     + " available — select at checkout.");
         }
     }
-
-    // ── Navigation ───────────────────────────────────────────────────────────
 
     @FXML
     private void goCheckout() {
@@ -182,7 +180,7 @@ public class CartController {
 
     @FXML
     private void goCart() {
-        /* already here */ }
+    }
 
     @FXML
     private void goOrders() {
