@@ -22,7 +22,7 @@
 
         <Region prefHeight="3" prefWidth="60" styleClass="login-signup-logo-underline" />
 
-        <Label styleClass="login-signup-tagline-text" text="E A T  E A T  E A T!" />
+        <Label styleClass="login-signup-tagline-text" text="EAT YO FOOD STOOPID!" />
 
     </VBox>
 

@@ -14,18 +14,18 @@
     <VBox prefHeight="800" prefWidth="200" styleClass="dashboard-sidebar">
 
         <HBox prefHeight="64" alignment="CENTER_LEFT" style="-fx-padding: 0 0 0 20;">
-    <Label styleClass="dashboard-sidebar-logo" text="FOR" />
-    <Label styleClass="dashboard-sidebar-logo" text="BIG" style="-fx-text-fill: #8B5E3C;" />
-    <Label styleClass="dashboard-sidebar-logo" text="BACKS" />
-</HBox>
+            <Label styleClass="dashboard-sidebar-logo" text="FOR" />
+            <Label styleClass="dashboard-sidebar-logo" text="BIG" style="-fx-text-fill: #8B5E3C;" />
+            <Label styleClass="dashboard-sidebar-logo" text="BACKS" />
+        </HBox>
 
         <Region maxWidth="200" prefHeight="1" style="-fx-background-color: #2a2a2a;">
             <VBox.margin><Insets bottom="8" /></VBox.margin>
         </Region>
 
-        <Button maxWidth="200" onAction="#goHome" styleClass="dashboard-nav-button" text="  Home" />
+        <Button maxWidth="200" onAction="#goHome"   styleClass="dashboard-nav-button" text="  Home" />
         <Button maxWidth="200" onAction="#goBrowse" styleClass="dashboard-nav-button" text="  Browse" />
-        <Button maxWidth="200" onAction="#goCart" styleClass="dashboard-nav-button" text="  Cart" />
+        <Button maxWidth="200" onAction="#goCart"   styleClass="dashboard-nav-button" text="  Cart" />
         <Button maxWidth="200" onAction="#goOrders" styleClass="dashboard-nav-button" text="  Orders" />
 
     </VBox>
@@ -37,7 +37,6 @@
         <HBox alignment="CENTER_LEFT" spacing="12" styleClass="dashboard-topbar">
             <Button onAction="#goBack" styleClass="dashboard-back-button" text="← Back" />
             <Label styleClass="dashboard-topbar-name" text="Order Tracking" HBox.hgrow="ALWAYS" />
-            <Button onAction="#refresh" styleClass="dashboard-logout-button" text="↻  Refresh" />
         </HBox>
 
         <!-- CONTENT built programmatically in controller -->
