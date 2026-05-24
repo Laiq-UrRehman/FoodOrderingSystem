@@ -1,4 +1,5 @@
-// Added: New class handling all search, filter, sort, and smart suggestion logic
+// Updated: getAllRestaurants() catches FileHandler.FileOperationException and returns empty array on failure
+// Updated: searchRestaurants(), searchMenuItems(), filterByCuisine(), filterByCategory() throw IllegalArgumentException for null arguments
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,17 +13,25 @@ public class SearchManager {
     private FileHandler<Restaurant> fileHandler = new FileHandler<>();
 
     public Restaurant[] getAllRestaurants() {
-        Restaurant[] restaurants = fileHandler.loadArray("restaurants.dat");
-        if (restaurants == null) {
-            System.out.println("No restaurants found.");
+        try {
+            Restaurant[] restaurants = fileHandler.loadArray("restaurants.dat");
+            if (restaurants == null) {
+                System.out.println("No restaurants found.");
+                return new Restaurant[0];
+            }
+            return restaurants;
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Could not load restaurants: " + e.getMessage());
             return new Restaurant[0];
         }
-        return restaurants;
     }
 
-    // ── Restaurant Search
-
     public List<Restaurant> searchRestaurants(String query, Restaurant[] restaurants) {
+        if (query == null)
+            throw new IllegalArgumentException("Search query cannot be null");
+        if (restaurants == null)
+            throw new IllegalArgumentException("Restaurants array cannot be null");
+
         List<Restaurant> results = new ArrayList<>();
         String lower = query.toLowerCase();
         for (Restaurant r : restaurants) {
@@ -33,9 +42,12 @@ public class SearchManager {
         return results;
     }
 
-    // ── Menu Item Search
-
     public List<FoodItem> searchMenuItems(String query, Restaurant restaurant) {
+        if (query == null)
+            throw new IllegalArgumentException("Search query cannot be null");
+        if (restaurant == null)
+            throw new IllegalArgumentException("Restaurant cannot be null");
+
         List<FoodItem> results = new ArrayList<>();
         String lower = query.toLowerCase();
         for (FoodItem item : restaurant.getMenu().getItems()) {
@@ -47,9 +59,12 @@ public class SearchManager {
         return results;
     }
 
-    // ── Cuisine Filter
-
     public List<Restaurant> filterByCuisine(String cuisine, Restaurant[] restaurants) {
+        if (cuisine == null)
+            throw new IllegalArgumentException("Cuisine cannot be null");
+        if (restaurants == null)
+            throw new IllegalArgumentException("Restaurants array cannot be null");
+
         List<Restaurant> results = new ArrayList<>();
         String lower = cuisine.toLowerCase();
         for (Restaurant r : restaurants) {
@@ -60,9 +75,12 @@ public class SearchManager {
         return results;
     }
 
-    // ── Category Filter
-
     public List<FoodItem> filterByCategory(String category, Restaurant restaurant) {
+        if (category == null)
+            throw new IllegalArgumentException("Category cannot be null");
+        if (restaurant == null)
+            throw new IllegalArgumentException("Restaurant cannot be null");
+
         List<FoodItem> results = new ArrayList<>();
         String lower = category.toLowerCase();
         for (FoodItem item : restaurant.getMenu().getItems()) {
@@ -73,9 +91,10 @@ public class SearchManager {
         return results;
     }
 
-    // ── Top Rated ─────────────────────────────────────────────────────────────
-
     public List<Restaurant> getTopRatedRestaurants(Restaurant[] restaurants) {
+        if (restaurants == null)
+            throw new IllegalArgumentException("Restaurants array cannot be null");
+
         List<Restaurant> sorted = new ArrayList<>();
         for (Restaurant r : restaurants)
             sorted.add(r);
@@ -89,6 +108,9 @@ public class SearchManager {
     }
 
     public List<FoodItem> getTopRatedItems(Restaurant restaurant) {
+        if (restaurant == null)
+            throw new IllegalArgumentException("Restaurant cannot be null");
+
         List<FoodItem> sorted = new ArrayList<>(restaurant.getMenu().getItems());
         Collections.sort(sorted, new Comparator<FoodItem>() {
             @Override
@@ -100,6 +122,9 @@ public class SearchManager {
     }
 
     public List<FoodItem> getTopRatedItemsGlobal(Restaurant[] restaurants) {
+        if (restaurants == null)
+            throw new IllegalArgumentException("Restaurants array cannot be null");
+
         List<FoodItem> all = new ArrayList<>();
         for (Restaurant r : restaurants)
             all.addAll(r.getMenu().getItems());
@@ -112,9 +137,10 @@ public class SearchManager {
         return all;
     }
 
-    // ── Smart Suggestions ─────────────────────────────────────────────────────
-
     public List<FoodItem> getPopularItems(Restaurant restaurant) {
+        if (restaurant == null)
+            throw new IllegalArgumentException("Restaurant cannot be null");
+
         List<FoodItem> sorted = new ArrayList<>(restaurant.getMenu().getItems());
         Collections.sort(sorted, new Comparator<FoodItem>() {
             @Override
@@ -126,6 +152,9 @@ public class SearchManager {
     }
 
     public List<FoodItem> getPopularItemsGlobal(Restaurant[] restaurants) {
+        if (restaurants == null)
+            throw new IllegalArgumentException("Restaurants array cannot be null");
+
         List<FoodItem> all = new ArrayList<>();
         for (Restaurant r : restaurants)
             all.addAll(r.getMenu().getItems());
@@ -139,6 +168,9 @@ public class SearchManager {
     }
 
     public List<String> getTrendingCategories(Restaurant[] restaurants) {
+        if (restaurants == null)
+            throw new IllegalArgumentException("Restaurants array cannot be null");
+
         Map<String, Integer> counts = new HashMap<>();
         for (Restaurant r : restaurants) {
             for (FoodItem item : r.getMenu().getItems()) {
@@ -157,6 +189,13 @@ public class SearchManager {
     }
 
     public List<FoodItem> getSuggestedItems(Customer customer, Restaurant[] restaurants, int limit) {
+        if (customer == null)
+            throw new IllegalArgumentException("Customer cannot be null");
+        if (restaurants == null)
+            throw new IllegalArgumentException("Restaurants array cannot be null");
+        if (limit <= 0)
+            throw new IllegalArgumentException("Limit must be positive, got: " + limit);
+
         List<FoodItem> suggestions = new ArrayList<>();
         String preferred = customer.getPreferredCategory();
 
@@ -191,6 +230,8 @@ public class SearchManager {
     }
 
     public void printRestaurants(List<Restaurant> restaurants) {
+        if (restaurants == null)
+            throw new IllegalArgumentException("Restaurants list cannot be null");
         if (restaurants.isEmpty()) {
             System.out.println("No restaurants found.");
             return;
@@ -200,6 +241,8 @@ public class SearchManager {
     }
 
     public void printItems(List<FoodItem> items) {
+        if (items == null)
+            throw new IllegalArgumentException("Items list cannot be null");
         if (items.isEmpty()) {
             System.out.println("No items found.");
             return;
@@ -209,6 +252,8 @@ public class SearchManager {
     }
 
     public void printCategories(List<String> categories) {
+        if (categories == null)
+            throw new IllegalArgumentException("Categories list cannot be null");
         if (categories.isEmpty()) {
             System.out.println("No trending categories found.");
             return;

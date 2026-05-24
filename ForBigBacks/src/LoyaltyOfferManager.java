@@ -1,3 +1,7 @@
+// Updated: loadOffers() and saveOffers() now catch FileHandler.FileOperationException instead of raw IOException
+// Updated: addOffer() throws IllegalArgumentException for null offers or duplicate codes
+// Updated: removeOffer() throws IllegalArgumentException for null or blank offer codes
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +23,8 @@ public class LoyaltyOfferManager {
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
 
-                if (line.isEmpty() || line.startsWith("#")) continue; // Skip empty lines and comments
+                if (line.isEmpty() || line.startsWith("#"))
+                    continue;
 
                 String[] parts = line.split("\\|");
                 if (parts.length != 5) {
@@ -28,11 +33,11 @@ public class LoyaltyOfferManager {
                 }
 
                 try {
-                    String offerCode      = parts[0].trim();
-                    String description    = parts[1].trim();
-                    int    pointsRequired = Integer.parseInt(parts[2].trim());
-                    double discountPKR    = Double.parseDouble(parts[3].trim());
-                    double minOrderPKR    = Double.parseDouble(parts[4].trim());
+                    String offerCode = parts[0].trim();
+                    String description = parts[1].trim();
+                    int pointsRequired = Integer.parseInt(parts[2].trim());
+                    double discountPKR = Double.parseDouble(parts[3].trim());
+                    double minOrderPKR = Double.parseDouble(parts[4].trim());
 
                     offers.add(new LoyaltyOffer(offerCode, description, pointsRequired, discountPKR, minOrderPKR));
                 } catch (NumberFormatException e) {
@@ -75,7 +80,6 @@ public class LoyaltyOfferManager {
         return offers;
     }
 
-
     public List<LoyaltyOffer> getAvailableOffers(int pointsBalance, double cartTotalPKR) {
         List<LoyaltyOffer> available = new ArrayList<>();
         for (LoyaltyOffer offer : offers) {
@@ -88,19 +92,31 @@ public class LoyaltyOfferManager {
     }
 
     public LoyaltyOffer findByCode(String code) {
+        if (code == null || code.isBlank())
+            return null;
         for (LoyaltyOffer offer : offers) {
-            if (offer.getOfferCode().equalsIgnoreCase(code)) return offer;
+            if (offer.getOfferCode().equalsIgnoreCase(code))
+                return offer;
         }
         return null;
     }
 
     public void addOffer(LoyaltyOffer offer) {
+        if (offer == null)
+            throw new IllegalArgumentException("Offer cannot be null");
+        if (offer.getOfferCode() == null || offer.getOfferCode().isBlank())
+            throw new IllegalArgumentException("Offer code cannot be null or empty");
+        if (findByCode(offer.getOfferCode()) != null)
+            throw new IllegalArgumentException("An offer with code " + offer.getOfferCode() + " already exists");
+
         offers.add(offer);
         saveOffers();
         System.out.println("New offer added: " + offer.getOfferCode());
     }
 
     public void removeOffer(String offerCode) {
+        if (offerCode == null || offerCode.isBlank())
+            throw new IllegalArgumentException("Offer code cannot be null or empty");
         offers.removeIf(o -> o.getOfferCode().equalsIgnoreCase(offerCode));
         saveOffers();
         System.out.println("Offer removed: " + offerCode);
@@ -109,8 +125,6 @@ public class LoyaltyOfferManager {
     public void refresh() {
         loadOffers();
     }
-
-
 
     public void printAllOffers() {
         if (offers.isEmpty()) {

@@ -1,11 +1,12 @@
+// Updated: Constructor throws IllegalArgumentException for null/blank IDs, names, non-positive price, negative quantity
+// Updated: rate() throws IllegalArgumentException instead of printing when rating is out of range
+// Updated: setPrice() and setQuantity() validate their arguments
 
-// Updated: Added rating, totalRatings fields and rate() method for item-level ratings
-// Updated: Added orderCount field and incrementOrderCount() for popularity tracking
-import java.util.HashMap;
-import java.util.Map;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FoodItem implements Serializable {
 
@@ -24,6 +25,15 @@ public class FoodItem implements Serializable {
     }
 
     public FoodItem(String foodID, String name, double price, String category, int quantity) {
+        if (foodID == null || foodID.isBlank())
+            throw new IllegalArgumentException("Food ID cannot be null or empty");
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Food name cannot be null or empty");
+        if (price <= 0)
+            throw new IllegalArgumentException("Price must be positive, got: " + price);
+        if (quantity < 0)
+            throw new IllegalArgumentException("Quantity cannot be negative, got: " + quantity);
+
         this.foodID = foodID;
         this.name = name;
         this.price = price;
@@ -39,6 +49,8 @@ public class FoodItem implements Serializable {
     }
 
     public void setFoodID(String foodID) {
+        if (foodID == null || foodID.isBlank())
+            throw new IllegalArgumentException("Food ID cannot be null or empty");
         this.foodID = foodID;
     }
 
@@ -47,6 +59,8 @@ public class FoodItem implements Serializable {
     }
 
     public void setName(String name) {
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Food name cannot be null or empty");
         this.name = name;
     }
 
@@ -55,6 +69,8 @@ public class FoodItem implements Serializable {
     }
 
     public void setPrice(double price) {
+        if (price <= 0)
+            throw new IllegalArgumentException("Price must be positive, got: " + price);
         this.price = price;
     }
 
@@ -71,6 +87,8 @@ public class FoodItem implements Serializable {
     }
 
     public void setQuantity(int quantity) {
+        if (quantity < 0)
+            throw new IllegalArgumentException("Quantity cannot be negative, got: " + quantity);
         this.quantity = quantity;
     }
 
@@ -86,18 +104,13 @@ public class FoodItem implements Serializable {
         return orderCount;
     }
 
-    /**
-     * Called after every checkout to track how many times this item was ordered.
-     */
     public void incrementOrderCount() {
         orderCount++;
     }
 
     public void rate(double newRating) {
-        if (newRating < 1.0 || newRating > 5.0) {
-            System.out.println("Rating must be between 1 and 5.");
-            return;
-        }
+        if (newRating < 1.0 || newRating > 5.0)
+            throw new IllegalArgumentException("Rating must be between 1.0 and 5.0, got: " + newRating);
         rating = ((rating * totalRatings) + newRating) / (totalRatings + 1);
         totalRatings++;
     }
@@ -122,6 +135,8 @@ public class FoodItem implements Serializable {
     }
 
     public void addCustomizationGroup(CustomizationGroup group) {
+        if (group == null)
+            throw new IllegalArgumentException("Customization group cannot be null");
         customizationGroups.add(group);
     }
 
@@ -144,5 +159,4 @@ public class FoodItem implements Serializable {
         if (selectedCustomizations == null)
             selectedCustomizations = new HashMap<>();
     }
-
 }
