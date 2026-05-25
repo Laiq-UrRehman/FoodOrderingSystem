@@ -32,7 +32,8 @@ public class OrderTracking implements Serializable {
 
         for (Rider rider : riders) {
             rider.setLocation(randomLocation());
-            System.out.println("[Tracking] Rider " + rider.getName() + " location randomized to: " + rider.getLocation());
+            System.out
+                    .println("[Tracking] Rider " + rider.getName() + " location randomized to: " + rider.getLocation());
         }
 
         assignClosestRider(riders);
@@ -140,21 +141,26 @@ public class OrderTracking implements Serializable {
     private void updateRiderStatusInFile(boolean available, boolean assigned) {
         FileHandler<Rider> fileHandler = new FileHandler<>();
 
-        Rider[] riders = fileHandler.loadArray("riders.dat");
+        try {
+            Rider[] riders = fileHandler.loadArray("riders.dat");
 
-        if (riders == null || assignedRider == null)
-            return;
+            if (riders == null || assignedRider == null)
+                return;
 
-        for (Rider rider : riders) {
-            if (rider.getPersonID().equals(assignedRider.getPersonID())) {
-                rider.setAvailable(available);
-                rider.setAssigned(assigned);
-                rider.setLocation(assignedRider.getLocation());
-                break;
+            for (Rider rider : riders) {
+                if (rider.getPersonID().equals(assignedRider.getPersonID())) {
+                    rider.setAvailable(available);
+                    rider.setAssigned(assigned);
+                    rider.setLocation(assignedRider.getLocation());
+                    break;
+                }
             }
-        }
 
-        fileHandler.saveArray(riders, "riders.dat");
+            fileHandler.saveArray(riders, "riders.dat");
+
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("[Tracking] Failed to update rider status in file: " + e.getMessage());
+        }
     }
 
     private long minutesToMs(int minutes) {

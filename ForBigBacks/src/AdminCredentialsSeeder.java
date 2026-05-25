@@ -7,7 +7,14 @@ public class AdminCredentialsSeeder {
     public static void seedAdminCredentials() {
 
         FileHandler<Restaurant> restaurantFileHandler = new FileHandler<>();
-        Restaurant[] restaurants = restaurantFileHandler.loadArray("restaurants.dat");
+        Restaurant[] restaurants;
+
+        try {
+            restaurants = restaurantFileHandler.loadArray("restaurants.dat");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("[AdminCredentialsSeeder] Failed to load restaurants: " + e.getMessage());
+            return;
+        }
 
         if (restaurants == null) {
             System.out.println("Failed to load restaurants.dat. Run DataSeeder first.");
@@ -23,11 +30,23 @@ public class AdminCredentialsSeeder {
         }
 
         FileHandler<String[][]> credFileHandler = new FileHandler<>();
-        credFileHandler.saveObject(credentials, "admin_credentials.dat");
 
-        System.out.println("admin_credentials.dat seeded with " + credentials.length + " entries.");
+        try {
+            credFileHandler.saveObject(credentials, "admin_credentials.dat");
+            System.out.println("admin_credentials.dat seeded with " + credentials.length + " entries.");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("[AdminCredentialsSeeder] Failed to save credentials: " + e.getMessage());
+            return;
+        }
 
-        String[][] loaded = credFileHandler.loadObject("admin_credentials.dat");
+        String[][] loaded;
+
+        try {
+            loaded = credFileHandler.loadObject("admin_credentials.dat");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("[AdminCredentialsSeeder] Failed to load credentials: " + e.getMessage());
+            return;
+        }
 
         if (loaded == null) {
             System.out.println("Failed to load admin_credentials.dat");
