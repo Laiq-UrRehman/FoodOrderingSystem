@@ -1,4 +1,5 @@
-// Updated: Added Rate an Order option (12) — works after OrderTracking marks order as Delivered
+// Updated: All FileHandler loadArray() and saveArray() calls now catch FileHandler.FileOperationException
+// Updated: seedIfNeeded(), saveCustomer(), saveRestaurant(), checkoutNormal(), customerSignupFlow() all updated
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -47,9 +48,9 @@ public class ConsoleMain {
 
     static void seedIfNeeded() {
         java.io.File restaurantFile = new java.io.File("restaurants.dat");
-        java.io.File customerFile   = new java.io.File("customers.dat");
-        java.io.File riderFile      = new java.io.File("riders.dat");
-        java.io.File adminCredFile  = new java.io.File("admin_credentials.dat");
+        java.io.File customerFile = new java.io.File("customers.dat");
+        java.io.File riderFile = new java.io.File("riders.dat");
+        java.io.File adminCredFile = new java.io.File("admin_credentials.dat");
 
         if (!restaurantFile.exists()) {
             System.out.println("Seeding restaurant data...");
@@ -81,7 +82,8 @@ public class ConsoleMain {
         String password = scanner.nextLine().trim();
 
         Customer customer = loginManager.loginCustomer(username, password);
-        if (customer == null) return;
+        if (customer == null)
+            return;
         customerMenu(customer);
     }
 
@@ -99,7 +101,14 @@ public class ConsoleMain {
         String password = scanner.nextLine().trim();
 
         FileHandler<Customer> fh = new FileHandler<>();
-        Customer[] existing = fh.loadArray("customers.dat");
+        Customer[] existing;
+        try {
+            existing = fh.loadArray("customers.dat");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Could not load customer data: " + e.getMessage());
+            return;
+        }
+
         int count = (existing == null) ? 0 : existing.length;
 
         if (existing != null) {
@@ -115,28 +124,39 @@ public class ConsoleMain {
         Customer newCustomer = new Customer(newID, name, address, phone, username, password, new Location(0, 0));
 
         Customer[] updated = new Customer[count + 1];
-        if (existing != null) System.arraycopy(existing, 0, updated, 0, count);
+        if (existing != null)
+            System.arraycopy(existing, 0, updated, 0, count);
         updated[count] = newCustomer;
-        fh.saveArray(updated, "customers.dat");
+
+        try {
+            fh.saveArray(updated, "customers.dat");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Could not save customer data: " + e.getMessage());
+            return;
+        }
 
         System.out.println("Sign up successful! You can now log in as: " + username);
     }
 
     static void saveCustomer(Customer customer) {
         FileHandler<Customer> fh = new FileHandler<>();
-        Customer[] existing = fh.loadArray("customers.dat");
-        if (existing == null) {
-            System.out.println("Warning: could not load customers.dat to save.");
-            return;
-        }
-        for (int i = 0; i < existing.length; i++) {
-            if (existing[i].getUsername().equals(customer.getUsername())) {
-                existing[i] = customer;
-                break;
+        try {
+            Customer[] existing = fh.loadArray("customers.dat");
+            if (existing == null) {
+                System.out.println("Warning: could not load customers.dat to save.");
+                return;
             }
+            for (int i = 0; i < existing.length; i++) {
+                if (existing[i].getUsername().equals(customer.getUsername())) {
+                    existing[i] = customer;
+                    break;
+                }
+            }
+            fh.saveArray(existing, "customers.dat");
+            System.out.println("Progress saved.");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Could not save customer data: " + e.getMessage());
         }
-        fh.saveArray(existing, "customers.dat");
-        System.out.println("Progress saved.");
     }
 
     static void customerMenu(Customer customer) {
@@ -155,26 +175,26 @@ public class ConsoleMain {
             System.out.println("  9.  View Available Loyalty Offers");
             System.out.println("  10. View Scheduled Orders");
             System.out.println("  11. Track Order");
-            System.out.println("  12. Rate an Order");          // ← NEW
+            System.out.println("  12. Rate an Order");
             System.out.println("  0.  Logout");
             System.out.print("Enter choice: ");
 
             String choice = scanner.nextLine().trim();
 
             switch (choice) {
-                case "1"  -> searchAndBrowseMenu(customer);
-                case "2"  -> addToCartFromSelected(customer);
-                case "3"  -> customer.getCart().viewCart();
-                case "4"  -> checkoutNormal(customer);
-                case "5"  -> checkoutScheduled(customer);
-                case "6"  -> viewOrderHistory(customer);
-                case "7"  -> cancelOrder(customer);
-                case "8"  -> customer.getLoyaltyPoints().printBalance();
-                case "9"  -> customer.getLoyaltyPoints().printAvailableOffers(customer.getCart().getTotal());
+                case "1" -> searchAndBrowseMenu(customer);
+                case "2" -> addToCartFromSelected(customer);
+                case "3" -> customer.getCart().viewCart();
+                case "4" -> checkoutNormal(customer);
+                case "5" -> checkoutScheduled(customer);
+                case "6" -> viewOrderHistory(customer);
+                case "7" -> cancelOrder(customer);
+                case "8" -> customer.getLoyaltyPoints().printBalance();
+                case "9" -> customer.getLoyaltyPoints().printAvailableOffers(customer.getCart().getTotal());
                 case "10" -> viewScheduledOrders(customer);
                 case "11" -> trackOrder(customer);
-                case "12" -> rateOrder(customer);               // ← NEW
-                case "0"  -> {
+                case "12" -> rateOrder(customer);
+                case "0" -> {
                     saveCustomer(customer);
                     System.out.println("Logged out.");
                     return;
@@ -232,7 +252,10 @@ public class ConsoleMain {
                 }
                 case "4" -> {
                     Restaurant r = pickRestaurant(all);
-                    if (r != null) { selectedRestaurant = r; printMenu(r); }
+                    if (r != null) {
+                        selectedRestaurant = r;
+                        printMenu(r);
+                    }
                 }
                 case "5" -> {
                     Restaurant r = pickRestaurant(all);
@@ -274,20 +297,26 @@ public class ConsoleMain {
                     System.out.println("\n--- Suggested For You ---");
                     searchManager.printItems(suggestions);
                 }
-                case "0" -> { return; }
-                default  -> System.out.println("Invalid choice.");
+                case "0" -> {
+                    return;
+                }
+                default -> System.out.println("Invalid choice.");
             }
         }
     }
 
     static void selectRestaurantFromList(List<Restaurant> list) {
-        if (list.isEmpty()) return;
+        if (list.isEmpty())
+            return;
         System.out.print("Select a restaurant by number to browse (or 0 to skip): ");
         int pick;
         try {
             pick = Integer.parseInt(scanner.nextLine().trim()) - 1;
-        } catch (NumberFormatException e) { return; }
-        if (pick < 0 || pick >= list.size()) return;
+        } catch (NumberFormatException e) {
+            return;
+        }
+        if (pick < 0 || pick >= list.size())
+            return;
         selectedRestaurant = list.get(pick);
         System.out.println("Selected: " + selectedRestaurant.getName());
         printMenu(selectedRestaurant);
@@ -360,7 +389,6 @@ public class ConsoleMain {
 
         FoodItem chosen = menuItems.get(iChoice);
 
-        // ── Customization prompt ───────────────────────────────────────────
         double extraTotal = 0;
         List<CustomizationGroup> groups = chosen.getCustomizationGroups();
         if (!groups.isEmpty()) {
@@ -375,14 +403,17 @@ public class ConsoleMain {
                 }
                 System.out.print("Choose (number): ");
                 int optPick = 0;
-                try { optPick = Integer.parseInt(scanner.nextLine().trim()) - 1; }
-                catch (NumberFormatException e) { optPick = 0; }
-                if (optPick < 0 || optPick >= opts.size()) optPick = 0;
+                try {
+                    optPick = Integer.parseInt(scanner.nextLine().trim()) - 1;
+                } catch (NumberFormatException e) {
+                    optPick = 0;
+                }
+                if (optPick < 0 || optPick >= opts.size())
+                    optPick = 0;
                 extraTotal += group.getExtraCharge(optPick);
                 System.out.println("Selected: " + opts.get(optPick));
             }
         }
-        // ──────────────────────────────────────────────────────────────────
 
         FoodItem toAdd = new FoodItem(chosen.getFoodID(), chosen.getName(),
                 chosen.getPrice() + extraTotal, chosen.getCategory(), qty);
@@ -416,14 +447,27 @@ public class ConsoleMain {
         String payChoice = scanner.nextLine().trim();
 
         Order order;
-        if (redeemCode != null) {
-            order = cart.checkOut(customer, redeemCode, selectedRestaurant);
-        } else {
-            order = cart.checkOut(customer, selectedRestaurant);
+        try {
+            if (redeemCode != null) {
+                order = cart.checkOut(customer, redeemCode, selectedRestaurant);
+            } else {
+                order = cart.checkOut(customer, selectedRestaurant);
+            }
+        } catch (IllegalStateException e) {
+            System.out.println("Checkout failed: " + e.getMessage());
+            return;
         }
 
         FileHandler<Rider> riderFH = new FileHandler<>();
-        Rider[] ridersArr = riderFH.loadArray("riders.dat");
+        Rider[] ridersArr;
+        try {
+            ridersArr = riderFH.loadArray("riders.dat");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Could not load rider data: " + e.getMessage());
+            customer.placeOrder(order);
+            return;
+        }
+
         java.util.List<Rider> riders = (ridersArr != null)
                 ? new java.util.ArrayList<>(java.util.Arrays.asList(ridersArr))
                 : new java.util.ArrayList<>();
@@ -436,11 +480,11 @@ public class ConsoleMain {
 
         if (payChoice.equals("2")) {
             System.out.print("Card Number: ");
-            String cardNum    = scanner.nextLine().trim();
+            String cardNum = scanner.nextLine().trim();
             System.out.print("Card Holder Name: ");
             String holderName = scanner.nextLine().trim();
             System.out.print("Expiry Date (MM/YY): ");
-            String expiry     = scanner.nextLine().trim();
+            String expiry = scanner.nextLine().trim();
             order.proceedWithCardPayment(cardNum, holderName, expiry, selectedRestaurant, customer, riders);
         } else {
             order.proceedWithCashPayment(selectedRestaurant, customer, riders);
@@ -449,18 +493,18 @@ public class ConsoleMain {
         customer.placeOrder(order);
         System.out.println("Order placed! Total: Rs." + order.getTotalAmount());
 
-        if (order.getTracking() != null)
-            System.out.println(order.getTracking().getSummary());
-
-        // ── Tell the customer how long until they can rate ──────────────────
         if (order.getTracking() != null) {
+            System.out.println(order.getTracking().getSummary());
             int eta = order.getTracking().getEstimatedDeliveryMinutes();
-            System.out.println("\n[INFO] Your order will be delivered in ~" + eta
-                    + " seconds (simulated).");
+            System.out.println("\n[INFO] Your order will be delivered in ~" + eta + " seconds (simulated).");
             System.out.println("[INFO] Come back to option 12 after delivery to rate your items.");
         }
 
-        riderFH.saveArray(riders.toArray(new Rider[0]), "riders.dat");
+        try {
+            riderFH.saveArray(riders.toArray(new Rider[0]), "riders.dat");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Warning: Could not save rider data: " + e.getMessage());
+        }
     }
 
     static void checkoutScheduled(Customer customer) {
@@ -488,13 +532,19 @@ public class ConsoleMain {
         RedeemCode redeemCode = offerSelectionFlow(customer, cart);
 
         ScheduledOrder order;
-        if (redeemCode != null) {
-            order = cart.checkOutScheduled(customer, redeemCode, scheduledTime, selectedRestaurant);
-        } else {
-            order = cart.checkOutScheduled(customer, scheduledTime, selectedRestaurant);
+        try {
+            if (redeemCode != null) {
+                order = cart.checkOutScheduled(customer, redeemCode, scheduledTime, selectedRestaurant);
+            } else {
+                order = cart.checkOutScheduled(customer, scheduledTime, selectedRestaurant);
+            }
+        } catch (IllegalStateException e) {
+            System.out.println("Checkout failed: " + e.getMessage());
+            return;
         }
 
-        if (order == null) return;
+        if (order == null)
+            return;
 
         order.confirm();
         customer.placeOrder(order);
@@ -503,10 +553,12 @@ public class ConsoleMain {
 
     static RedeemCode offerSelectionFlow(Customer customer, Cart cart) {
         List<LoyaltyOffer> offers = cart.showLoyaltyOffers(customer);
-        if (offers.isEmpty()) return null;
+        if (offers.isEmpty())
+            return null;
 
         System.out.print("Apply a loyalty offer? (y/n): ");
-        if (!scanner.nextLine().trim().equalsIgnoreCase("y")) return null;
+        if (!scanner.nextLine().trim().equalsIgnoreCase("y"))
+            return null;
 
         System.out.print("Enter offer code (e.g. LOYAL-A): ");
         String code = scanner.nextLine().trim();
@@ -585,14 +637,9 @@ public class ConsoleMain {
         System.out.println("Order ID not found.");
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // RATING  ← NEW
-    // ─────────────────────────────────────────────────────────────────────────
-
     static void rateOrder(Customer customer) {
         List<Order> history = customer.viewOrderHistory();
 
-        // Collect only Delivered orders
         List<Order> delivered = new ArrayList<>();
         for (Order o : history) {
             if (o.getStatus().equals("Delivered")) {
@@ -602,12 +649,9 @@ public class ConsoleMain {
 
         if (delivered.isEmpty()) {
             System.out.println("No delivered orders yet.");
-            System.out.println("Tip: Place an order and wait for it to be delivered,");
-            System.out.println("     then come back here to rate.");
             return;
         }
 
-        // Show delivered orders
         System.out.println("\n--- Delivered Orders ---");
         for (int i = 0; i < delivered.size(); i++) {
             Order o = delivered.get(i);
@@ -631,7 +675,6 @@ public class ConsoleMain {
         Order order = delivered.get(orderPick);
         List<FoodItem> items = order.getItems();
 
-        // Show items, flag already-rated ones
         System.out.println("\n--- Items in Order [" + order.getOrderID() + "] ---");
         for (int i = 0; i < items.size(); i++) {
             FoodItem item = items.get(i);
@@ -663,11 +706,14 @@ public class ConsoleMain {
             return;
         }
 
-        // Delegate all logic to RatingService
-        Rating ratingService = new Rating();
-        ratingService.rateFoodItem(customer, order, items.get(itemPick).getFoodID(), stars);
+        try {
+            Rating ratingService = new Rating();
+            ratingService.rateFoodItem(customer, order, items.get(itemPick).getFoodID(), stars);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Rating error: " + e.getMessage());
+            return;
+        }
 
-        // Save customer (persists ratedFoodIDs inside the order)
         saveCustomer(customer);
     }
 
@@ -683,25 +729,30 @@ public class ConsoleMain {
         String password = scanner.nextLine().trim();
 
         RestaurantAdmin admin = loginManager.loginAdmin(username, password);
-        if (admin == null) return;
+        if (admin == null)
+            return;
         adminMenu(admin);
     }
 
     static void saveRestaurant(Restaurant restaurant) {
         FileHandler<Restaurant> fh = new FileHandler<>();
-        Restaurant[] existing = fh.loadArray("restaurants.dat");
-        if (existing == null) {
-            System.out.println("Warning: could not load restaurants.dat to save.");
-            return;
-        }
-        for (int i = 0; i < existing.length; i++) {
-            if (existing[i].getRestaurantID().equals(restaurant.getRestaurantID())) {
-                existing[i] = restaurant;
-                break;
+        try {
+            Restaurant[] existing = fh.loadArray("restaurants.dat");
+            if (existing == null) {
+                System.out.println("Warning: could not load restaurants.dat to save.");
+                return;
             }
+            for (int i = 0; i < existing.length; i++) {
+                if (existing[i].getRestaurantID().equals(restaurant.getRestaurantID())) {
+                    existing[i] = restaurant;
+                    break;
+                }
+            }
+            fh.saveArray(existing, "restaurants.dat");
+            System.out.println("Restaurant data saved.");
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Could not save restaurant data: " + e.getMessage());
         }
-        fh.saveArray(existing, "restaurants.dat");
-        System.out.println("Restaurant data saved.");
     }
 
     static void adminMenu(RestaurantAdmin admin) {
@@ -761,8 +812,13 @@ public class ConsoleMain {
         System.out.print("Category: ");
         String category = scanner.nextLine().trim();
 
-        FoodItem item = new FoodItem(id, name, price, category, 1);
-        admin.addFoodItem(item);
+        try {
+            FoodItem item = new FoodItem(id, name, price, category, 1);
+            admin.addFoodItem(item);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid item: " + e.getMessage());
+            return;
+        }
         saveRestaurant(admin.getRestaurant());
     }
 
@@ -817,8 +873,12 @@ public class ConsoleMain {
             return;
         }
 
-        LoyaltyOffer offer = new LoyaltyOffer(code, desc, points, discount, minOrder);
-        admin.addOffer(offer);
+        try {
+            LoyaltyOffer offer = new LoyaltyOffer(code, desc, points, discount, minOrder);
+            admin.addOffer(offer);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Could not add offer: " + e.getMessage());
+        }
     }
 
     static void removeLoyaltyOffer(RestaurantAdmin admin) {
@@ -826,12 +886,12 @@ public class ConsoleMain {
         manager.printAllOffers();
         System.out.print("Enter Offer Code to remove: ");
         String code = scanner.nextLine().trim();
-        admin.removeOffer(code);
+        try {
+            admin.removeOffer(code);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Could not remove offer: " + e.getMessage());
+        }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // CUSTOMIZATION
-    // ─────────────────────────────────────────────────────────────────────────
 
     static void addCustomizationToItem(RestaurantAdmin admin) {
         admin.viewMenu();
@@ -848,15 +908,22 @@ public class ConsoleMain {
             String optName = scanner.nextLine().trim();
             System.out.print("  Extra charge (0 if free): ");
             double charge = 0;
-            try { charge = Double.parseDouble(scanner.nextLine().trim()); }
-            catch (NumberFormatException e) { charge = 0; }
+            try {
+                charge = Double.parseDouble(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                charge = 0;
+            }
             group.addOption(optName, charge);
 
             System.out.print("  Add another option? (y/n): ");
             addingOptions = scanner.nextLine().trim().equalsIgnoreCase("y");
         }
 
-        admin.addCustomization(foodID, group);
+        try {
+            admin.addCustomization(foodID, group);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Could not add customization: " + e.getMessage());
+        }
     }
 
     static void removeCustomizationFromItem(RestaurantAdmin admin) {
@@ -865,6 +932,10 @@ public class ConsoleMain {
         String foodID = scanner.nextLine().trim();
         System.out.print("Enter group name to remove (e.g. Size): ");
         String groupName = scanner.nextLine().trim();
-        admin.removeCustomization(foodID, groupName);
+        try {
+            admin.removeCustomization(foodID, groupName);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Could not remove customization: " + e.getMessage());
+        }
     }
 }

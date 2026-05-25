@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "ConsoleMain",
+            "request": "launch",
+            "mainClass": "ConsoleMain",
+            "projectName": "ForBigBacks_8d2bad81"
+        },
+        {
+            "type": "java",
             "name": "AdminCredentialsSeeder",
             "request": "launch",
             "mainClass": "AdminCredentialsSeeder",

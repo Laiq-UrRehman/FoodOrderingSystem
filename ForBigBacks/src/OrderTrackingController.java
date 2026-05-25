@@ -1,3 +1,6 @@
+// Updated: No direct FileHandler calls in this controller, but OrderTracking internally uses FileHandler
+// Updated: buildTrackingUI() and refreshStatus() now guard against null tracking state gracefully
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
@@ -16,15 +19,10 @@ public class OrderTrackingController {
     private Order order;
     private OrderTracking tracking;
 
-    // true -> trackingContent holds [statusSection, infoRow]
-    // false -> trackingContent holds [emptyStateVBox]
     private boolean isTrackingMode = false;
 
-    // Auto-refresh every 2 seconds on the JavaFX thread — no threading issues
     private Timeline autoRefresh;
     private static final int REFRESH_SECONDS = 2;
-
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     @FXML
     public void initialize() {
@@ -34,8 +32,6 @@ public class OrderTrackingController {
             return;
         }
 
-        // Stop timeline automatically whenever this node leaves any scene
-        // (covers navigation paths that don't go through our nav methods)
         trackingContent.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene == null) {
                 stopAutoRefresh();
@@ -57,10 +53,8 @@ public class OrderTrackingController {
         startAutoRefresh();
     }
 
-    // ── Auto Refresh ──────────────────────────────────────────────────────────
-
     private void startAutoRefresh() {
-        stopAutoRefresh(); // cancel any previous timeline first
+        stopAutoRefresh();
 
         autoRefresh = new Timeline(new KeyFrame(
                 Duration.seconds(REFRESH_SECONDS),
@@ -76,40 +70,33 @@ public class OrderTrackingController {
         }
     }
 
-    /**
-     * Called every REFRESH_SECONDS by the Timeline on the JavaFX thread.
-     * Replaces only the status section (index 0) so the info cards don't flicker.
-     * Guarded by isTrackingMode so it never fires during the empty state.
-     */
     private void refreshStatus() {
         if (!isTrackingMode || tracking == null)
             return;
 
-        // Safety: make sure trackingContent still has at least one child
         if (trackingContent.getChildren().isEmpty())
             return;
 
-        trackingContent.getChildren().set(0, buildStatusSection());
+        try {
+            trackingContent.getChildren().set(0, buildStatusSection());
+        } catch (Exception e) {
+            System.out.println("Warning: Could not refresh tracking status: " + e.getMessage());
+            return;
+        }
 
-        // Stop polling once the order has reached a terminal state
         String status = tracking.getCurrentStatus();
         if ("Delivered".equals(status) || "Cancelled".equals(status)) {
             stopAutoRefresh();
         }
     }
 
-    // ── Main UI ───────────────────────────────────────────────────────────────
-
     private void buildTrackingUI() {
         isTrackingMode = true;
         trackingContent.getChildren().clear();
         trackingContent.getChildren().addAll(
-                buildStatusSection(), // index 0 — replaced on every refresh tick
-                buildInfoRow() // index 1 — static, never replaced
-        );
+                buildStatusSection(),
+                buildInfoRow());
     }
-
-    // ── Status Section ────────────────────────────────────────────────────────
 
     private VBox buildStatusSection() {
         VBox section = new VBox(16);
@@ -193,8 +180,6 @@ public class OrderTrackingController {
         }
     }
 
-    // ── Info Row ──────────────────────────────────────────────────────────────
-
     private HBox buildInfoRow() {
         HBox row = new HBox(20);
         row.getChildren().addAll(
@@ -272,8 +257,6 @@ public class OrderTrackingController {
         return card;
     }
 
-    // ── Empty State ───────────────────────────────────────────────────────────
-
     private void buildEmptyState() {
         isTrackingMode = false;
         trackingContent.getChildren().clear();
@@ -301,8 +284,6 @@ public class OrderTrackingController {
         trackingContent.getChildren().add(box);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private int stageIndex(String status, String[] stages) {
         for (int i = 0; i < stages.length; i++) {
             if (stages[i].equals(status))
@@ -311,9 +292,6 @@ public class OrderTrackingController {
         return 0;
     }
 
-    /**
-     * Returns the most recent order that has live tracking and is not yet terminal.
-     */
     private Order findMostRecentTrackedOrder() {
         List<Order> history = customer.viewOrderHistory();
         for (int i = history.size() - 1; i >= 0; i--) {
@@ -350,8 +328,6 @@ public class OrderTrackingController {
         div.getStyleClass().add("dashboard-tracking-divider");
         return div;
     }
-
-    // ── Navigation — always stop the timeline before leaving ──────────────────
 
     @FXML
     private void goBack() {
