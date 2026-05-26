@@ -20,9 +20,17 @@ public class CustomizationGroup implements Serializable {
         extraCharges.add(extraCharge);
     }
 
-    public String getGroupName()          { return groupName; }
-    public List<String> getOptions()      { return options; }
-    public List<Double> getExtraCharges() { return extraCharges; }
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public List<String> getOptions() {
+        return options;
+    }
+
+    public List<Double> getExtraCharges() {
+        return extraCharges;
+    }
 
     public double getExtraCharge(int index) {
         return extraCharges.get(index);
@@ -34,8 +42,10 @@ public class CustomizationGroup implements Serializable {
         for (int i = 0; i < options.size(); i++) {
             sb.append(options.get(i));
             sb.append(extraCharges.get(i) > 0
-                ? " (+Rs." + extraCharges.get(i) + ")" : " (free)");
-            if (i < options.size() - 1) sb.append(", ");
+                    ? " (+Rs." + extraCharges.get(i) + ")"
+                    : " (free)");
+            if (i < options.size() - 1)
+                sb.append(", ");
         }
         return sb.toString();
     }

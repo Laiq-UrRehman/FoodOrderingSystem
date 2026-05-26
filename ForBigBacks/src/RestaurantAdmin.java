@@ -93,6 +93,35 @@ public class RestaurantAdmin extends Person implements Account {
         System.out.println(item.getName() + " removed successfully.");
     }
 
+    public void updateFoodItem(String foodID, String newName, String newCategory,
+            double newPrice, int newQuantity) {
+        if (foodID == null || foodID.isBlank())
+            throw new IllegalArgumentException("Food ID cannot be null or empty");
+        if (newName == null || newName.isBlank())
+            throw new IllegalArgumentException("Item name cannot be null or empty");
+        if (newCategory == null || newCategory.isBlank())
+            throw new IllegalArgumentException("Category cannot be null or empty");
+        if (newPrice <= 0)
+            throw new IllegalArgumentException("Price must be positive");
+        if (newQuantity < 0)
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        if (restaurant == null)
+            throw new IllegalStateException("No restaurant assigned to this admin");
+
+        for (FoodItem item : restaurant.getMenu().getItems()) {
+            if (item.getFoodID().equals(foodID)) {
+                item.setName(newName);
+                item.setCategory(newCategory);
+                item.setPrice(newPrice);
+                item.setQuantity(newQuantity);
+                persistRestaurant();
+                System.out.println(newName + " updated successfully.");
+                return;
+            }
+        }
+        System.out.println("Food item not found: " + foodID);
+    }
+
     public void viewMenu() {
         if (restaurant == null) {
             System.out.println("No restaurant assigned.");
@@ -155,6 +184,28 @@ public class RestaurantAdmin extends Person implements Account {
                 item.removeCustomizationGroup(groupName);
                 persistRestaurant();
                 System.out.println("Customization '" + groupName + "' removed from " + item.getName());
+                return;
+            }
+        }
+        System.out.println("Food item not found: " + foodID);
+    }
+
+    public void updateCustomization(String foodID, String oldGroupName, CustomizationGroup newGroup) {
+        if (foodID == null || foodID.isBlank())
+            throw new IllegalArgumentException("Food ID cannot be null or empty");
+        if (oldGroupName == null || oldGroupName.isBlank())
+            throw new IllegalArgumentException("Old group name cannot be null or empty");
+        if (newGroup == null)
+            throw new IllegalArgumentException("New customization group cannot be null");
+        if (restaurant == null)
+            throw new IllegalStateException("No restaurant assigned to this admin");
+
+        for (FoodItem item : restaurant.getMenu().getItems()) {
+            if (item.getFoodID().equals(foodID)) {
+                item.removeCustomizationGroup(oldGroupName);
+                item.addCustomizationGroup(newGroup);
+                persistRestaurant();
+                System.out.println("Customization '" + oldGroupName + "' updated on " + item.getName());
                 return;
             }
         }
