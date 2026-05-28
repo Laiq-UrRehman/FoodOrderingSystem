@@ -32,8 +32,7 @@ public class OrderTracking implements Serializable {
 
         for (Rider rider : riders) {
             rider.setLocation(randomLocation());
-            System.out
-                    .println("[Tracking] Rider " + rider.getName() + " location randomized to: " + rider.getLocation());
+            System.out.println("[Tracking] Rider " + rider.getName() + " location randomized to: " + rider.getLocation());
         }
 
         assignClosestRider(riders);
@@ -79,9 +78,8 @@ public class OrderTracking implements Serializable {
 
         updateRiderStatusInFile(false, true);
 
-        System.out.println("[Tracking] Rider assigned: " + closest.getName()
-                + " | Distance to restaurant: "
-                + String.format("%.2f", minDistance) + " units");
+        System.out.println("[Tracking] Rider assigned: " + closest.getName() + " | Distance to restaurant: "
+        + String.format("%.2f", minDistance) + " units");
     }
 
     private void calculateDistancesAndTime() {
@@ -116,22 +114,26 @@ public class OrderTracking implements Serializable {
         statusTimer.schedule(new TimerTask() {
             @Override
             public void run() {
+                if ("Cancelled".equals(order.getStatus())) {
+                statusTimer.cancel();
+                if (assignedRider != null) {
+                    assignedRider.setAvailable(true);
+                    assignedRider.setAssigned(false);
+                    updateRiderStatusInFile(true, false);
+                }
+                System.out.println("[Tracking] Order was cancelled.");
+                    return;
+                }
+
                 currentStatus = newStatus;
                 order.updateStatus(newStatus);
-
                 System.out.println("[Tracking " + trackingID + "] Status → " + newStatus);
 
                 if ("Delivered".equals(newStatus) && assignedRider != null) {
-
                     assignedRider.setAvailable(true);
                     assignedRider.setAssigned(false);
-
                     updateRiderStatusInFile(true, false);
-
-                    System.out.println("[Tracking] Rider "
-                            + assignedRider.getName()
-                            + " is now available again.");
-
+                    System.out.println("[Tracking] Rider " + assignedRider.getName() + " is now available again.");
                     statusTimer.cancel();
                 }
             }
@@ -218,20 +220,16 @@ public class OrderTracking implements Serializable {
         return new Location(x, y);
     }
 
-    private void readObject(java.io.ObjectInputStream in)
-            throws java.io.IOException, ClassNotFoundException {
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
 
         in.defaultReadObject();
 
-        if (!"Delivered".equals(currentStatus)
-                && !"Cancelled".equals(currentStatus)) {
+        if (!"Delivered".equals(currentStatus) && !"Cancelled".equals(currentStatus)) {
 
             currentStatus = "Delivered";
-
             if (order != null) {
                 order.updateStatus("Delivered");
             }
-
             if (assignedRider != null) {
                 assignedRider.setAvailable(true);
                 assignedRider.setAssigned(false);
