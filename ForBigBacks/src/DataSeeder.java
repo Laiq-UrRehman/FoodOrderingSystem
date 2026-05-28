@@ -486,11 +486,11 @@ public class DataSeeder {
                 // ================= RESTAURANT 9 =================
                 Menu menu9 = new Menu("M009", new ArrayList<>());
 
-                FoodItem f012 = new FoodItem("F012", "Cappuccino", 400, "Cafe", 1);
+                FoodItem f012 = new FoodItem("F012", "Cappuccino", 400, "drink", 1);
                 f012.rate(4.3);
                 f012.rate(4.4);
 
-                FoodItem f012b = new FoodItem("F012B", "Caramel Latte", 450, "Cafe", 1);
+                FoodItem f012b = new FoodItem("F012B", "Caramel Latte", 450, "drink", 1);
                 f012b.rate(4.5);
                 f012b.rate(4.6);
 
@@ -508,11 +508,11 @@ public class DataSeeder {
                 f012d.rate(4.3);
                 f012d.rate(4.4);
 
-                FoodItem f012e = new FoodItem("F012E", "Cold Brew Coffee", 420, "Cafe", 1);
+                FoodItem f012e = new FoodItem("F012E", "Cold Brew Coffee", 420, "drink", 1);
                 f012e.rate(4.6);
                 f012e.rate(4.7);
 
-                FoodItem f012f = new FoodItem("F012F", "Fresh Juice", 300, "Drinks", 1);
+                FoodItem f012f = new FoodItem("F012F", "Fresh Juice", 300, "drink", 1);
                 f012f.rate(4.5);
                 f012f.rate(4.6);
 
