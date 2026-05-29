@@ -1,5 +1,3 @@
-// Updated: No direct FileHandler calls in this controller, but OrderTracking internally uses FileHandler
-// Updated: buildTrackingUI() and refreshStatus() now guard against null tracking state gracefully
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -22,7 +20,7 @@ public class OrderTrackingController {
     private boolean isTrackingMode = false;
 
     private Timeline autoRefresh;
-    private static final int REFRESH_SECONDS = 2;
+    private static final int REFRESH_SECONDS = 1; // tick every second for smooth progress
 
     @FXML
     public void initialize() {
@@ -33,9 +31,8 @@ public class OrderTrackingController {
         }
 
         trackingContent.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene == null) {
+            if (newScene == null)
                 stopAutoRefresh();
-            }
         });
 
         order = SessionManager.getInstance().getSelectedOrder();
@@ -55,10 +52,8 @@ public class OrderTrackingController {
 
     private void startAutoRefresh() {
         stopAutoRefresh();
-
         autoRefresh = new Timeline(new KeyFrame(
-                Duration.seconds(REFRESH_SECONDS),
-                e -> refreshStatus()));
+                Duration.seconds(REFRESH_SECONDS), e -> refreshStatus()));
         autoRefresh.setCycleCount(Timeline.INDEFINITE);
         autoRefresh.play();
     }
@@ -73,20 +68,19 @@ public class OrderTrackingController {
     private void refreshStatus() {
         if (!isTrackingMode || tracking == null)
             return;
-
         if (trackingContent.getChildren().isEmpty())
             return;
 
         try {
+            // getCurrentStatus() always recomputes from startTime — works after re-login
+            String status = tracking.getCurrentStatus();
             trackingContent.getChildren().set(0, buildStatusSection());
+
+            if ("Delivered".equals(status) || "Cancelled".equals(status)) {
+                stopAutoRefresh();
+            }
         } catch (Exception e) {
             System.out.println("Warning: Could not refresh tracking status: " + e.getMessage());
-            return;
-        }
-
-        String status = tracking.getCurrentStatus();
-        if ("Delivered".equals(status) || "Cancelled".equals(status)) {
-            stopAutoRefresh();
         }
     }
 
@@ -104,13 +98,13 @@ public class OrderTrackingController {
         Label sectionTitle = new Label("DELIVERY STATUS");
         sectionTitle.getStyleClass().add("dashboard-section-title");
 
+        // Always call getCurrentStatus() — it recomputes from elapsed time every call
         String current = tracking.getCurrentStatus();
 
         Label bigStatus = new Label(current);
         bigStatus.getStyleClass().add("dashboard-tracking-big-status");
 
-        int etaMins = tracking.getEstimatedDeliveryMinutes();
-        Label etaLabel = new Label(buildEtaText(current, etaMins));
+        Label etaLabel = new Label(buildEtaText(current, tracking));
         etaLabel.getStyleClass().add("dashboard-tracking-eta");
 
         String[] stages = { "Confirmed", "Preparing", "Out for Delivery", "Delivered" };
@@ -159,18 +153,34 @@ public class OrderTrackingController {
             }
         }
 
-        section.getChildren().addAll(sectionTitle, bigStatus, etaLabel, stepRow);
+        // Progress bar showing time elapsed within current phase
+        HBox progressRow = buildProgressBar(current);
+
+        section.getChildren().addAll(sectionTitle, bigStatus, etaLabel, stepRow, progressRow);
         return section;
     }
 
-    private String buildEtaText(String status, int etaMins) {
+    /**
+     * Shows a live time-remaining label derived purely from elapsed time.
+     * Works after re-login because OrderTracking.getCurrentStatus() and
+     * getElapsedMs() both compute from the serialized startTime field.
+     */
+    private String buildEtaText(String status, OrderTracking t) {
+        long elapsed = t.getElapsedMs();
+        long prepMs = t.getPrepMs();
+        long delivMs = t.getDeliveryMs();
+
         switch (status) {
             case "Confirmed":
-                return "Your order has been received";
-            case "Preparing":
-                return "Estimated delivery in " + etaMins + " minutes";
-            case "Out for Delivery":
-                return "Your rider is on the way!";
+                return "Order confirmed — preparing will begin shortly";
+            case "Preparing": {
+                long remainingMins = Math.max(0, (prepMs - elapsed) / 1000);
+                return "Preparing your food — ready in ~" + remainingMins + " minutes";
+            }
+            case "Out for Delivery": {
+                long remainingMins = Math.max(0, (delivMs - elapsed) / 1000);
+                return "Your rider is on the way! Arriving in ~" + remainingMins + " minutes";
+            }
             case "Delivered":
                 return "Your order has been delivered ✓";
             case "Cancelled":
@@ -178,6 +188,38 @@ public class OrderTrackingController {
             default:
                 return "";
         }
+    }
+
+    /** A simple elapsed-time progress bar. */
+    private HBox buildProgressBar(String status) {
+        HBox row = new HBox();
+        row.setMaxWidth(Double.MAX_VALUE);
+
+        if ("Delivered".equals(status) || "Cancelled".equals(status))
+            return row;
+
+        long elapsed = tracking.getElapsedMs();
+        long total = tracking.getDeliveryMs();
+        double pct = total > 0 ? Math.min(1.0, (double) elapsed / total) : 0;
+
+        Region fill = new Region();
+        fill.setPrefHeight(4);
+        fill.setPrefWidth(pct * 720); // approximate max width
+        fill.setStyle("-fx-background-color: #8B5E3C; -fx-background-radius: 2;");
+
+        Region track = new Region();
+        track.setPrefHeight(4);
+        HBox.setHgrow(track, Priority.ALWAYS);
+        track.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 2;");
+
+        HBox bar = new HBox();
+        bar.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(bar, Priority.ALWAYS);
+        bar.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 2; -fx-pref-height: 4;");
+        bar.getChildren().add(fill);
+
+        row.getChildren().add(bar);
+        return row;
     }
 
     private HBox buildInfoRow() {
@@ -193,22 +235,18 @@ public class OrderTrackingController {
         VBox card = new VBox(10);
         card.getStyleClass().add("dashboard-tracking-card");
         HBox.setHgrow(card, Priority.ALWAYS);
-
         card.getChildren().add(makeCardTitle("ORDER DETAILS"));
         card.getChildren().add(makeDivider());
         card.getChildren().add(makeInfoRow("Order ID: ", order.getOrderID()));
         card.getChildren().add(makeInfoRow("Total: ", "Rs. " + (int) order.getTotalAmount()));
         card.getChildren().add(makeDivider());
         card.getChildren().add(makeCardTitle("ITEMS"));
-
         for (FoodItem item : order.getItems()) {
-            Label itemLabel = new Label(
-                    item.getName() + "  ×" + item.getQuantity()
-                            + "   —   Rs. " + (int) (item.getPrice() * item.getQuantity()));
+            Label itemLabel = new Label(item.getName() + "  ×" + item.getQuantity()
+                    + "   —   Rs. " + (int) (item.getPrice() * item.getQuantity()));
             itemLabel.getStyleClass().add("dashboard-tracking-item");
             card.getChildren().add(itemLabel);
         }
-
         return card;
     }
 
@@ -216,10 +254,8 @@ public class OrderTrackingController {
         VBox card = new VBox(10);
         card.getStyleClass().add("dashboard-tracking-card");
         card.setPrefWidth(240);
-
         card.getChildren().add(makeCardTitle("YOUR RIDER"));
         card.getChildren().add(makeDivider());
-
         Rider rider = tracking.getAssignedRider();
         if (rider == null) {
             Label none = new Label("Assigning a rider...");
@@ -230,14 +266,12 @@ public class OrderTrackingController {
                     && rider.getVehicleType().toLowerCase().contains("bike");
             Label emoji = new Label(isBike ? "🛵" : "🚗");
             emoji.getStyleClass().add("dashboard-tracking-rider-emoji");
-
             card.getChildren().add(emoji);
             card.getChildren().add(makeInfoRow("Name: ", rider.getName()));
             card.getChildren().add(makeInfoRow("Vehicle: ", rider.getVehicleType()));
             card.getChildren().add(makeInfoRow("Rider → Restaurant: ",
                     String.format("%.1f units", tracking.getDistanceRiderToRestaurant())));
         }
-
         return card;
     }
 
@@ -245,7 +279,6 @@ public class OrderTrackingController {
         VBox card = new VBox(10);
         card.getStyleClass().add("dashboard-tracking-card");
         card.setPrefWidth(240);
-
         card.getChildren().add(makeCardTitle("DELIVERY INFO"));
         card.getChildren().add(makeDivider());
         card.getChildren().add(makeInfoRow("Tracking ID: ", tracking.getTrackingID()));
@@ -253,33 +286,26 @@ public class OrderTrackingController {
                 String.format("%.1f units", tracking.getDistanceRestaurantToCustomer())));
         card.getChildren().add(makeInfoRow("Total ETA: ",
                 tracking.getEstimatedDeliveryMinutes() + " mins"));
-
         return card;
     }
 
     private void buildEmptyState() {
         isTrackingMode = false;
         trackingContent.getChildren().clear();
-
         VBox box = new VBox(12);
         box.getStyleClass().add("dashboard-empty-state");
-
         Label icon = new Label("📍");
         icon.getStyleClass().add("dashboard-empty-icon");
-
         Label msg = new Label("No active orders to track");
         msg.getStyleClass().add("dashboard-empty-title");
-
         Label sub = new Label("Place an order and come back here to track its delivery");
         sub.getStyleClass().add("text-screen-subheading");
-
         Button ordersBtn = new Button("View Order History");
         ordersBtn.getStyleClass().add("action-button-outline");
         ordersBtn.setOnAction(e -> {
             stopAutoRefresh();
             SceneManager.getInstance().switchTo("OrderHistory");
         });
-
         box.getChildren().addAll(icon, msg, sub, ordersBtn);
         trackingContent.getChildren().add(box);
     }
@@ -301,6 +327,11 @@ public class OrderTrackingController {
                     && !"Cancelled".equals(o.getStatus())) {
                 return o;
             }
+        }
+        // Also return delivered orders if they have tracking (for viewing history)
+        for (int i = history.size() - 1; i >= 0; i--) {
+            if (history.get(i).getTracking() != null)
+                return history.get(i);
         }
         return null;
     }

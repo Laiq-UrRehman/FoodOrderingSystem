@@ -1,3 +1,10 @@
+// Fixed: refreshFromSession() no longer reloads from disk (which would create
+// deserialized copies with no live timer). It reads from the in-memory session
+// customer, which holds the live OrderTracking objects.
+//
+// Status badges update in real time because OrderTracking.getCurrentStatus()
+// computes status from startTime + elapsed time on every call — no live timer needed.
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -20,7 +27,7 @@ public class OrderHistoryController {
 
     private Customer customer;
     private Timeline refreshTimer;
-    private static final int REFRESH_SECONDS = 2;
+    private static final int REFRESH_SECONDS = 1; // tick per second so status updates live
 
     @FXML
     public void initialize() {
@@ -30,7 +37,6 @@ public class OrderHistoryController {
             return;
         }
 
-        // Stop refresh when scene is torn down
         ordersContainer.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene == null)
                 stopRefresh();
@@ -55,8 +61,15 @@ public class OrderHistoryController {
         }
     }
 
-    // Read directly from the session customer — it holds the live timer object.
-    // No disk read here, so no deserialization, no duplicate timers.
+    /**
+     * Refreshes from the in-memory session customer ONLY.
+     * Never reads from disk here — disk copies are snapshots and don't have
+     * live OrderTracking timers. The session customer has the live objects.
+     *
+     * After re-login the session customer is loaded fresh from disk, so
+     * OrderTracking objects are deserialized. Their getCurrentStatus() still
+     * works because it computes from startTime + elapsed time — no timer needed.
+     */
     private void refreshFromSession() {
         Customer sessionCustomer = SessionManager.getInstance().getCurrentCustomer();
         if (sessionCustomer == null) {
@@ -65,12 +78,22 @@ public class OrderHistoryController {
         }
         customer = sessionCustomer;
 
+        // Check if any order is still in transit
         boolean anyActive = false;
         for (Order o : customer.viewOrderHistory()) {
-            String s = o.getStatus();
-            if (!"Delivered".equals(s) && !"Cancelled".equals(s)) {
-                anyActive = true;
-                break;
+            // Calling getTracking().getCurrentStatus() recomputes from elapsed time
+            if (o.getTracking() != null) {
+                String s = o.getTracking().getCurrentStatus();
+                if (!"Delivered".equals(s) && !"Cancelled".equals(s)) {
+                    anyActive = true;
+                    break;
+                }
+            } else {
+                String s = o.getStatus();
+                if (!"Delivered".equals(s) && !"Cancelled".equals(s)) {
+                    anyActive = true;
+                    break;
+                }
             }
         }
 
@@ -81,7 +104,6 @@ public class OrderHistoryController {
 
     private void loadOrders() {
         ordersContainer.getChildren().clear();
-
         List<Order> history = new ArrayList<>(customer.viewOrderHistory());
         int count = history.size();
         orderCountLabel.setText(count + (count == 1 ? " order" : " orders"));
@@ -133,9 +155,12 @@ public class OrderHistoryController {
         idLabel.getStyleClass().add("dashboard-order-id-label");
         idBox.getChildren().addAll(typeLabel, idLabel);
 
-        Label statusBadge = new Label(order.getStatus());
+        // Always get live status from tracking if available
+        String liveStatus = getLiveStatus(order);
+
+        Label statusBadge = new Label(liveStatus);
         statusBadge.getStyleClass().addAll("dashboard-order-status-badge",
-                getStatusClass(order.getStatus()));
+                getStatusClass(liveStatus));
 
         Label totalLabel = new Label("Rs. " + (int) order.getTotalAmount());
         totalLabel.getStyleClass().add("dashboard-order-total");
@@ -160,7 +185,7 @@ public class OrderHistoryController {
         footer.getStyleClass().add("dashboard-order-card-footer");
         footer.setAlignment(Pos.CENTER_RIGHT);
 
-        if (order.getTracking() != null && !order.getStatus().equals("Cancelled")) {
+        if (order.getTracking() != null && !"Cancelled".equals(liveStatus)) {
             Button trackBtn = new Button("Track Order →");
             trackBtn.getStyleClass().add("dashboard-order-track-button");
             trackBtn.setOnAction(e -> {
@@ -171,7 +196,7 @@ public class OrderHistoryController {
             footer.getChildren().add(trackBtn);
         }
 
-        if (isCancellable(order)) {
+        if (isCancellable(order, liveStatus)) {
             Button cancelBtn = new Button("Cancel Order");
             cancelBtn.getStyleClass().add("dashboard-order-cancel-button");
             cancelBtn.setOnAction(e -> {
@@ -182,7 +207,7 @@ public class OrderHistoryController {
             footer.getChildren().add(cancelBtn);
         }
 
-        if (order.getStatus().equals("Delivered") && hasUnratedItems(order)) {
+        if ("Delivered".equals(liveStatus) && hasUnratedItems(order)) {
             Button rateBtn = new Button("Rate Order  ★");
             rateBtn.getStyleClass().add("dashboard-order-rate-button");
             rateBtn.setOnAction(e -> {
@@ -199,6 +224,18 @@ public class OrderHistoryController {
 
         card.getChildren().add(ratingPanel);
         return card;
+    }
+
+    /**
+     * Returns the live, time-derived status for an order.
+     * Uses OrderTracking.getCurrentStatus() if tracking is available,
+     * which recomputes from startTime on every call — correct after re-login.
+     */
+    private String getLiveStatus(Order order) {
+        if (order.getTracking() != null) {
+            return order.getTracking().getCurrentStatus();
+        }
+        return order.getStatus();
     }
 
     private VBox buildRatingPanel(Order order) {
@@ -284,10 +321,9 @@ public class OrderHistoryController {
         return false;
     }
 
-    private boolean isCancellable(Order order) {
-        String s = order.getStatus();
-        if (s.equals("Cancelled") || s.equals("Delivered")
-                || s.equals("Out for Delivery"))
+    private boolean isCancellable(Order order, String liveStatus) {
+        if ("Cancelled".equals(liveStatus) || "Delivered".equals(liveStatus)
+                || "Out for Delivery".equals(liveStatus))
             return false;
         if (order instanceof ScheduledOrder)
             return !((ScheduledOrder) order).isConfirmed();
@@ -351,5 +387,5 @@ public class OrderHistoryController {
 
     @FXML
     private void goOrders() {
-    }
+        /* already here */ }
 }

@@ -6,7 +6,7 @@ import java.util.TimerTask;
 
 public class OrderTracking implements Serializable {
     private static final long serialVersionUID = 2L;
-    private static final int SECONDS_PER_MINUTE = 1;
+    private static final int SECONDS_PER_MINUTE = 1; // 1 real second = 1 simulated minute
 
     private String trackingID;
     private Order order;
@@ -19,11 +19,13 @@ public class OrderTracking implements Serializable {
     private int estimatedDeliveryMinutes;
     private int prepMinutes;
     private Instant startTime;
+
+    // currentStatus is now purely a cache — always recomputed from startTime.
+    // We still persist it so old saves degrade gracefully.
     private String currentStatus;
 
-    // Both transient — never serialized, never restarted on deserialization
+    // transient — never serialized, only alive in the constructor-created instance
     private transient Timer statusTimer;
-    private transient boolean isLiveInstance;
 
     public OrderTracking(String trackingID, Order order, Restaurant restaurant,
             Customer customer, List<Rider> riders) {
@@ -31,17 +33,12 @@ public class OrderTracking implements Serializable {
         this.order = order;
         this.restaurant = restaurant;
         this.customer = customer;
-        this.currentStatus = "Confirmed";
         this.startTime = Instant.now();
-        this.isLiveInstance = true; // only constructor-created instances run timers
+        this.currentStatus = "Confirmed";
 
         customer.setLocation(randomLocation());
-        System.out.println("[Tracking] Customer location randomized to: " + customer.getLocation());
-
         for (Rider rider : riders) {
             rider.setLocation(randomLocation());
-            System.out.println("[Tracking] Rider " + rider.getName()
-                    + " location randomized to: " + rider.getLocation());
         }
 
         assignClosestRider(riders);
@@ -49,6 +46,85 @@ public class OrderTracking implements Serializable {
         startStatusUpdates();
     }
 
+    // ── Core: compute status from elapsed time ────────────────────────────────
+    // This is the single source of truth. Called by getters and readObject.
+    private String computeStatus() {
+        if (order != null && "Cancelled".equals(order.getStatus()))
+            return "Cancelled";
+        if (startTime == null)
+            return "Delivered";
+
+        long elapsedMs = Instant.now().toEpochMilli() - startTime.toEpochMilli();
+        long prepMs = minutesToMs(prepMinutes);
+        long deliveryMs = minutesToMs(estimatedDeliveryMinutes);
+
+        if (elapsedMs >= deliveryMs)
+            return "Delivered";
+        if (elapsedMs >= prepMs)
+            return "Out for Delivery";
+        return "Preparing";
+    }
+
+    /**
+     * Always returns the live, time-derived status.
+     * Safe to call from any thread, any time — no timer needed.
+     */
+    public String getCurrentStatus() {
+        if (order != null && "Cancelled".equals(order.getStatus()))
+            return "Cancelled";
+        String computed = computeStatus();
+        if (order != null && !computed.equals(order.getStatus())) {
+            order.updateStatus(computed);
+        }
+        currentStatus = computed;
+        return currentStatus;
+    }
+
+    // ── Timer: only used to persist status updates to disk ───────────────────
+    private void startStatusUpdates() {
+        statusTimer = new Timer(true);
+        long prepMs = minutesToMs(prepMinutes);
+        long deliveryMs = minutesToMs(estimatedDeliveryMinutes);
+
+        // Tick every second; at key milestones save customer to disk
+        statusTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (order != null && "Cancelled".equals(order.getStatus())) {
+                    if (assignedRider != null) {
+                        assignedRider.setAvailable(true);
+                        assignedRider.setAssigned(false);
+                        updateRiderStatusInFile(true, false);
+                    }
+                    statusTimer.cancel();
+                    return;
+                }
+
+                String status = computeStatus();
+                boolean changed = !status.equals(currentStatus);
+                currentStatus = status;
+                if (order != null)
+                    order.updateStatus(status);
+
+                if (changed) {
+                    System.out.println("[Tracking " + trackingID + "] Status → " + status);
+                    saveCustomerToDisk();
+
+                    if ("Delivered".equals(status)) {
+                        if (assignedRider != null) {
+                            assignedRider.setAvailable(true);
+                            assignedRider.setAssigned(false);
+                            updateRiderStatusInFile(true, false);
+                            System.out.println("[Tracking] Rider " + assignedRider.getName() + " available again.");
+                        }
+                        statusTimer.cancel();
+                    }
+                }
+            }
+        }, minutesToMs(0), 1000L); // tick every second
+    }
+
+    // ── Rider assignment ──────────────────────────────────────────────────────
     private void assignClosestRider(List<Rider> riders) {
         Rider closest = null;
         double minDistance = Double.MAX_VALUE;
@@ -81,8 +157,7 @@ public class OrderTracking implements Serializable {
         updateRiderStatusInFile(false, true);
 
         System.out.println("[Tracking] Rider assigned: " + closest.getName()
-                + " | Distance to restaurant: "
-                + String.format("%.2f", minDistance) + " units");
+                + " | Distance to restaurant: " + String.format("%.2f", minDistance) + " units");
     }
 
     private void calculateDistancesAndTime() {
@@ -95,59 +170,11 @@ public class OrderTracking implements Serializable {
         int travelMinutes = (int) Math.ceil(distanceRestaurantToCustomer);
         this.estimatedDeliveryMinutes = prepMinutes + travelMinutes;
 
-        System.out.println("[Tracking] Restaurant → Customer distance: "
-                + String.format("%.2f", distanceRestaurantToCustomer) + " units");
-        System.out.println("[Tracking] Estimated delivery time: "
-                + estimatedDeliveryMinutes + " minutes ("
-                + prepMinutes + " min prep + " + travelMinutes + " min travel)");
+        System.out.println("[Tracking] ETA: " + estimatedDeliveryMinutes + " minutes ("
+                + prepMinutes + " prep + " + travelMinutes + " travel)");
     }
 
-    private void startStatusUpdates() {
-        statusTimer = new Timer(true);
-        long prepMs = minutesToMs(prepMinutes);
-        long deliveryMs = minutesToMs(estimatedDeliveryMinutes);
-
-        scheduleStatusAfter("Preparing", 0);
-        scheduleStatusAfter("Out for Delivery", prepMs);
-        scheduleStatusAfter("Delivered", deliveryMs);
-    }
-
-    private void scheduleStatusAfter(String newStatus, long delayMs) {
-        statusTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if ("Cancelled".equals(order.getStatus())) {
-                    statusTimer.cancel();
-                    if (assignedRider != null) {
-                        assignedRider.setAvailable(true);
-                        assignedRider.setAssigned(false);
-                        updateRiderStatusInFile(true, false);
-                    }
-                    System.out.println("[Tracking] Order was cancelled.");
-                    return;
-                }
-
-                currentStatus = newStatus;
-                order.updateStatus(newStatus);
-                System.out.println("[Tracking " + trackingID + "] Status → " + newStatus);
-
-                // Save the live customer object to disk so re-login sees correct status
-                saveCustomerToDisk();
-
-                if ("Delivered".equals(newStatus)) {
-                    if (assignedRider != null) {
-                        assignedRider.setAvailable(true);
-                        assignedRider.setAssigned(false);
-                        updateRiderStatusInFile(true, false);
-                        System.out.println("[Tracking] Rider "
-                                + assignedRider.getName() + " is now available again.");
-                    }
-                    statusTimer.cancel();
-                }
-            }
-        }, Math.max(0, delayMs));
-    }
-
+    // ── Disk persistence helpers ──────────────────────────────────────────────
     private void saveCustomerToDisk() {
         if (customer == null)
             return;
@@ -163,7 +190,7 @@ public class OrderTracking implements Serializable {
                 }
             }
             fh.saveArray(all, "customers.dat");
-            System.out.println("[Tracking] Customer saved to disk. Status: " + currentStatus);
+            System.out.println("[Tracking] Customer saved. Status: " + currentStatus);
         } catch (FileHandler.FileOperationException e) {
             System.out.println("[Tracking] Could not save customer: " + e.getMessage());
         }
@@ -187,21 +214,13 @@ public class OrderTracking implements Serializable {
             }
             fh.saveArray(riders, "riders.dat");
         } catch (FileHandler.FileOperationException e) {
-            System.out.println("[Tracking] Failed to update rider in file: " + e.getMessage());
+            System.out.println("[Tracking] Failed to update rider: " + e.getMessage());
         }
-    }
-
-    private long minutesToMs(int minutes) {
-        return (long) minutes * SECONDS_PER_MINUTE * 1000L;
     }
 
     // ── Getters ───────────────────────────────────────────────────────────────
     public String getTrackingID() {
         return trackingID;
-    }
-
-    public String getCurrentStatus() {
-        return currentStatus;
     }
 
     public Rider getAssignedRider() {
@@ -220,63 +239,55 @@ public class OrderTracking implements Serializable {
         return distanceRiderToRestaurant;
     }
 
+    /** Milliseconds elapsed since order was placed. */
+    public long getElapsedMs() {
+        return startTime == null ? Long.MAX_VALUE
+                : Instant.now().toEpochMilli() - startTime.toEpochMilli();
+    }
+
+    /** Milliseconds until "Out for Delivery" phase starts. */
+    public long getPrepMs() {
+        return minutesToMs(prepMinutes);
+    }
+
+    /** Milliseconds until delivery is complete. */
+    public long getDeliveryMs() {
+        return minutesToMs(estimatedDeliveryMinutes);
+    }
+
     public String getSummary() {
         return String.format(
-                "Tracking ID  : %s%n" +
-                        "Order ID     : %s%n" +
-                        "Status       : %s%n" +
-                        "Rider        : %s (%s)%n" +
-                        "Rider → Rest.: %.2f units%n" +
-                        "Rest. → Cust.: %.2f units%n" +
-                        "ETA          : %d minutes",
-                trackingID, order.getOrderID(), currentStatus,
+                "Tracking ID  : %s%nOrder ID     : %s%nStatus       : %s%n"
+                        + "Rider        : %s (%s)%nRider → Rest.: %.2f units%n"
+                        + "Rest. → Cust.: %.2f units%nETA          : %d minutes",
+                trackingID, order.getOrderID(), getCurrentStatus(),
                 assignedRider != null ? assignedRider.getName() : "None",
                 assignedRider != null ? assignedRider.getVehicleType() : "-",
                 distanceRiderToRestaurant, distanceRestaurantToCustomer,
                 estimatedDeliveryMinutes);
     }
 
-    private Location randomLocation() {
-        java.util.Random rand = new java.util.Random();
-        return new Location(rand.nextDouble() * 100, rand.nextDouble() * 100);
-    }
-
-    // ── readObject: calculate status from elapsed time, NO timers ever ────────
+    // ── Deserialization: restore status from elapsed time, no timer ───────────
     private void readObject(java.io.ObjectInputStream in)
             throws java.io.IOException, ClassNotFoundException {
         in.defaultReadObject();
-
-        // isLiveInstance stays false (transient) — this is a deserialized snapshot,
-        // never runs timers. Status is calculated purely from startTime vs now.
-
-        if ("Delivered".equals(currentStatus) || "Cancelled".equals(currentStatus))
+        // Recompute status purely from clock — no timer started here.
+        // getCurrentStatus() will always do this on every call, so UI is always fresh.
+        if (order != null && "Cancelled".equals(order.getStatus()))
             return;
 
-        if (startTime == null) {
-            // Old save format — mark delivered conservatively
-            currentStatus = "Delivered";
-            if (order != null)
-                order.updateStatus("Delivered");
-            return;
-        }
-
-        long elapsedMs = Instant.now().toEpochMilli() - startTime.toEpochMilli();
-        long prepMs = minutesToMs(prepMinutes);
-        long deliveryMs = minutesToMs(estimatedDeliveryMinutes);
-
-        String correctStatus;
-        if (elapsedMs >= deliveryMs)
-            correctStatus = "Delivered";
-        else if (elapsedMs >= prepMs)
-            correctStatus = "Out for Delivery";
-        else
-            correctStatus = "Preparing";
-
-        currentStatus = correctStatus;
+        String correct = computeStatus();
+        currentStatus = correct;
         if (order != null)
-            order.updateStatus(correctStatus);
+            order.updateStatus(correct);
+    }
 
-        // No timer started — deserialized copies are read-only snapshots.
-        // The live timer in the session customer object handles all updates.
+    private long minutesToMs(int minutes) {
+        return (long) minutes * SECONDS_PER_MINUTE * 1000L;
+    }
+
+    private Location randomLocation() {
+        java.util.Random rand = new java.util.Random();
+        return new Location(rand.nextDouble() * 100, rand.nextDouble() * 100);
     }
 }
