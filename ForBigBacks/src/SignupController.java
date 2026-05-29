@@ -1,4 +1,5 @@
 // Updated: loadArray() and saveArray() calls now catch FileHandler.FileOperationException
+// Updated: Password validation — minimum 6 characters and at least one special character required.
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -47,22 +48,11 @@ public class SignupController {
             return;
         }
 
-        if (password.length() < 8) {
-            errorLabel.setText("Password must be at least 8 characters.");
+        if (password.length() < 6) {
+            errorLabel.setText("Password must be at least 6 characters.");
             return;
         }
-        if (!password.matches(".*[A-Z].*")) {
-            errorLabel.setText("Password must contain at least one uppercase letter.");
-            return;
-        }
-        if (!password.matches(".*[a-z].*")) {
-            errorLabel.setText("Password must contain at least one lowercase letter.");
-            return;
-        }
-        if (!password.matches(".*[0-9].*")) {
-            errorLabel.setText("Password must contain at least one number.");
-            return;
-        }
+
         if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*")) {
             errorLabel.setText("Password must contain at least one special character.");
             return;
