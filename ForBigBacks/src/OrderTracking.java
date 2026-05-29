@@ -83,6 +83,10 @@ public class OrderTracking implements Serializable {
     }
 
     private void calculateDistancesAndTime() {
+        if (restaurant.getLocation() == null || customer.getLocation() == null) {
+            System.out.println("[Tracking] Missing location.");
+            return;
+        }
         distanceRestaurantToCustomer = restaurant.getLocation().distanceTo(customer.getLocation());
 
         int prepTimeMinutes = order.getItems().size();
@@ -115,13 +119,13 @@ public class OrderTracking implements Serializable {
             @Override
             public void run() {
                 if ("Cancelled".equals(order.getStatus())) {
-                statusTimer.cancel();
-                if (assignedRider != null) {
-                    assignedRider.setAvailable(true);
-                    assignedRider.setAssigned(false);
-                    updateRiderStatusInFile(true, false);
-                }
-                System.out.println("[Tracking] Order was cancelled.");
+                    statusTimer.cancel();
+                    if (assignedRider != null) {
+                        assignedRider.setAvailable(true);
+                        assignedRider.setAssigned(false);
+                        updateRiderStatusInFile(true, false);
+                    }
+                    System.out.println("[Tracking] Order was cancelled.");
                     return;
                 }
 
