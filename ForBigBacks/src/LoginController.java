@@ -13,6 +13,10 @@ public class LoginController {
     private Button customerTab;
     @FXML
     private Button adminTab;
+    @FXML
+    private TextField passwordVisible;
+    @FXML
+    private Button togglePasswordBtn;
 
     private boolean isCustomerLogin = true;
     private final LoginManager loginManager = new LoginManager();
@@ -36,7 +40,9 @@ public class LoginController {
     @FXML
     private void handleLogin() {
         String username = usernameField.getText().trim();
-        String password = passwordField.getText().trim();
+        String password = passwordField.isVisible()
+                ? passwordField.getText().trim()
+                : passwordVisible.getText().trim();
 
         if (username.isEmpty() || password.isEmpty()) {
             errorLabel.setText("Please fill in all fields.");
@@ -65,5 +71,24 @@ public class LoginController {
     @FXML
     private void goToSignup() {
         SceneManager.getInstance().switchTo("Signup");
+    }
+
+    @FXML
+    private void togglePassword() {
+        if (passwordField.isVisible()) {
+            passwordVisible.setText(passwordField.getText());
+            passwordField.setVisible(false);
+            passwordField.setManaged(false);
+            passwordVisible.setVisible(true);
+            passwordVisible.setManaged(true);
+            togglePasswordBtn.setText("🙈");
+        } else {
+            passwordField.setText(passwordVisible.getText());
+            passwordField.setVisible(true);
+            passwordField.setManaged(true);
+            passwordVisible.setVisible(false);
+            passwordVisible.setManaged(false);
+            togglePasswordBtn.setText("👁");
+        }
     }
 }

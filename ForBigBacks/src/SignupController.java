@@ -18,6 +18,10 @@ public class SignupController {
     private PasswordField passwordField;
     @FXML
     private Label errorLabel;
+    @FXML
+    private TextField passwordVisible;
+    @FXML
+    private Button togglePasswordBtn;
 
     @FXML
     private void handleSignup() {
@@ -25,7 +29,9 @@ public class SignupController {
         String address = addressField.getText().trim();
         String phone = phoneField.getText().trim();
         String username = usernameField.getText().trim();
-        String password = passwordField.getText().trim();
+        String password = passwordField.isVisible()
+                ? passwordField.getText().trim()
+                : passwordVisible.getText().trim();
 
         if (name.isEmpty() || address.isEmpty() || phone.isEmpty()
                 || username.isEmpty() || password.isEmpty()) {
@@ -102,5 +108,24 @@ public class SignupController {
     @FXML
     private void goToLogin() {
         SceneManager.getInstance().switchTo("Login");
+    }
+
+    @FXML
+    private void togglePassword() {
+        if (passwordField.isVisible()) {
+            passwordVisible.setText(passwordField.getText());
+            passwordField.setVisible(false);
+            passwordField.setManaged(false);
+            passwordVisible.setVisible(true);
+            passwordVisible.setManaged(true);
+            togglePasswordBtn.setText("🙈");
+        } else {
+            passwordField.setText(passwordVisible.getText());
+            passwordField.setVisible(true);
+            passwordField.setManaged(true);
+            passwordVisible.setVisible(false);
+            passwordVisible.setManaged(false);
+            togglePasswordBtn.setText("👁");
+        }
     }
 }
