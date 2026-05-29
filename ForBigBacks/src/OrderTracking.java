@@ -1,10 +1,11 @@
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class OrderTracking implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     private static final int SECONDS_PER_MINUTE = 1;
 
     private String trackingID;
@@ -16,23 +17,31 @@ public class OrderTracking implements Serializable {
     private double distanceRiderToRestaurant;
     private double distanceRestaurantToCustomer;
     private int estimatedDeliveryMinutes;
-
+    private int prepMinutes;
+    private Instant startTime;
     private String currentStatus;
-    private transient Timer statusTimer;
 
-    public OrderTracking(String trackingID, Order order, Restaurant restaurant, Customer customer, List<Rider> riders) {
+    // Both transient — never serialized, never restarted on deserialization
+    private transient Timer statusTimer;
+    private transient boolean isLiveInstance;
+
+    public OrderTracking(String trackingID, Order order, Restaurant restaurant,
+            Customer customer, List<Rider> riders) {
         this.trackingID = trackingID;
         this.order = order;
         this.restaurant = restaurant;
         this.customer = customer;
         this.currentStatus = "Confirmed";
+        this.startTime = Instant.now();
+        this.isLiveInstance = true; // only constructor-created instances run timers
 
         customer.setLocation(randomLocation());
         System.out.println("[Tracking] Customer location randomized to: " + customer.getLocation());
 
         for (Rider rider : riders) {
             rider.setLocation(randomLocation());
-            System.out.println("[Tracking] Rider " + rider.getName() + " location randomized to: " + rider.getLocation());
+            System.out.println("[Tracking] Rider " + rider.getName()
+                    + " location randomized to: " + rider.getLocation());
         }
 
         assignClosestRider(riders);
@@ -52,14 +61,9 @@ public class OrderTracking implements Serializable {
         for (Rider rider : riders) {
             if (!rider.getStatus())
                 continue;
-
-            if (rider.getLocation() == null) {
-                System.out.println("[Tracking] Skipping rider " + rider.getName() + " — no location set.");
+            if (rider.getLocation() == null)
                 continue;
-            }
-
             double dist = rider.getLocation().distanceTo(restaurant.getLocation());
-
             if (dist < minDistance) {
                 minDistance = dist;
                 closest = rider;
@@ -72,14 +76,13 @@ public class OrderTracking implements Serializable {
         }
 
         closest.assignOrder();
-
         this.assignedRider = closest;
         this.distanceRiderToRestaurant = minDistance;
-
         updateRiderStatusInFile(false, true);
 
-        System.out.println("[Tracking] Rider assigned: " + closest.getName() + " | Distance to restaurant: "
-        + String.format("%.2f", minDistance) + " units");
+        System.out.println("[Tracking] Rider assigned: " + closest.getName()
+                + " | Distance to restaurant: "
+                + String.format("%.2f", minDistance) + " units");
     }
 
     private void calculateDistancesAndTime() {
@@ -88,33 +91,28 @@ public class OrderTracking implements Serializable {
             return;
         }
         distanceRestaurantToCustomer = restaurant.getLocation().distanceTo(customer.getLocation());
-
-        int prepTimeMinutes = order.getItems().size();
+        prepMinutes = order.getItems().size();
         int travelMinutes = (int) Math.ceil(distanceRestaurantToCustomer);
-
-        this.estimatedDeliveryMinutes = prepTimeMinutes + travelMinutes;
+        this.estimatedDeliveryMinutes = prepMinutes + travelMinutes;
 
         System.out.println("[Tracking] Restaurant → Customer distance: "
                 + String.format("%.2f", distanceRestaurantToCustomer) + " units");
-
         System.out.println("[Tracking] Estimated delivery time: "
-                + estimatedDeliveryMinutes + " minutes "
-                + "(" + prepTimeMinutes + " min prep + "
-                + travelMinutes + " min travel)");
+                + estimatedDeliveryMinutes + " minutes ("
+                + prepMinutes + " min prep + " + travelMinutes + " min travel)");
     }
 
     private void startStatusUpdates() {
         statusTimer = new Timer(true);
-
-        long prepMs = minutesToMs(order.getItems().size());
+        long prepMs = minutesToMs(prepMinutes);
         long deliveryMs = minutesToMs(estimatedDeliveryMinutes);
 
-        scheduleStatus("Preparing", 0);
-        scheduleStatus("Out for Delivery", prepMs);
-        scheduleStatus("Delivered", deliveryMs);
+        scheduleStatusAfter("Preparing", 0);
+        scheduleStatusAfter("Out for Delivery", prepMs);
+        scheduleStatusAfter("Delivered", deliveryMs);
     }
 
-    private void scheduleStatus(String newStatus, long delayMs) {
+    private void scheduleStatusAfter(String newStatus, long delayMs) {
         statusTimer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -133,26 +131,52 @@ public class OrderTracking implements Serializable {
                 order.updateStatus(newStatus);
                 System.out.println("[Tracking " + trackingID + "] Status → " + newStatus);
 
-                if ("Delivered".equals(newStatus) && assignedRider != null) {
-                    assignedRider.setAvailable(true);
-                    assignedRider.setAssigned(false);
-                    updateRiderStatusInFile(true, false);
-                    System.out.println("[Tracking] Rider " + assignedRider.getName() + " is now available again.");
+                // Save the live customer object to disk so re-login sees correct status
+                saveCustomerToDisk();
+
+                if ("Delivered".equals(newStatus)) {
+                    if (assignedRider != null) {
+                        assignedRider.setAvailable(true);
+                        assignedRider.setAssigned(false);
+                        updateRiderStatusInFile(true, false);
+                        System.out.println("[Tracking] Rider "
+                                + assignedRider.getName() + " is now available again.");
+                    }
                     statusTimer.cancel();
                 }
             }
-        }, delayMs);
+        }, Math.max(0, delayMs));
+    }
+
+    private void saveCustomerToDisk() {
+        if (customer == null)
+            return;
+        FileHandler<Customer> fh = new FileHandler<>();
+        try {
+            Customer[] all = fh.loadArray("customers.dat");
+            if (all == null)
+                return;
+            for (int i = 0; i < all.length; i++) {
+                if (all[i].getUsername().equals(customer.getUsername())) {
+                    all[i] = customer;
+                    break;
+                }
+            }
+            fh.saveArray(all, "customers.dat");
+            System.out.println("[Tracking] Customer saved to disk. Status: " + currentStatus);
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("[Tracking] Could not save customer: " + e.getMessage());
+        }
     }
 
     private void updateRiderStatusInFile(boolean available, boolean assigned) {
-        FileHandler<Rider> fileHandler = new FileHandler<>();
-
+        if (assignedRider == null)
+            return;
+        FileHandler<Rider> fh = new FileHandler<>();
         try {
-            Rider[] riders = fileHandler.loadArray("riders.dat");
-
-            if (riders == null || assignedRider == null)
+            Rider[] riders = fh.loadArray("riders.dat");
+            if (riders == null)
                 return;
-
             for (Rider rider : riders) {
                 if (rider.getPersonID().equals(assignedRider.getPersonID())) {
                     rider.setAvailable(available);
@@ -161,11 +185,9 @@ public class OrderTracking implements Serializable {
                     break;
                 }
             }
-
-            fileHandler.saveArray(riders, "riders.dat");
-
+            fh.saveArray(riders, "riders.dat");
         } catch (FileHandler.FileOperationException e) {
-            System.out.println("[Tracking] Failed to update rider status in file: " + e.getMessage());
+            System.out.println("[Tracking] Failed to update rider in file: " + e.getMessage());
         }
     }
 
@@ -173,6 +195,7 @@ public class OrderTracking implements Serializable {
         return (long) minutes * SECONDS_PER_MINUTE * 1000L;
     }
 
+    // ── Getters ───────────────────────────────────────────────────────────────
     public String getTrackingID() {
         return trackingID;
     }
@@ -206,40 +229,54 @@ public class OrderTracking implements Serializable {
                         "Rider → Rest.: %.2f units%n" +
                         "Rest. → Cust.: %.2f units%n" +
                         "ETA          : %d minutes",
-                trackingID,
-                order.getOrderID(),
-                currentStatus,
+                trackingID, order.getOrderID(), currentStatus,
                 assignedRider != null ? assignedRider.getName() : "None",
                 assignedRider != null ? assignedRider.getVehicleType() : "-",
-                distanceRiderToRestaurant,
-                distanceRestaurantToCustomer,
+                distanceRiderToRestaurant, distanceRestaurantToCustomer,
                 estimatedDeliveryMinutes);
     }
 
     private Location randomLocation() {
         java.util.Random rand = new java.util.Random();
-        double x = rand.nextDouble() * 100;
-        double y = rand.nextDouble() * 100;
-
-        return new Location(x, y);
+        return new Location(rand.nextDouble() * 100, rand.nextDouble() * 100);
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-
+    // ── readObject: calculate status from elapsed time, NO timers ever ────────
+    private void readObject(java.io.ObjectInputStream in)
+            throws java.io.IOException, ClassNotFoundException {
         in.defaultReadObject();
 
-        if (!"Delivered".equals(currentStatus) && !"Cancelled".equals(currentStatus)) {
+        // isLiveInstance stays false (transient) — this is a deserialized snapshot,
+        // never runs timers. Status is calculated purely from startTime vs now.
 
+        if ("Delivered".equals(currentStatus) || "Cancelled".equals(currentStatus))
+            return;
+
+        if (startTime == null) {
+            // Old save format — mark delivered conservatively
             currentStatus = "Delivered";
-            if (order != null) {
+            if (order != null)
                 order.updateStatus("Delivered");
-            }
-            if (assignedRider != null) {
-                assignedRider.setAvailable(true);
-                assignedRider.setAssigned(false);
-
-                updateRiderStatusInFile(true, false);
-            }
+            return;
         }
+
+        long elapsedMs = Instant.now().toEpochMilli() - startTime.toEpochMilli();
+        long prepMs = minutesToMs(prepMinutes);
+        long deliveryMs = minutesToMs(estimatedDeliveryMinutes);
+
+        String correctStatus;
+        if (elapsedMs >= deliveryMs)
+            correctStatus = "Delivered";
+        else if (elapsedMs >= prepMs)
+            correctStatus = "Out for Delivery";
+        else
+            correctStatus = "Preparing";
+
+        currentStatus = correctStatus;
+        if (order != null)
+            order.updateStatus(correctStatus);
+
+        // No timer started — deserialized copies are read-only snapshots.
+        // The live timer in the session customer object handles all updates.
     }
 }

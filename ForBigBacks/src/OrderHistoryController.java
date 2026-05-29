@@ -1,10 +1,12 @@
-// Updated: saveCustomer() now catches FileHandler.FileOperationException
-
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.util.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,8 @@ public class OrderHistoryController {
     private VBox ordersContainer;
 
     private Customer customer;
+    private Timeline refreshTimer;
+    private static final int REFRESH_SECONDS = 2;
 
     @FXML
     public void initialize() {
@@ -25,7 +29,54 @@ public class OrderHistoryController {
             SceneManager.getInstance().switchTo("Login");
             return;
         }
+
+        // Stop refresh when scene is torn down
+        ordersContainer.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null)
+                stopRefresh();
+        });
+
         loadOrders();
+        startRefresh();
+    }
+
+    private void startRefresh() {
+        stopRefresh();
+        refreshTimer = new Timeline(new KeyFrame(
+                Duration.seconds(REFRESH_SECONDS), e -> refreshFromSession()));
+        refreshTimer.setCycleCount(Timeline.INDEFINITE);
+        refreshTimer.play();
+    }
+
+    private void stopRefresh() {
+        if (refreshTimer != null) {
+            refreshTimer.stop();
+            refreshTimer = null;
+        }
+    }
+
+    // Read directly from the session customer — it holds the live timer object.
+    // No disk read here, so no deserialization, no duplicate timers.
+    private void refreshFromSession() {
+        Customer sessionCustomer = SessionManager.getInstance().getCurrentCustomer();
+        if (sessionCustomer == null) {
+            stopRefresh();
+            return;
+        }
+        customer = sessionCustomer;
+
+        boolean anyActive = false;
+        for (Order o : customer.viewOrderHistory()) {
+            String s = o.getStatus();
+            if (!"Delivered".equals(s) && !"Cancelled".equals(s)) {
+                anyActive = true;
+                break;
+            }
+        }
+
+        loadOrders();
+        if (!anyActive)
+            stopRefresh();
     }
 
     private void loadOrders() {
@@ -40,24 +91,19 @@ public class OrderHistoryController {
             return;
         }
 
-        for (int i = history.size() - 1; i >= 0; i--) {
+        for (int i = history.size() - 1; i >= 0; i--)
             ordersContainer.getChildren().add(createOrderCard(history.get(i)));
-        }
     }
 
     private VBox buildEmptyState() {
         VBox box = new VBox(12);
         box.getStyleClass().add("dashboard-empty-state");
-
         Label icon = new Label("📋");
         icon.getStyleClass().add("dashboard-empty-icon");
-
         Label msg = new Label("No orders yet");
         msg.getStyleClass().add("dashboard-empty-title");
-
         Label sub = new Label("Place an order to see it here");
         sub.getStyleClass().add("text-screen-subheading");
-
         box.getChildren().addAll(icon, msg, sub);
         return box;
     }
@@ -85,7 +131,6 @@ public class OrderHistoryController {
 
         Label idLabel = new Label(order.getOrderID());
         idLabel.getStyleClass().add("dashboard-order-id-label");
-
         idBox.getChildren().addAll(typeLabel, idLabel);
 
         Label statusBadge = new Label(order.getStatus());
@@ -99,7 +144,6 @@ public class OrderHistoryController {
 
         VBox body = new VBox(5);
         body.getStyleClass().add("dashboard-order-card-body");
-
         for (FoodItem item : order.getItems()) {
             Label itemLabel = new Label(
                     item.getName() + "  ×" + item.getQuantity()
@@ -120,6 +164,7 @@ public class OrderHistoryController {
             Button trackBtn = new Button("Track Order →");
             trackBtn.getStyleClass().add("dashboard-order-track-button");
             trackBtn.setOnAction(e -> {
+                stopRefresh();
                 SessionManager.getInstance().setSelectedOrder(order);
                 SceneManager.getInstance().switchTo("OrderTracking");
             });
@@ -149,12 +194,10 @@ public class OrderHistoryController {
             footer.getChildren().add(rateBtn);
         }
 
-        if (!footer.getChildren().isEmpty()) {
+        if (!footer.getChildren().isEmpty())
             card.getChildren().add(footer);
-        }
 
         card.getChildren().add(ratingPanel);
-
         return card;
     }
 
@@ -195,7 +238,8 @@ public class OrderHistoryController {
                     starBtn.setOnMouseExited(e -> resetStars(stars));
                     starBtn.setOnAction(e -> {
                         try {
-                            ratingService.rateFoodItem(customer, order, item.getFoodID(), starValue);
+                            ratingService.rateFoodItem(customer, order,
+                                    item.getFoodID(), starValue);
                         } catch (IllegalArgumentException ex) {
                             System.out.println("Rating error: " + ex.getMessage());
                         }
@@ -206,10 +250,8 @@ public class OrderHistoryController {
                 }
                 row.getChildren().add(stars);
             }
-
             panel.getChildren().add(row);
         }
-
         return panel;
     }
 
@@ -230,28 +272,25 @@ public class OrderHistoryController {
         for (javafx.scene.Node n : stars.getChildren()) {
             Button b = (Button) n;
             b.getStyleClass().remove("dashboard-order-star-button-hover");
-            if (!b.getStyleClass().contains("dashboard-order-star-button")) {
+            if (!b.getStyleClass().contains("dashboard-order-star-button"))
                 b.getStyleClass().add("dashboard-order-star-button");
-            }
         }
     }
 
     private boolean hasUnratedItems(Order order) {
-        for (FoodItem item : order.getItems()) {
+        for (FoodItem item : order.getItems())
             if (!order.hasRated(item.getFoodID()))
                 return true;
-        }
         return false;
     }
 
     private boolean isCancellable(Order order) {
         String s = order.getStatus();
-        if (s.equals("Cancelled") || s.equals("Delivered") || s.equals("Out for Delivery")) {
+        if (s.equals("Cancelled") || s.equals("Delivered")
+                || s.equals("Out for Delivery"))
             return false;
-        }
-        if (order instanceof ScheduledOrder) {
+        if (order instanceof ScheduledOrder)
             return !((ScheduledOrder) order).isConfirmed();
-        }
         return true;
     }
 
@@ -294,16 +333,19 @@ public class OrderHistoryController {
 
     @FXML
     private void goHome() {
+        stopRefresh();
         SceneManager.getInstance().switchTo("CustomerDashboard");
     }
 
     @FXML
     private void goBrowse() {
+        stopRefresh();
         SceneManager.getInstance().switchTo("RestaurantBrowse");
     }
 
     @FXML
     private void goCart() {
+        stopRefresh();
         SceneManager.getInstance().switchTo("Cart");
     }
 
