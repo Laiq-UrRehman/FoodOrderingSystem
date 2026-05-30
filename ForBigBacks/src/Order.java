@@ -27,12 +27,12 @@ public class Order implements Serializable {
     private String paymentMethod = "CASH"; // "CASH" or "CARD"
     private double discountApplied = 0;
 
-    public double getDiscountApplied() { 
-        return discountApplied; 
+    public double getDiscountApplied() {
+        return discountApplied;
     }
-    
-    public void setDiscountApplied(double d) { 
-        this.discountApplied = d; 
+
+    public void setDiscountApplied(double d) {
+        this.discountApplied = d;
     }
 
     public String getPaymentMethod() {
@@ -43,11 +43,12 @@ public class Order implements Serializable {
         this.paymentMethod = paymentMethod;
     }
 
-    public int getRedeemedPoints() { 
-        return redeemedPoints; 
+    public int getRedeemedPoints() {
+        return redeemedPoints;
     }
-    public void setRedeemedPoints(int pts) { 
-        this.redeemedPoints = pts; 
+
+    public void setRedeemedPoints(int pts) {
+        this.redeemedPoints = pts;
     }
 
     private List<String> ratedFoodIDs = new ArrayList<>();
@@ -86,7 +87,6 @@ public class Order implements Serializable {
 
     public void updateStatus(String newStatus) {
         this.status = newStatus;
-        System.out.println("Order status updated to: " + status);
     }
 
     public void cancelOrder() {
@@ -131,7 +131,8 @@ public class Order implements Serializable {
         }
     }
 
-    public void proceedWithCardPayment(String cardNumber, String cardHolderName, String expiryDate, Restaurant restaurant, Customer customer, java.util.List<Rider> riders) {
+    public void proceedWithCardPayment(String cardNumber, String cardHolderName, String expiryDate,
+            Restaurant restaurant, Customer customer, java.util.List<Rider> riders) {
         if ("Cancelled".equals(status)) {
             System.out.println("Cannot proceed to payment. Order is cancelled.");
             return;
@@ -158,7 +159,7 @@ public class Order implements Serializable {
         return tracking;
     }
 
-    private void readObject(java.io.ObjectInputStream in)throws java.io.IOException, ClassNotFoundException {
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
         in.defaultReadObject();
         if (ratedFoodIDs == null) {
             ratedFoodIDs = new ArrayList<>();

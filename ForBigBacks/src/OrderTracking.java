@@ -70,6 +70,7 @@ public class OrderTracking implements Serializable {
         String computed = computeStatus();
         if (order != null && !computed.equals(order.getStatus())) {
             order.updateStatus(computed);
+            System.out.println("[Tracking " + trackingID + "] Status → " + computed);
         }
         currentStatus = computed;
         return currentStatus;
@@ -77,8 +78,6 @@ public class OrderTracking implements Serializable {
 
     private void startStatusUpdates() {
         statusTimer = new Timer(true);
-        long prepMs = minutesToMs(prepMinutes);
-        long deliveryMs = minutesToMs(estimatedDeliveryMinutes);
 
         statusTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -97,10 +96,11 @@ public class OrderTracking implements Serializable {
                     String status = computeStatus();
                     boolean changed = !status.equals(currentStatus);
                     currentStatus = status;
-                    if (order != null)
-                        order.updateStatus(status);
 
                     if (changed) {
+                        if (order != null)
+                            order.updateStatus(status);
+
                         System.out.println("[Tracking " + trackingID + "] Status → " + status);
                         saveCustomerToDisk();
 
@@ -116,7 +116,7 @@ public class OrderTracking implements Serializable {
                     }
                 });
             }
-        }, minutesToMs(0), 1000L); // tick every second
+        }, minutesToMs(0), 1000L);
     }
 
     private void assignClosestRider(List<Rider> riders) {
@@ -150,7 +150,9 @@ public class OrderTracking implements Serializable {
         this.distanceRiderToRestaurant = minDistance;
         updateRiderStatusInFile(false, true);
 
-        System.out.println("[Tracking] Rider assigned: " + closest.getName() + " | Distance to restaurant: " + String.format("%.2f", minDistance) + " units");
+        System.out.println("[Tracking] Rider assigned: " + closest.getName()
+                + " | Distance to restaurant: "
+                + String.format("%.2f", minDistance) + " units");
     }
 
     private void calculateDistancesAndTime() {
@@ -163,7 +165,8 @@ public class OrderTracking implements Serializable {
         int travelMinutes = (int) Math.ceil(distanceRestaurantToCustomer);
         this.estimatedDeliveryMinutes = prepMinutes + travelMinutes;
 
-        System.out.println("[Tracking] ETA: " + estimatedDeliveryMinutes + " minutes (" + prepMinutes + " prep + " + travelMinutes + " travel)");
+        System.out.println("[Tracking] ETA: " + estimatedDeliveryMinutes + " minutes ("
+                + prepMinutes + " prep + " + travelMinutes + " travel)");
     }
 
     private void saveCustomerToDisk() {
@@ -181,7 +184,6 @@ public class OrderTracking implements Serializable {
                 }
             }
             fh.saveArray(all, "customers.dat");
-            System.out.println("[Tracking] Customer saved. Status: " + currentStatus);
         } catch (FileHandler.FileOperationException e) {
             System.out.println("[Tracking] Could not save customer: " + e.getMessage());
         }
