@@ -24,6 +24,15 @@ public class Order implements Serializable {
     private OrderTracking tracking;
     private double deliveryFee;
     private int redeemedPoints = 0;
+    private String paymentMethod = "CASH"; // "CASH" or "CARD"
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
 
     public int getRedeemedPoints() { 
         return redeemedPoints; 
@@ -147,6 +156,9 @@ public class Order implements Serializable {
         }
         if (ratingValues == null) {
             ratingValues = new HashMap<>();
+        }
+        if (paymentMethod == null) {
+            paymentMethod = "CASH";
         }
     }
 

@@ -10,8 +10,13 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -192,9 +197,14 @@ public class OrderHistoryController {
             Button cancelBtn = new Button("Cancel Order");
             cancelBtn.getStyleClass().add("dashboard-order-cancel-button");
             cancelBtn.setOnAction(e -> {
+                double refundAmount = order.getGrandTotal();
+                boolean isCard = "CARD".equals(order.getPaymentMethod());
+
                 customer.cancelOrder(order.getOrderID());
                 saveCustomer();
                 loadOrders();
+
+                showCancelModal(isCard, (int) refundAmount);
             });
             footer.getChildren().add(cancelBtn);
         }
@@ -423,6 +433,96 @@ public class OrderHistoryController {
             default:
                 return "order-status-pending";
         }
+    }
+
+
+    private void showCancelModal(boolean isCard, int refundAmount) {
+        Stage modal = new Stage();
+        modal.initModality(Modality.APPLICATION_MODAL);
+        modal.initStyle(StageStyle.TRANSPARENT);
+
+        Label icon = new Label(isCard ? "\uD83D\uDCB3" : "\u2713");
+        icon.setStyle("-fx-font-size: 28px;");
+
+        Label title = new Label("Order Cancelled");
+        title.setStyle(
+            "-fx-text-fill: white;" +
+            "-fx-font-size: 18px;" +
+            "-fx-font-weight: bold;"
+        );
+
+        HBox titleRow = new HBox(12, icon, title);
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+
+        Separator sep = new Separator();
+        sep.setStyle("-fx-background-color: #333333;");
+
+        Label body = new Label("Your order has been cancelled.");
+        body.setStyle("-fx-text-fill: #cccccc; -fx-font-size: 14px;");
+        body.setWrapText(true);
+
+        VBox content = new VBox(8, titleRow, sep, body);
+
+        if (isCard) {
+            Label refundLine = new Label(
+                "Rs. " + refundAmount + " has been refunded to your credit card."
+            );
+            refundLine.setStyle(
+                "-fx-text-fill: #8B5E3C;" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: bold;"
+            );
+            refundLine.setWrapText(true);
+            content.getChildren().add(refundLine);
+        }
+
+        Button okBtn = new Button("OK");
+        String btnBase =
+            "-fx-background-color: #8B5E3C;" +
+            "-fx-text-fill: white;" +
+            "-fx-font-size: 14px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-padding: 9 32;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;";
+        String btnHover =
+            "-fx-background-color: #6F4A2F;" +
+            "-fx-text-fill: white;" +
+            "-fx-font-size: 14px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-padding: 9 32;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;";
+        okBtn.setStyle(btnBase);
+        okBtn.setOnMouseEntered(e -> okBtn.setStyle(btnHover));
+        okBtn.setOnMouseExited(e -> okBtn.setStyle(btnBase));
+        okBtn.setOnAction(e -> modal.close());
+
+        HBox btnRow = new HBox(okBtn);
+        btnRow.setAlignment(Pos.CENTER_RIGHT);
+        VBox.setMargin(btnRow, new Insets(6, 0, 0, 0));
+        content.getChildren().add(btnRow);
+
+        VBox card = new VBox(content);
+        card.setStyle(
+            "-fx-background-color: #242424;" +
+            "-fx-background-radius: 14;" +
+            "-fx-border-color: #3a3a3a;" +
+            "-fx-border-radius: 14;" +
+            "-fx-border-width: 1;" +
+            "-fx-padding: 28 32;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 24, 0, 0, 6);"
+        );
+        card.setPrefWidth(360);
+
+        StackPane root = new StackPane(card);
+        root.setStyle("-fx-background-color: transparent;");
+        root.setPadding(new Insets(16));
+
+        Scene scene = new Scene(root);
+        scene.setFill(Color.TRANSPARENT);
+        modal.setScene(scene);
+        modal.showAndWait();
     }
 
     private void saveCustomer() {

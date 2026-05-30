@@ -272,6 +272,7 @@ public class ScheduledOrderController {
             return;
         }
 
+        order.setPaymentMethod(isCardPayment ? "CARD" : "CASH");
         customer.placeOrder(order);
         saveCustomer();
 

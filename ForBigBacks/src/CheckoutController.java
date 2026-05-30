@@ -258,6 +258,7 @@ public class CheckoutController {
             return;
         }
         order.setDeliveryFee(Cart.DELIVERY_FEE);
+        order.setPaymentMethod(isCardPayment ? "CARD" : "CASH");
         customer.placeOrder(order);
 
         FileHandler<Rider> riderFH = new FileHandler<>();
