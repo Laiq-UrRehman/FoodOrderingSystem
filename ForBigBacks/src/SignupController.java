@@ -1,8 +1,8 @@
-// Updated: loadArray() FileOperationException now checked — "file not found" treated as empty customer list instead of error
-// Updated: Password validation — minimum 6 characters and at least one special character required
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class SignupController {
 
@@ -22,6 +22,16 @@ public class SignupController {
     private TextField passwordVisible;
     @FXML
     private Button togglePasswordBtn;
+    @FXML
+    private ImageView logoImageView;
+
+    @FXML
+    private void initialize() {
+        java.io.File imgFile = new java.io.File("src/FORBIGBACKS1 Logo.png");
+        if (imgFile.exists()) {
+            logoImageView.setImage(new Image(imgFile.toURI().toString()));
+        }
+    }
 
     @FXML
     private void handleSignup() {
@@ -75,15 +85,12 @@ public class SignupController {
         try {
             existing = fh.loadArray("customers.dat");
         } catch (FileHandler.FileOperationException e) {
-            // If the file simply does not exist yet that is fine — treat as empty list.
-            // Only bail out if it is a real IO problem (not a missing-file problem).
             if (!e.getMessage().toLowerCase().contains("file not found")
                     && !e.getMessage().toLowerCase().contains("not found")) {
                 errorLabel.setText("Could not load customer data. Please try again.");
                 System.out.println("Signup load error: " + e.getMessage());
                 return;
             }
-            // existing stays null → treated as empty below
         }
 
         int count = (existing == null) ? 0 : existing.length;

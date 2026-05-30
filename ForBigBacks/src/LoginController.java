@@ -1,5 +1,7 @@
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class LoginController {
 
@@ -17,9 +19,19 @@ public class LoginController {
     private TextField passwordVisible;
     @FXML
     private Button togglePasswordBtn;
+    @FXML
+    private ImageView logoImageView;
 
     private boolean isCustomerLogin = true;
     private final LoginManager loginManager = new LoginManager();
+
+    @FXML
+    private void initialize() {
+        java.io.File imgFile = new java.io.File("src/FORBIGBACKS1 Logo.png");
+        if (imgFile.exists()) {
+            logoImageView.setImage(new Image(imgFile.toURI().toString()));
+        }
+    }
 
     @FXML
     private void switchToCustomer() {

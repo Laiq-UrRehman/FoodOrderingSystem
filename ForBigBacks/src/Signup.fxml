@@ -6,26 +6,35 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <HBox prefHeight="800" prefWidth="1280" styleClass="login-signup-screen-background" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="SignupController">
 
-    <!-- LEFT PANEL -->
-    <VBox alignment="CENTER" prefHeight="800" prefWidth="500" spacing="14" styleClass="login-signup-left-panel">
+   <!-- LEFT PANEL -->
+<VBox alignment="CENTER" prefHeight="800" prefWidth="500" spacing="4" styleClass="login-signup-left-panel">
 
-        <HBox alignment="CENTER">
-    <Label styleClass="login-signup-logo-text" text="FOR" />
-    <Label styleClass="login-signup-logo-text" text="BIG" style="-fx-text-fill: #8B5E3C;" />
-    <Label styleClass="login-signup-logo-text" text="BACKS" />
-</HBox>
+    <!-- Logo Image -->
+    <ImageView fx:id="logoImageView" fitWidth="300" fitHeight="300" preserveRatio="true" smooth="true" translateY="-30" />
 
-        <Region prefHeight="3" prefWidth="60" styleClass="login-signup-logo-underline" />
+    <!-- FORBIGBACKS wordmark -->
+    <HBox alignment="CENTER">
+        <VBox.margin>
+            <Insets top="-45" />
+        </VBox.margin>
+        <Label styleClass="login-signup-logo-text" text="FOR" />
+        <Label styleClass="login-signup-logo-text" text="BIG" style="-fx-text-fill: #8B5E3C;" />
+        <Label styleClass="login-signup-logo-text" text="BACKS" />
+    </HBox>
 
-        <Label styleClass="login-signup-tagline-text" text="EAT YO FOOD STOOPID!" />
+    <Region prefHeight="3" prefWidth="60" styleClass="login-signup-logo-underline" />
 
-    </VBox>
+    <Label styleClass="login-signup-tagline-text" text="EAT YO FOOD STOOPID!" />
+
+</VBox>
 
     <!-- RIGHT PANEL -->
     <VBox alignment="CENTER_LEFT" prefHeight="800" prefWidth="780" styleClass="login-signup-right-panel">
