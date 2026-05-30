@@ -294,6 +294,7 @@ public class CheckoutController {
         }
 
         saveCustomer();
+        ReceiptModal.show(order, customer, restaurant);
         SceneManager.getInstance().switchTo("OrderHistory");
     }
 

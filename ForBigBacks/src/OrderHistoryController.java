@@ -209,6 +209,16 @@ public class OrderHistoryController {
             footer.getChildren().add(cancelBtn);
         }
 
+        if ("Delivered".equals(liveStatus)) {
+            Button receiptBtn = new Button("Receipt  🧾");
+            receiptBtn.getStyleClass().add("dashboard-order-track-button");
+            receiptBtn.setOnAction(e -> {
+                Restaurant orderRestaurant = findRestaurantForOrder(order);
+                ReceiptModal.show(order, customer, orderRestaurant);
+            });
+            footer.getChildren().add(receiptBtn);
+        }
+
         // Show "Rate Order" button for all delivered orders — ratings can always be
         // changed
         if ("Delivered".equals(liveStatus)) {
@@ -435,6 +445,26 @@ public class OrderHistoryController {
         }
     }
 
+
+    private Restaurant findRestaurantForOrder(Order order) {
+        FileHandler<Restaurant> fh = new FileHandler<>();
+        try {
+            Restaurant[] restaurants = fh.loadArray("restaurants.dat");
+            if (restaurants == null) return null;
+            for (Restaurant r : restaurants) {
+                for (FoodItem item : order.getItems()) {
+                    for (FoodItem menuItem : r.getMenu().getItems()) {
+                        if (menuItem.getFoodID().equals(item.getFoodID())) {
+                            return r;
+                        }
+                    }
+                }
+            }
+        } catch (FileHandler.FileOperationException e) {
+            System.out.println("Could not load restaurants for receipt: " + e.getMessage());
+        }
+        return null;
+    }
 
     private void showCancelModal(boolean isCard, int refundAmount) {
         Stage modal = new Stage();
