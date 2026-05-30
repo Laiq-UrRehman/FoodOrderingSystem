@@ -48,6 +48,12 @@ public class LoyaltyPoints implements Serializable {
         return pointsBalance;
     }
 
+    public void deductPoints(double orderTotalPKR) {
+        int toDeduct = (int) (orderTotalPKR / 100) * POINTS_PER_100_PKR;
+        pointsBalance = Math.max(0, pointsBalance - toDeduct);
+        System.out.println("Deducted " + toDeduct + " points due to cancellation. Balance: " + pointsBalance + " pts.");
+    }
+
     public void earnPoints(double orderTotalPKR) {
         int earned = (int) (orderTotalPKR / 100) * POINTS_PER_100_PKR;
         pointsBalance += earned;
