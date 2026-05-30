@@ -68,14 +68,14 @@
                 <VBox styleClass="dashboard-cart-summary-card" spacing="14">
 
                     <HBox alignment="CENTER_LEFT">
-                        <Label text="Subtotal" styleClass="dashboard-stat-label" HBox.hgrow="ALWAYS"/>
+                        <Label text="Subtotal " styleClass="dashboard-stat-label" HBox.hgrow="ALWAYS"/>
                         <Label fx:id="subtotalLabel" text="Rs. 0" styleClass="dashboard-menu-item-price"/>
                     </HBox>
 
                     <Region prefHeight="1" style="-fx-background-color: #2a2a2a;"/>
 
                     <HBox alignment="CENTER_LEFT">
-                        <Label text="TOTAL" styleClass="dashboard-topbar-greeting" HBox.hgrow="ALWAYS"/>
+                        <Label text="TOTAL " styleClass="dashboard-topbar-greeting" HBox.hgrow="ALWAYS"/>
                         <Label fx:id="totalLabel" text="Rs. 0" styleClass="dashboard-checkout-total"/>
                     </HBox>
 

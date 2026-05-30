@@ -23,6 +23,8 @@ public class CheckoutController {
     @FXML
     private Label discountLabel;
     @FXML
+    private Label deliveryFeeLabel;
+    @FXML
     private Label totalLabel;
     @FXML
     private VBox cardFieldsContainer;
@@ -168,9 +170,10 @@ public class CheckoutController {
     private void updateTotalDisplay() {
         int subtotal = (int) cart.getTotal();
         int total = (int) Math.max(0, subtotal - discount);
-        subtotalLabel.setText("Rs. " + subtotal);
+        subtotalLabel.setText("- Rs. " + subtotal);
         discountLabel.setText("- Rs. " + (int) discount);
-        totalLabel.setText("Rs. " + total);
+        deliveryFeeLabel.setText("- Calculated at placement");
+        totalLabel.setText("Rs. " + total + " + delivery");
     }
 
     @FXML

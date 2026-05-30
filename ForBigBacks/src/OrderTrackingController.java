@@ -238,7 +238,12 @@ public class OrderTrackingController {
         card.getChildren().add(makeCardTitle("ORDER DETAILS"));
         card.getChildren().add(makeDivider());
         card.getChildren().add(makeInfoRow("Order ID: ", order.getOrderID()));
-        card.getChildren().add(makeInfoRow("Total: ", "Rs. " + (int) order.getTotalAmount()));
+        card.getChildren().add(makeInfoRow("Food Total: ", 
+                "Rs. " + (int) order.getTotalAmount()));
+        card.getChildren().add(makeInfoRow("Delivery Fee: ", 
+                "Rs. " + (int) order.getDeliveryFee()));
+        card.getChildren().add(makeInfoRow("Grand Total: ", 
+                "Rs. " + (int) order.getGrandTotal()));
         card.getChildren().add(makeDivider());
         card.getChildren().add(makeCardTitle("ITEMS"));
         for (FoodItem item : order.getItems()) {
@@ -270,7 +275,7 @@ public class OrderTrackingController {
             card.getChildren().add(makeInfoRow("Name: ", rider.getName()));
             card.getChildren().add(makeInfoRow("Vehicle: ", rider.getVehicleType()));
             card.getChildren().add(makeInfoRow("Rider → Restaurant: ",
-                    String.format("%.1f units", tracking.getDistanceRiderToRestaurant())));
+                    String.format("%.1f km", tracking.getDistanceRiderToRestaurant())));
         }
         return card;
     }
@@ -283,9 +288,11 @@ public class OrderTrackingController {
         card.getChildren().add(makeDivider());
         card.getChildren().add(makeInfoRow("Tracking ID: ", tracking.getTrackingID()));
         card.getChildren().add(makeInfoRow("Restaurant → You: ",
-                String.format("%.1f units", tracking.getDistanceRestaurantToCustomer())));
+                String.format("%.1f km", tracking.getDistanceRestaurantToCustomer())));
         card.getChildren().add(makeInfoRow("Total ETA: ",
                 tracking.getEstimatedDeliveryMinutes() + " mins"));
+        card.getChildren().add(makeInfoRow("Delivery Fee: ",
+                "Rs. " + (int) order.getDeliveryFee()));
         return card;
     }
 

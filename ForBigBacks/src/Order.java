@@ -22,6 +22,7 @@ public class Order implements Serializable {
     private final List<FoodItem> items;
     private final double totalAmount;
     private OrderTracking tracking;
+    private double deliveryFee;
 
     private List<String> ratedFoodIDs = new ArrayList<>();
     private Map<String, Double> ratingValues = new HashMap<>();
@@ -47,6 +48,14 @@ public class Order implements Serializable {
 
     public double getTotalAmount() {
         return totalAmount;
+    }
+
+    public double getDeliveryFee() {
+        return deliveryFee;
+    }
+
+    public void setDeliveryFee(double deliveryFee) {
+        this.deliveryFee = deliveryFee;
     }
 
     public void updateStatus(String newStatus) {
@@ -85,8 +94,7 @@ public class Order implements Serializable {
         }
     }
 
-    public void proceedWithCashPayment(Restaurant restaurant, Customer customer,
-            java.util.List<Rider> riders) {
+    public void proceedWithCashPayment(Restaurant restaurant, Customer customer, java.util.List<Rider> riders) {
         if ("Cancelled".equals(status)) {
             System.out.println("Cannot proceed to payment. Order is cancelled.");
             return;
@@ -97,9 +105,7 @@ public class Order implements Serializable {
         }
     }
 
-    public void proceedWithCardPayment(String cardNumber, String cardHolderName,
-            String expiryDate, Restaurant restaurant, Customer customer,
-            java.util.List<Rider> riders) {
+    public void proceedWithCardPayment(String cardNumber, String cardHolderName, String expiryDate, Restaurant restaurant, Customer customer, java.util.List<Rider> riders) {
         if ("Cancelled".equals(status)) {
             System.out.println("Cannot proceed to payment. Order is cancelled.");
             return;
@@ -116,8 +122,7 @@ public class Order implements Serializable {
         }
     }
 
-    private void initTracking(Restaurant restaurant, Customer customer,
-            java.util.List<Rider> riders) {
+    private void initTracking(Restaurant restaurant, Customer customer, java.util.List<Rider> riders) {
         String trackingID = "TRK-" + orderID;
         this.tracking = new OrderTracking(trackingID, this, restaurant, customer, riders);
         System.out.println("[Order] Tracking started: " + trackingID);
@@ -127,8 +132,7 @@ public class Order implements Serializable {
         return tracking;
     }
 
-    private void readObject(java.io.ObjectInputStream in)
-            throws java.io.IOException, ClassNotFoundException {
+    private void readObject(java.io.ObjectInputStream in)throws java.io.IOException, ClassNotFoundException {
         in.defaultReadObject();
         if (ratedFoodIDs == null) {
             ratedFoodIDs = new ArrayList<>();
@@ -136,5 +140,9 @@ public class Order implements Serializable {
         if (ratingValues == null) {
             ratingValues = new HashMap<>();
         }
+    }
+
+    public double getGrandTotal() {
+        return totalAmount + deliveryFee;
     }
 }

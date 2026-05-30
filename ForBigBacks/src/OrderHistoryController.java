@@ -150,7 +150,11 @@ public class OrderHistoryController {
         Label statusBadge = new Label(liveStatus);
         statusBadge.getStyleClass().addAll("dashboard-order-status-badge", getStatusClass(liveStatus));
 
-        Label totalLabel = new Label("Rs. " + (int) order.getTotalAmount());
+        double fee = order.getDeliveryFee();
+        String totalText = fee > 0
+                ? "Rs. " + (int) order.getGrandTotal() + "  (incl. Rs. " + (int) fee + " delivery)"
+                : "Rs. " + (int) order.getTotalAmount();
+        Label totalLabel = new Label(totalText);
         totalLabel.getStyleClass().add("dashboard-order-total");
 
         header.getChildren().addAll(idBox, statusBadge, totalLabel);

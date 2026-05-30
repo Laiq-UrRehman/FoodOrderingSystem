@@ -69,13 +69,19 @@
                         <HBox alignment="CENTER_LEFT">
                             <Label text="Discount" styleClass="dashboard-stat-label" HBox.hgrow="ALWAYS"/>
                             <Label fx:id="discountLabel" text="- Rs. 0"
-                                   style="-fx-text-fill: #4a7c59; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                                style="-fx-text-fill: #4a7c59; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Delivery Fee" styleClass="dashboard-stat-label" HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="deliveryFeeLabel" text="Calculated at placement"
+                                style="-fx-text-fill: #888888; -fx-font-size: 13px;"/>
                         </HBox>
 
                         <Region prefHeight="1" style="-fx-background-color: #2a2a2a;"/>
 
                         <HBox alignment="CENTER_LEFT">
-                            <Label text="TOTAL" styleClass="dashboard-topbar-greeting"
+                            <Label text="TOTAL " styleClass="dashboard-topbar-greeting"
                                    HBox.hgrow="ALWAYS"/>
                             <Label fx:id="totalLabel" text="Rs. 0"
                                    styleClass="dashboard-checkout-total"/>

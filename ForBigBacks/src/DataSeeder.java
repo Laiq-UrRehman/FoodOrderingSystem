@@ -1,5 +1,3 @@
-// Updated: Added 2 RestaurantOffers per restaurant (r1–r15) before the final save call
-
 import java.util.ArrayList;
 
 public class DataSeeder {
@@ -14,6 +12,7 @@ public class DataSeeder {
 
                 // ── Shared customization groups ──────────────────────────────────────────
 
+        
                 CustomizationGroup spiceGroup = new CustomizationGroup("Spice Level");
                 spiceGroup.addOption("Mild", 0);
                 spiceGroup.addOption("Medium", 0);
@@ -22,6 +21,11 @@ public class DataSeeder {
                 CustomizationGroup cheeseGroup = new CustomizationGroup("Extra Cheese");
                 cheeseGroup.addOption("No", 0);
                 cheeseGroup.addOption("Yes", 50);
+
+                CustomizationGroup cupSizeGroup = new CustomizationGroup("Cup Size");
+                cupSizeGroup.addOption("Small", 0);
+                cupSizeGroup.addOption("Medium", 50);
+                cupSizeGroup.addOption("Large", 100);
 
                 FoodItem f001 = new FoodItem("F001", "Chicken Burger", 400, "Burger", 1);
                 f001.addCustomizationGroup(spiceGroup);
@@ -57,12 +61,14 @@ public class DataSeeder {
 
                 FoodItem f001e = new FoodItem("F001E", "Soft Drink", 120, "Drinks", 1);
                 f001e.rate(4.0);
+                f001e.addCustomizationGroup(cupSizeGroup);
 
                 CustomizationGroup softDrinkGroup = new CustomizationGroup("Flavor");
                 softDrinkGroup.addOption("Cola", 0);
                 softDrinkGroup.addOption("Lemon Lime", 0);
                 softDrinkGroup.addOption("Orange", 0);
                 f001e.addCustomizationGroup(softDrinkGroup);
+
                 Menu menu1 = new Menu("M001", new ArrayList<>());
                 menu1.addItem(f001);
                 menu1.addItem(f002);
@@ -89,16 +95,13 @@ public class DataSeeder {
 
                 r1.setAdmin(a1);
 
-                r1.addRestaurantOffer(new RestaurantOffer("RO-R001-1", "Weekend Deal", "20% off all Burgers", 20.0));
-                r1.addRestaurantOffer(
-                                new RestaurantOffer("RO-R001-2", "Combo Saver", "15% off Sides with any Burger", 15.0));
-
                 // ================= RESTAURANT 2 =================
                 Menu menu2 = new Menu("M002", new ArrayList<>());
 
                 FoodItem f003 = new FoodItem("F003", "Pepperoni Pizza", 900, "Pizza", 1);
                 f003.rate(4.9);
                 f003.rate(4.8);
+
                 CustomizationGroup sizeGroupPizza = new CustomizationGroup("Size");
                 sizeGroupPizza.addOption("Small", 0);
                 sizeGroupPizza.addOption("Medium", 500);
@@ -131,6 +134,7 @@ public class DataSeeder {
                 FoodItem f003e = new FoodItem("F003E", "Iced Tea", 160, "Drinks", 1);
                 f003e.rate(4.1);
                 f003e.rate(4.3);
+                f003e.addCustomizationGroup(cupSizeGroup);
 
                 menu2.addItem(f003);
                 menu2.addItem(f004);
@@ -155,11 +159,6 @@ public class DataSeeder {
                                 "admin2", "123", r2);
 
                 r2.setAdmin(a2);
-
-                r2.addRestaurantOffer(new RestaurantOffer("RO-R002-1", "Pizza Tuesday",
-                                "25% off all Pizzas on Tuesdays", 25.0));
-                r2.addRestaurantOffer(new RestaurantOffer("RO-R002-2", "Sides Deal",
-                                "10% off Garlic Bread with any Pizza", 10.0));
 
                 // ================= RESTAURANT 3 =================
                 Menu menu3 = new Menu("M003", new ArrayList<>());
@@ -193,6 +192,7 @@ public class DataSeeder {
 
                 FoodItem f005e = new FoodItem("F005E", "Rooh Afza", 100, "Drinks", 1);
                 f005e.rate(4.4);
+                f005e.addCustomizationGroup(cupSizeGroup);
 
                 menu3.addItem(f005);
                 menu3.addItem(f006);
@@ -217,11 +217,6 @@ public class DataSeeder {
                                 "admin3", "123", r3);
 
                 r3.setAdmin(a3);
-
-                r3.addRestaurantOffer(new RestaurantOffer("RO-R003-1", "Desi Feast",
-                                "20% off Karahi orders above Rs.1000", 20.0));
-                r3.addRestaurantOffer(
-                                new RestaurantOffer("RO-R003-2", "Bread Bonus", "Free Naan with any Biryani", 15.0));
 
                 // ================= RESTAURANT 4 =================
                 Menu menu4 = new Menu("M004", new ArrayList<>());
@@ -254,6 +249,7 @@ public class DataSeeder {
                 FoodItem f007f = new FoodItem("F007F", "Yuzu Lemonade", 280, "Drinks", 1);
                 f007f.rate(4.6);
                 f007f.rate(4.7);
+                f007f.addCustomizationGroup(cupSizeGroup);
 
                 menu4.addItem(f007);
                 menu4.addItem(f007b);
@@ -268,7 +264,7 @@ public class DataSeeder {
                                 "Bahria Town",
                                 "Japanese",
                                 menu4,
-                                new Location(25, 35));
+                                new Location(25, 28));
 
                 r4.rate(4.6);
                 r4.rate(4.7);
@@ -278,10 +274,6 @@ public class DataSeeder {
                                 "admin4", "123", r4);
 
                 r4.setAdmin(a4);
-
-                r4.addRestaurantOffer(
-                                new RestaurantOffer("RO-R004-1", "Sushi Monday", "20% off all Sushi Rolls", 20.0));
-                r4.addRestaurantOffer(new RestaurantOffer("RO-R004-2", "Ramen Night", "15% off Ramen after 7pm", 15.0));
 
                 // ================= RESTAURANT 5 =================
                 Menu menu5 = new Menu("M005", new ArrayList<>());
@@ -307,6 +299,7 @@ public class DataSeeder {
                 FoodItem f008d = new FoodItem("F008D", "Horchata", 200, "Drinks", 1);
                 f008d.rate(4.5);
                 f008d.rate(4.6);
+                f008d.addCustomizationGroup(cupSizeGroup);
 
                 FoodItem f008e = new FoodItem("F008E", "Agua Fresca", 180, "Drinks", 1);
                 f008e.rate(4.2);
@@ -330,7 +323,7 @@ public class DataSeeder {
                                 "Model Town",
                                 "Mexican",
                                 menu5,
-                                new Location(30, 40));
+                                new Location(28, 26));
 
                 r5.rate(4.3);
                 r5.rate(4.4);
@@ -340,10 +333,6 @@ public class DataSeeder {
                                 "admin5", "123", r5);
 
                 r5.setAdmin(a5);
-
-                r5.addRestaurantOffer(new RestaurantOffer("RO-R005-1", "Taco Thursday", "20% off all Tacos", 20.0));
-                r5.addRestaurantOffer(new RestaurantOffer("RO-R005-2", "Nacho Upgrade", "15% off Nachos with any main",
-                                15.0));
 
                 // ================= RESTAURANT 6 =================
                 Menu menu6 = new Menu("M006", new ArrayList<>());
@@ -364,6 +353,7 @@ public class DataSeeder {
                 FoodItem f009d = new FoodItem("F009D", "Mango Lassi", 220, "Drinks", 1);
                 f009d.rate(4.8);
                 f009d.rate(4.9);
+                f009d.addCustomizationGroup(cupSizeGroup);
 
                 FoodItem f009e = new FoodItem("F009E", "Masala Chai", 100, "Drinks", 1);
                 f009e.rate(4.7);
@@ -387,7 +377,7 @@ public class DataSeeder {
                                 "Cantt",
                                 "Indian",
                                 menu6,
-                                new Location(35, 45));
+                                new Location(12, 18));
 
                 r6.rate(4.7);
                 r6.rate(4.8);
@@ -397,10 +387,6 @@ public class DataSeeder {
                                 "admin6", "123", r6);
 
                 r6.setAdmin(a6);
-
-                r6.addRestaurantOffer(new RestaurantOffer("RO-R006-1", "Curry Night", "20% off Butter Chicken", 20.0));
-                r6.addRestaurantOffer(new RestaurantOffer("RO-R006-2", "Bread & Chai",
-                                "15% off Naan + Masala Chai combo", 15.0));
 
                 // ================= RESTAURANT 7 =================
                 Menu menu7 = new Menu("M007", new ArrayList<>());
@@ -424,9 +410,11 @@ public class DataSeeder {
                 FoodItem f010e = new FoodItem("F010E", "Lemonade Iced Tea", 190, "Drinks", 1);
                 f010e.rate(4.4);
                 f010e.rate(4.5);
+                f010e.addCustomizationGroup(cupSizeGroup);
 
                 FoodItem f010f = new FoodItem("F010F", "Sparkling Water", 100, "Drinks", 1);
                 f010f.rate(4.0);
+                f010f.addCustomizationGroup(cupSizeGroup);
 
                 menu7.addItem(f010);
                 menu7.addItem(f010b);
@@ -441,7 +429,7 @@ public class DataSeeder {
                                 "Wapda Town",
                                 "BBQ",
                                 menu7,
-                                new Location(40, 50));
+                                new Location(14, 22));
 
                 r7.rate(4.5);
                 r7.rate(4.6);
@@ -451,10 +439,6 @@ public class DataSeeder {
                                 "admin7", "123", r7);
 
                 r7.setAdmin(a7);
-
-                r7.addRestaurantOffer(new RestaurantOffer("RO-R007-1", "Wing Wednesday", "25% off BBQ Wings", 25.0));
-                r7.addRestaurantOffer(
-                                new RestaurantOffer("RO-R007-2", "Rib Feast", "15% off BBQ Ribs on weekends", 15.0));
 
                 // ================= RESTAURANT 8 =================
                 Menu menu8 = new Menu("M008", new ArrayList<>());
@@ -479,6 +463,7 @@ public class DataSeeder {
                 FoodItem f011e = new FoodItem("F011E", "Sparkling Lemon Water", 130, "Drinks", 1);
                 f011e.rate(4.2);
                 f011e.rate(4.3);
+                f011e.addCustomizationGroup(cupSizeGroup);
 
                 FoodItem f011f = new FoodItem("F011F", "Italian Soda", 200, "Drinks", 1);
                 f011f.rate(4.4);
@@ -503,7 +488,7 @@ public class DataSeeder {
                                 "Iqbal Town",
                                 "Italian",
                                 menu8,
-                                new Location(45, 55));
+                                new Location(16, 24));
 
                 r8.rate(4.4);
                 r8.rate(4.5);
@@ -514,21 +499,18 @@ public class DataSeeder {
 
                 r8.setAdmin(a8);
 
-                r8.addRestaurantOffer(
-                                new RestaurantOffer("RO-R008-1", "Pasta Friday", "20% off all Pasta dishes", 20.0));
-                r8.addRestaurantOffer(
-                                new RestaurantOffer("RO-R008-2", "Dolce Deal", "15% off Tiramisu with any main", 15.0));
-
                 // ================= RESTAURANT 9 =================
                 Menu menu9 = new Menu("M009", new ArrayList<>());
 
-                FoodItem f012 = new FoodItem("F012", "Cappuccino", 400, "drink", 1);
+                FoodItem f012 = new FoodItem("F012", "Cappuccino", 400, "Drinks", 1);
                 f012.rate(4.3);
                 f012.rate(4.4);
+                f012.addCustomizationGroup(cupSizeGroup);
 
-                FoodItem f012b = new FoodItem("F012B", "Caramel Latte", 450, "drink", 1);
+                FoodItem f012b = new FoodItem("F012B", "Caramel Latte", 450, "Drinks", 1);
                 f012b.rate(4.5);
                 f012b.rate(4.6);
+                f012b.addCustomizationGroup(cupSizeGroup);
 
                 CustomizationGroup milkGroup = new CustomizationGroup("Milk");
                 milkGroup.addOption("Full Fat", 0);
@@ -544,13 +526,15 @@ public class DataSeeder {
                 f012d.rate(4.3);
                 f012d.rate(4.4);
 
-                FoodItem f012e = new FoodItem("F012E", "Cold Brew Coffee", 420, "drink", 1);
+                FoodItem f012e = new FoodItem("F012E", "Cold Brew Coffee", 420, "Drinks", 1);
                 f012e.rate(4.6);
                 f012e.rate(4.7);
+                f012e.addCustomizationGroup(cupSizeGroup);
 
-                FoodItem f012f = new FoodItem("F012F", "Fresh Juice", 300, "drink", 1);
+                FoodItem f012f = new FoodItem("F012F", "Fresh Juice", 300, "Drinks", 1);
                 f012f.rate(4.5);
                 f012f.rate(4.6);
+                f012f.addCustomizationGroup(cupSizeGroup);
 
                 CustomizationGroup juiceGroup = new CustomizationGroup("Flavor");
                 juiceGroup.addOption("Orange", 0);
@@ -571,7 +555,7 @@ public class DataSeeder {
                                 "MM Alam Road",
                                 "Cafe",
                                 menu9,
-                                new Location(50, 60));
+                                new Location(18, 26));
 
                 r9.rate(4.2);
                 r9.rate(4.3);
@@ -581,11 +565,6 @@ public class DataSeeder {
                                 "admin9", "123", r9);
 
                 r9.setAdmin(a9);
-
-                r9.addRestaurantOffer(new RestaurantOffer("RO-R009-1", "Morning Brew", "20% off all Coffee before 11am",
-                                20.0));
-                r9.addRestaurantOffer(new RestaurantOffer("RO-R009-2", "Snack & Sip", "15% off Snacks with any Coffee",
-                                15.0));
 
                 // ================= RESTAURANT 10 =================
                 Menu menu10 = new Menu("M010", new ArrayList<>());
@@ -610,10 +589,12 @@ public class DataSeeder {
                 FoodItem f013e = new FoodItem("F013E", "Jallab Juice", 200, "Drinks", 1);
                 f013e.rate(4.6);
                 f013e.rate(4.7);
+                f013e.addCustomizationGroup(cupSizeGroup);
 
                 FoodItem f013f = new FoodItem("F013F", "Mint Lemonade", 180, "Drinks", 1);
                 f013f.rate(4.5);
                 f013f.rate(4.7);
+                f013f.addCustomizationGroup(cupSizeGroup);
 
                 menu10.addItem(f013);
                 menu10.addItem(f013b);
@@ -628,7 +609,7 @@ public class DataSeeder {
                                 "Township",
                                 "Arabic",
                                 menu10,
-                                new Location(55, 65));
+                                new Location(20, 28));
 
                 r10.rate(4.5);
                 r10.rate(4.6);
@@ -638,11 +619,6 @@ public class DataSeeder {
                                 "admin10", "123", r10);
 
                 r10.setAdmin(a10);
-
-                r10.addRestaurantOffer(
-                                new RestaurantOffer("RO-R010-1", "Shawarma Special", "20% off all Shawarmas", 20.0));
-                r10.addRestaurantOffer(new RestaurantOffer("RO-R010-2", "Mezze Deal",
-                                "15% off Hummus with any Shawarma", 15.0));
 
                 // ================= RESTAURANT 11 =================
                 Menu menu11 = new Menu("M011", new ArrayList<>());
@@ -702,7 +678,7 @@ public class DataSeeder {
                                 "Valencia",
                                 "Chinese",
                                 menu11,
-                                new Location(60, 70));
+                                new Location(22, 10));
 
                 r11.rate(4.4);
                 r11.rate(4.5);
@@ -712,11 +688,6 @@ public class DataSeeder {
                                 "admin11", "123", r11);
 
                 r11.setAdmin(a11);
-
-                r11.addRestaurantOffer(
-                                new RestaurantOffer("RO-R011-1", "Wok Wednesday", "20% off Kung Pao Chicken", 20.0));
-                r11.addRestaurantOffer(new RestaurantOffer("RO-R011-2", "Dim Sum Deal",
-                                "15% off Spring Rolls with any main", 15.0));
 
                 // ================= RESTAURANT 12 =================
                 Menu menu12 = new Menu("M012", new ArrayList<>());
@@ -740,10 +711,12 @@ public class DataSeeder {
                 FoodItem f015e = new FoodItem("F015E", "Turkish Tea", 120, "Drinks", 1);
                 f015e.rate(4.6);
                 f015e.rate(4.7);
+                f015e.addCustomizationGroup(cupSizeGroup);
 
                 FoodItem f015f = new FoodItem("F015F", "Ayran", 180, "Drinks", 1);
                 f015f.rate(4.5);
                 f015f.rate(4.6);
+                f015f.addCustomizationGroup(cupSizeGroup);
 
                 menu12.addItem(f015);
                 menu12.addItem(f015b);
@@ -758,7 +731,7 @@ public class DataSeeder {
                                 "Garden Town",
                                 "Turkish",
                                 menu12,
-                                new Location(65, 75));
+                                new Location(24, 12));
 
                 r12.rate(4.7);
                 r12.rate(4.8);
@@ -768,10 +741,6 @@ public class DataSeeder {
                                 "admin12", "123", r12);
 
                 r12.setAdmin(a12);
-
-                r12.addRestaurantOffer(new RestaurantOffer("RO-R012-1", "Kebab Fiesta", "20% off Turkish Kebab", 20.0));
-                r12.addRestaurantOffer(new RestaurantOffer("RO-R012-2", "Sweet Ending", "15% off Baklava with any main",
-                                15.0));
 
                 // ================= RESTAURANT 13 =================
                 Menu menu13 = new Menu("M013", new ArrayList<>());
@@ -795,10 +764,12 @@ public class DataSeeder {
                 FoodItem f016e = new FoodItem("F016E", "Virgin Mojito", 250, "Drinks", 1);
                 f016e.rate(4.7);
                 f016e.rate(4.8);
+                f016e.addCustomizationGroup(cupSizeGroup);
 
                 FoodItem f016f = new FoodItem("F016F", "Coconut Water", 200, "Drinks", 1);
                 f016f.rate(4.5);
                 f016f.rate(4.6);
+                f016f.addCustomizationGroup(cupSizeGroup);
 
                 menu13.addItem(f016);
                 menu13.addItem(f016b);
@@ -813,7 +784,7 @@ public class DataSeeder {
                                 "Askari",
                                 "Seafood",
                                 menu13,
-                                new Location(70, 80));
+                                new Location(26, 14));
 
                 r13.rate(4.8);
                 r13.rate(4.9);
@@ -823,11 +794,6 @@ public class DataSeeder {
                                 "admin13", "123", r13);
 
                 r13.setAdmin(a13);
-
-                r13.addRestaurantOffer(
-                                new RestaurantOffer("RO-R013-1", "Catch of the Day", "20% off Grilled Fish", 20.0));
-                r13.addRestaurantOffer(new RestaurantOffer("RO-R013-2", "Ocean Platter",
-                                "15% off Prawn Tempura on weekends", 15.0));
 
                 // ================= RESTAURANT 14 =================
                 Menu menu14 = new Menu("M014", new ArrayList<>());
@@ -881,7 +847,7 @@ public class DataSeeder {
                                 "Paragon City",
                                 "Healthy",
                                 menu14,
-                                new Location(75, 85));
+                                new Location(28, 16));
 
                 r14.rate(4.3);
                 r14.rate(4.4);
@@ -891,10 +857,6 @@ public class DataSeeder {
                                 "admin14", "123", r14);
 
                 r14.setAdmin(a14);
-
-                r14.addRestaurantOffer(new RestaurantOffer("RO-R014-1", "Clean Eating", "20% off all Salads", 20.0));
-                r14.addRestaurantOffer(new RestaurantOffer("RO-R014-2", "Bowl Bonus",
-                                "15% off Grilled Chicken Bowl on weekdays", 15.0));
 
                 // ================= RESTAURANT 15 =================
                 Menu menu15 = new Menu("M015", new ArrayList<>());
@@ -925,6 +887,7 @@ public class DataSeeder {
                 FoodItem f018e = new FoodItem("F018E", "Soft Drink", 120, "Drinks", 1);
                 f018e.rate(4.2);
                 f018e.rate(4.3);
+                f018e.addCustomizationGroup(cupSizeGroup);
 
                 CustomizationGroup fastFoodDrinkGroup = new CustomizationGroup("Flavor");
                 fastFoodDrinkGroup.addOption("Cola", 0);
@@ -949,7 +912,7 @@ public class DataSeeder {
                                 "Ferozepur Road",
                                 "Fast Food",
                                 menu15,
-                                new Location(80, 90));
+                                new Location(30, 18));
 
                 r15.rate(4.7);
                 r15.rate(4.8);
@@ -960,10 +923,6 @@ public class DataSeeder {
                                 "admin15", "123", r15);
 
                 r15.setAdmin(a15);
-
-                r15.addRestaurantOffer(new RestaurantOffer("RO-R015-1", "Zinger Deal", "20% off Zinger Burger", 20.0));
-                r15.addRestaurantOffer(new RestaurantOffer("RO-R015-2", "Strip & Sip",
-                                "15% off Chicken Strips with any Drink", 15.0));
 
                 // ================= SAVE =================
 

@@ -6,7 +6,7 @@ import java.util.TimerTask;
 
 public class OrderTracking implements Serializable {
     private static final long serialVersionUID = 2L;
-    private static final int SECONDS_PER_MINUTE = 1; // 1 real second = 1 simulated minute
+    private static final int SECONDS_PER_MINUTE = 1;
 
     private String trackingID;
     private Order order;
@@ -19,16 +19,11 @@ public class OrderTracking implements Serializable {
     private int estimatedDeliveryMinutes;
     private int prepMinutes;
     private Instant startTime;
-
-    // currentStatus is now purely a cache — always recomputed from startTime.
-    // We still persist it so old saves degrade gracefully.
     private String currentStatus;
 
-    // transient — never serialized, only alive in the constructor-created instance
     private transient Timer statusTimer;
 
-    public OrderTracking(String trackingID, Order order, Restaurant restaurant,
-            Customer customer, List<Rider> riders) {
+    public OrderTracking(String trackingID, Order order, Restaurant restaurant, Customer customer, List<Rider> riders) {
         this.trackingID = trackingID;
         this.order = order;
         this.restaurant = restaurant;
@@ -46,8 +41,6 @@ public class OrderTracking implements Serializable {
         startStatusUpdates();
     }
 
-    // ── Core: compute status from elapsed time ────────────────────────────────
-    // This is the single source of truth. Called by getters and readObject.
     private String computeStatus() {
         if (order != null && "Cancelled".equals(order.getStatus()))
             return "Cancelled";
@@ -65,10 +58,6 @@ public class OrderTracking implements Serializable {
         return "Preparing";
     }
 
-    /**
-     * Always returns the live, time-derived status.
-     * Safe to call from any thread, any time — no timer needed.
-     */
     public String getCurrentStatus() {
         if (order != null && "Cancelled".equals(order.getStatus()))
             return "Cancelled";
@@ -80,13 +69,11 @@ public class OrderTracking implements Serializable {
         return currentStatus;
     }
 
-    // ── Timer: only used to persist status updates to disk ───────────────────
     private void startStatusUpdates() {
         statusTimer = new Timer(true);
         long prepMs = minutesToMs(prepMinutes);
         long deliveryMs = minutesToMs(estimatedDeliveryMinutes);
 
-        // Tick every second; at key milestones save customer to disk
         statusTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -124,7 +111,6 @@ public class OrderTracking implements Serializable {
         }, minutesToMs(0), 1000L); // tick every second
     }
 
-    // ── Rider assignment ──────────────────────────────────────────────────────
     private void assignClosestRider(List<Rider> riders) {
         Rider closest = null;
         double minDistance = Double.MAX_VALUE;
@@ -156,8 +142,7 @@ public class OrderTracking implements Serializable {
         this.distanceRiderToRestaurant = minDistance;
         updateRiderStatusInFile(false, true);
 
-        System.out.println("[Tracking] Rider assigned: " + closest.getName()
-                + " | Distance to restaurant: " + String.format("%.2f", minDistance) + " units");
+        System.out.println("[Tracking] Rider assigned: " + closest.getName() + " | Distance to restaurant: " + String.format("%.2f", minDistance) + " units");
     }
 
     private void calculateDistancesAndTime() {
@@ -166,15 +151,14 @@ public class OrderTracking implements Serializable {
             return;
         }
         distanceRestaurantToCustomer = restaurant.getLocation().distanceTo(customer.getLocation());
-        prepMinutes = order.getItems().size();
+        calculateDeliveryFee();
+        prepMinutes = order.getItems().size() * 2;
         int travelMinutes = (int) Math.ceil(distanceRestaurantToCustomer);
         this.estimatedDeliveryMinutes = prepMinutes + travelMinutes;
 
-        System.out.println("[Tracking] ETA: " + estimatedDeliveryMinutes + " minutes ("
-                + prepMinutes + " prep + " + travelMinutes + " travel)");
+        System.out.println("[Tracking] ETA: " + estimatedDeliveryMinutes + " minutes (" + prepMinutes + " prep + " + travelMinutes + " travel)");
     }
 
-    // ── Disk persistence helpers ──────────────────────────────────────────────
     private void saveCustomerToDisk() {
         if (customer == null)
             return;
@@ -218,7 +202,6 @@ public class OrderTracking implements Serializable {
         }
     }
 
-    // ── Getters ───────────────────────────────────────────────────────────────
     public String getTrackingID() {
         return trackingID;
     }
@@ -239,18 +222,14 @@ public class OrderTracking implements Serializable {
         return distanceRiderToRestaurant;
     }
 
-    /** Milliseconds elapsed since order was placed. */
     public long getElapsedMs() {
-        return startTime == null ? Long.MAX_VALUE
-                : Instant.now().toEpochMilli() - startTime.toEpochMilli();
+        return startTime == null ? Long.MAX_VALUE : Instant.now().toEpochMilli() - startTime.toEpochMilli();
     }
 
-    /** Milliseconds until "Out for Delivery" phase starts. */
     public long getPrepMs() {
         return minutesToMs(prepMinutes);
     }
 
-    /** Milliseconds until delivery is complete. */
     public long getDeliveryMs() {
         return minutesToMs(estimatedDeliveryMinutes);
     }
@@ -267,12 +246,8 @@ public class OrderTracking implements Serializable {
                 estimatedDeliveryMinutes);
     }
 
-    // ── Deserialization: restore status from elapsed time, no timer ───────────
-    private void readObject(java.io.ObjectInputStream in)
-            throws java.io.IOException, ClassNotFoundException {
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
         in.defaultReadObject();
-        // Recompute status purely from clock — no timer started here.
-        // getCurrentStatus() will always do this on every call, so UI is always fresh.
         if (order != null && "Cancelled".equals(order.getStatus()))
             return;
 
@@ -288,6 +263,23 @@ public class OrderTracking implements Serializable {
 
     private Location randomLocation() {
         java.util.Random rand = new java.util.Random();
-        return new Location(rand.nextDouble() * 100, rand.nextDouble() * 100);
+        return new Location(rand.nextDouble() * 30, rand.nextDouble() * 30);
+    }
+
+    private void calculateDeliveryFee() {
+        double distance = distanceRestaurantToCustomer;
+        double fee;
+        if (distance <= 5)
+            fee = 80;
+        else if (distance <= 10)
+            fee = 120;
+        else if (distance <= 15)
+            fee = 180;
+        else if (distance <= 20)
+            fee = 250;
+        else
+            fee = 350;
+
+        order.setDeliveryFee(fee);
     }
 }
