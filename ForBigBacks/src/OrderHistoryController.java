@@ -95,7 +95,7 @@ public class OrderHistoryController {
     private void loadOrders() {
         ordersContainer.getChildren().clear();
         List<Order> history = new ArrayList<>(customer.viewOrderHistory());
-        int count = history.size();
+        int count = (int) history.stream().filter(o -> !"Cancelled".equals(o.getStatus())).count();
         orderCountLabel.setText(count + (count == 1 ? " order" : " orders"));
 
         if (history.isEmpty()) {
