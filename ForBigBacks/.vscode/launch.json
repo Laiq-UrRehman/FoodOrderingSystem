@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "RiderSeeder",
+            "request": "launch",
+            "mainClass": "RiderSeeder",
+            "projectName": "ForBigBacks_dd3b2902"
+        },
+        {
+            "type": "java",
             "name": "CustomerSeeder",
             "request": "launch",
             "mainClass": "CustomerSeeder",

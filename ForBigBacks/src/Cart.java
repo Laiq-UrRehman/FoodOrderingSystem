@@ -13,7 +13,6 @@ public class Cart implements Serializable {
 
     private static final long serialVersionUID = 1L;
     public static final double DELIVERY_FEE = 100.0;
-    
     private String cartID;
     private List<FoodItem> items;
     private double totalAmount;
@@ -136,6 +135,7 @@ public class Cart implements Serializable {
         double amountPaid = Math.max(0, totalAmount - discount);
         customer.getLoyaltyPoints().earnPoints(amountPaid);
         Order order = new Order(generateOrderID(), "Pending", items, amountPaid);
+        order.setRedeemedPoints(redeemCode.getOffer().getPointsRequired());
         persistOrderCounts(restaurant);
         clearCart();
         return order;
@@ -192,8 +192,8 @@ public class Cart implements Serializable {
         double discount = customer.getLoyaltyPoints().applyRedeemCode(redeemCode, totalAmount);
         double amountPaid = Math.max(0, totalAmount - discount);
         ScheduledOrder order = new ScheduledOrder(generateOrderID(), items, amountPaid, scheduledTime);
+        order.setRedeemedPoints(redeemCode.getOffer().getPointsRequired());
         customer.getLoyaltyPoints().earnPoints(amountPaid);
-        persistOrderCounts(restaurant);
         clearCart();
         return order;
     }

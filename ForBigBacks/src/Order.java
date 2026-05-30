@@ -23,6 +23,14 @@ public class Order implements Serializable {
     private final double totalAmount;
     private OrderTracking tracking;
     private double deliveryFee;
+    private int redeemedPoints = 0;
+
+    public int getRedeemedPoints() { 
+        return redeemedPoints; 
+    }
+    public void setRedeemedPoints(int pts) { 
+        this.redeemedPoints = pts; 
+    }
 
     private List<String> ratedFoodIDs = new ArrayList<>();
     private Map<String, Double> ratingValues = new HashMap<>();

@@ -43,8 +43,7 @@ public class Customer extends Person implements Account {
         this.categoryOrderCounts = new HashMap<>();
     }
 
-    public Customer(String personID, String name, String address, String phoneNumber,
-            String username, String password, Location location) {
+    public Customer(String personID, String name, String address, String phoneNumber, String username, String password, Location location) {
         super(personID, name, address, phoneNumber);
         this.username = username;
         String[] hashed = PasswordUtils.hashPassword(password);
@@ -97,6 +96,16 @@ public class Customer extends Person implements Account {
         for (Order order : orderHistory) {
             if (order.getOrderID().equals(orderID)) {
                 loyaltyPoints.deductPoints(order.getTotalAmount());
+                if (order.getRedeemedPoints() > 0) {
+                    loyaltyPoints.refundPoints(order.getRedeemedPoints());
+                }
+                for (FoodItem item : order.getItems()) {
+                    String cat = item.getCategory();
+                    int current = categoryOrderCounts.getOrDefault(cat, 0);
+                    if (current > 0) {
+                        categoryOrderCounts.put(cat, current - 1);
+                    }
+                }
                 order.cancelOrder();
                 return;
             }

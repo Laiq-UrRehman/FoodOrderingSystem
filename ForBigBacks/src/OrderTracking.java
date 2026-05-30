@@ -58,8 +58,14 @@ public class OrderTracking implements Serializable {
     }
 
     public String getCurrentStatus() {
-        if (order != null && "Cancelled".equals(order.getStatus()))
+        if (order != null && "Cancelled".equals(order.getStatus())) {
+            if (assignedRider != null && !assignedRider.getStatus()) {
+                assignedRider.setAvailable(true);
+                assignedRider.setAssigned(false);
+                updateRiderStatusInFile(true, false);
+            }
             return "Cancelled";
+        }
         String computed = computeStatus();
         if (order != null && !computed.equals(order.getStatus())) {
             order.updateStatus(computed);
