@@ -40,7 +40,7 @@ public class CustomerDashboardController {
 
     private void loadCustomerData() {
         loyaltyPointsBadge.setText(customer.viewLoyaltyPoints() + " pts");
-        totalOrdersLabel.setText(String.valueOf(customer.viewOrderHistory().size()));
+        totalOrdersLabel.setText(String.valueOf(customer.viewOrderHistory().stream().filter(o -> !"Cancelled".equals(o.getTracking() != null ? o.getTracking().getCurrentStatus() : o.getStatus())).count()));
         pointsStatLabel.setText(String.valueOf(customer.viewLoyaltyPoints()));
         String preferred = customer.getPreferredCategory();
         favouriteCategoryLabel.setText(preferred != null ? preferred : "None yet");
