@@ -192,6 +192,41 @@ public class ScheduledOrderController {
         errorLabel.setText("");
     }
 
+    private boolean validateCardFields() {
+        String cardNumber = cardNumberField.getText().trim();
+        String cardHolder = cardHolderField.getText().trim();
+        String expiry = expiryField.getText().trim();
+
+        if (cardNumber.isEmpty() || cardHolder.isEmpty() || expiry.isEmpty()) {
+            errorLabel.setText("Please fill in all card details.");
+            return false;
+        }
+        if (!cardNumber.matches("\\d{16}")) {
+            errorLabel.setText("Card number must be exactly 16 digits.");
+            return false;
+        }
+        if (!cardHolder.matches("[a-zA-Z ]{2,50}")) {
+            errorLabel.setText("Card holder name must be letters only.");
+            return false;
+        }
+        if (!expiry.matches("(0[1-9]|1[0-2])/\\d{2}")) {
+            errorLabel.setText("Expiry must be in MM/YY format (e.g. 08/27).");
+            return false;
+        }
+        try {
+            java.time.YearMonth cardExpiry = java.time.YearMonth.parse(
+                    expiry, java.time.format.DateTimeFormatter.ofPattern("MM/yy"));
+            if (cardExpiry.isBefore(java.time.YearMonth.now())) {
+                errorLabel.setText("This card has expired.");
+                return false;
+            }
+        } catch (java.time.format.DateTimeParseException e) {
+            errorLabel.setText("Expiry must be in MM/YY format (e.g. 08/27).");
+            return false;
+        }
+        return true;
+    }
+
     @FXML
     private void placeScheduledOrder() {
         scheduleErrorLabel.setText("");
@@ -208,14 +243,8 @@ public class ScheduledOrderController {
             return;
         }
 
-        if (isCardPayment) {
-            if (cardNumberField.getText().trim().isEmpty()
-                    || cardHolderField.getText().trim().isEmpty()
-                    || expiryField.getText().trim().isEmpty()) {
-                errorLabel.setText("Please fill in all card details.");
-                return;
-            }
-        }
+        if (isCardPayment && !validateCardFields())
+            return;
 
         ScheduledOrder order;
         try {

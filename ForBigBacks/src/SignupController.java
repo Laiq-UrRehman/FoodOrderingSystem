@@ -44,6 +44,11 @@ public class SignupController {
             return;
         }
 
+        if (address.length() < 5) {
+            errorLabel.setText("Please enter a valid address (at least 5 characters).");
+            return;
+        }
+
         if (!phone.matches("03[0-9]{9}")) {
             errorLabel.setText("Phone must be 11 digits starting with 03 (e.g. 03001234567).");
             return;
@@ -136,4 +141,5 @@ public class SignupController {
             togglePasswordBtn.setText("👁");
         }
     }
+}
 }
