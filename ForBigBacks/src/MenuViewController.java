@@ -51,6 +51,10 @@ public class MenuViewController {
     private static final double LID_H = 11;
     private static final double BASE_H = 6;
 
+    private enum DrinkType {
+        COFFEE, JUICE, SODA, MILKSHAKE, WATER
+    }
+
     private enum CupSize {
         SMALL("Small", 88, 52, 36),
         MEDIUM("Medium", 114, 66, 44),
@@ -259,9 +263,33 @@ public class MenuViewController {
         // Classify the item once so every size group below can branch correctly
         boolean isFriesItem = item.getName().toLowerCase().contains("fries")
                 || item.getCategory().toLowerCase().contains("fries");
-        boolean isCoffeeItem = item.getCategory().toLowerCase().contains("coffee")
-                || item.getCategory().toLowerCase().contains("beverage")
-                || item.getCategory().toLowerCase().contains("drink");
+        String catLow = item.getCategory().toLowerCase();
+        String nameLow = item.getName().toLowerCase();
+
+        DrinkType detectedDrink = null;
+        if (catLow.contains("coffee") || nameLow.contains("coffee")
+                || nameLow.contains("cappuccino") || nameLow.contains("latte")
+                || nameLow.contains("espresso") || nameLow.contains("americano"))
+            detectedDrink = DrinkType.COFFEE;
+        else if (catLow.contains("juice") || nameLow.contains("juice")
+                || nameLow.contains("mango") || nameLow.contains("orange juice")
+                || nameLow.contains("apple juice"))
+            detectedDrink = DrinkType.JUICE;
+        else if (catLow.contains("soda") || nameLow.contains("soda")
+                || nameLow.contains("cola") || nameLow.contains("pepsi")
+                || nameLow.contains("sprite") || nameLow.contains("7up")
+                || nameLow.contains("fanta") || nameLow.contains("lemonade"))
+            detectedDrink = DrinkType.SODA;
+        else if (nameLow.contains("milkshake") || nameLow.contains("shake")
+                || nameLow.contains("smoothie"))
+            detectedDrink = DrinkType.MILKSHAKE;
+        else if (catLow.contains("water") || nameLow.contains("water"))
+            detectedDrink = DrinkType.WATER;
+        else if (catLow.contains("beverage") || catLow.contains("drink"))
+            detectedDrink = DrinkType.COFFEE; // fallback
+
+        boolean isCoffeeItem = detectedDrink != null;
+        final DrinkType finalDrink = detectedDrink;
 
         final boolean[] hasPizzaSizeGroup = { false };
 
@@ -282,10 +310,10 @@ public class MenuViewController {
                     || gn.equals("bucket size")) {
 
                 if (isCoffeeItem || gn.equals("coffee size") || gn.equals("cup size")) {
-                    // Coffee / beverage → animated cup
                     panel.getChildren().add(
                             buildCoffeeCupWidget(group, selections, extraCharges,
-                                    priceLabel, item, confirmError));
+                                    priceLabel, item, confirmError,
+                                    finalDrink != null ? finalDrink : DrinkType.COFFEE));
                 } else if (isFriesItem || gn.equals("bucket size")) {
                     // Fries / bucket → animated fries box
                     panel.getChildren().add(
@@ -612,7 +640,58 @@ public class MenuViewController {
             Map<String, Double> extraCharges,
             Label priceLabel,
             FoodItem item,
-            Label confirmError) {
+            Label confirmError,
+            DrinkType drinkType) {
+
+        // ── Per-drink visual config ───────────────────────────────────────────
+        record DrinkConfig(
+                Color liquidTop, Color liquidBot, // coffee body gradient
+                Color espTop, Color espBot, // base layer
+                Color foamTop, Color foamBot, // top layer
+                Color foamBubble,
+                Color streamCol,
+                boolean hasFoam, boolean hasBubbles,
+                String lidStyle // "paper" or "glass"
+        ) {
+        }
+
+        DrinkConfig dc = switch (drinkType) {
+            case JUICE -> new DrinkConfig(
+                    Color.web("#e87820"), Color.web("#c05808"),
+                    Color.web("#a03800"), Color.web("#802800"),
+                    Color.web("#f0a040"), Color.web("#d08020"),
+                    Color.web("#f8c060"),
+                    Color.web("#c06010"),
+                    false, false, "glass");
+            case SODA -> new DrinkConfig(
+                    Color.web("#1a1a2e"), Color.web("#0d0d1a"),
+                    Color.web("#0a0a14"), Color.web("#050508"),
+                    Color.web("#c8e0f0"), Color.web("#a0c8e0"),
+                    Color.web("#e0f0ff"),
+                    Color.web("#3080c0"),
+                    true, true, "glass");
+            case MILKSHAKE -> new DrinkConfig(
+                    Color.web("#e8b0c8"), Color.web("#c88098"),
+                    Color.web("#c06080"), Color.web("#a04860"),
+                    Color.web("#fff0f8"), Color.web("#f0d0e8"),
+                    Color.web("#ffffff"),
+                    Color.web("#d080a8"),
+                    true, false, "paper");
+            case WATER -> new DrinkConfig(
+                    Color.web("#a8d8f0"), Color.web("#70b8e0"),
+                    Color.web("#50a0d0"), Color.web("#3080b8"),
+                    Color.web("#e0f4ff"), Color.web("#c0e8f8"),
+                    Color.web("#f0faff"),
+                    Color.web("#80c0e8"),
+                    false, true, "glass");
+            default -> new DrinkConfig( // COFFEE
+                    Color.web("#4a2810"), Color.web("#38190a"),
+                    Color.web("#1a0a02"), Color.web("#180a02"),
+                    Color.web("#d4b890"), Color.web("#cfb090"),
+                    Color.web("#f0e0c8"),
+                    Color.web("#5a3010"),
+                    true, false, "paper");
+        };
 
         VBox wrapper = new VBox(10);
         wrapper.setAlignment(Pos.TOP_LEFT);
@@ -655,20 +734,20 @@ public class MenuViewController {
         baseRect.setStrokeWidth(0.7);
 
         Rectangle espLayer = new Rectangle();
-        espLayer.setFill(Color.web("#1a0a02"));
+        espLayer.setFill(dc.espTop());
 
         Polygon coffeeLayer = new Polygon();
-        coffeeLayer.setFill(Color.web("#4a2810"));
+        coffeeLayer.setFill(dc.liquidTop());
 
         Rectangle foamLayer = new Rectangle();
         foamLayer.setArcWidth(3);
         foamLayer.setArcHeight(3);
-        foamLayer.setFill(Color.web("#d4b890"));
+        foamLayer.setFill(dc.foamTop());
 
         Circle[] bubbles = new Circle[7];
         for (int i = 0; i < bubbles.length; i++) {
             bubbles[i] = new Circle();
-            bubbles[i].setFill(Color.web("#f0e0c8", 0.50));
+            bubbles[i].setFill(dc.foamBubble().deriveColor(0, 1, 1, 0.50));
         }
 
         Rectangle foamSheen = new Rectangle();
@@ -678,7 +757,7 @@ public class MenuViewController {
 
         Path pourStream = new Path();
         pourStream.setFill(Color.TRANSPARENT);
-        pourStream.setStroke(Color.web("#5a3010", 0.82));
+        pourStream.setStroke(dc.streamCol());
         pourStream.setStrokeWidth(3.2);
         pourStream.setStrokeLineCap(StrokeLineCap.ROUND);
 
@@ -723,7 +802,48 @@ public class MenuViewController {
         shadowLine.setStrokeWidth(1.8);
         shadowLine.setStrokeLineCap(StrokeLineCap.ROUND);
 
+        // Rising bubbles (soda / water)
+        Canvas bubbleCanvas = new Canvas(paneW, paneH);
+        GraphicsContext bgc = bubbleCanvas.getGraphicsContext2D();
+        double[] bubbleY = new double[12];
+        double[] bubbleX = new double[12];
+        double[] bubbleSpd = new double[12];
+        double[] bubbleR = new double[12];
+        for (int i = 0; i < 12; i++) {
+            bubbleX[i] = 20 + Math.random() * 160;
+            bubbleY[i] = 40 + Math.random() * 140;
+            bubbleSpd[i] = 0.4 + Math.random() * 0.7;
+            bubbleR[i] = 1.2 + Math.random() * 1.8;
+        }
+        AnimationTimer bubbleTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                if (!dc.hasBubbles() || fill[0] < 0.05)
+                    return;
+                bgc.clearRect(0, 0, paneW, paneH);
+                double cupTop2 = CUP_Y0, cupBot2 = cupTop2 + curH[0];
+                double maxFY = cupBot2 - BASE_H - 2;
+                double liqY = maxFY - fill[0] * (maxFY - (cupTop2 + 4));
+                for (int i = 0; i < 12; i++) {
+                    bubbleY[i] -= bubbleSpd[i];
+                    if (bubbleY[i] < liqY) {
+                        bubbleY[i] = maxFY;
+                        bubbleX[i] = CUP_CX - curBotW[0] / 2 + 4
+                                + Math.random() * (curBotW[0] - 8);
+                    }
+                    bgc.setFill(Color.color(
+                            dc.streamCol().getRed(),
+                            dc.streamCol().getGreen(),
+                            dc.streamCol().getBlue(), 0.35));
+                    bgc.fillOval(bubbleX[i] - bubbleR[i], bubbleY[i] - bubbleR[i],
+                            bubbleR[i] * 2, bubbleR[i] * 2);
+                }
+            }
+        };
+        bubbleTimer.start();
+
         cupPane.getChildren().addAll(
+                bubbleCanvas,
                 espLayer, coffeeLayer, foamLayer, foamSheen,
                 pourStream, pourSheen, pourRipple,
                 cupBody, sleeve, hiLine, shadowLine,
@@ -806,10 +926,10 @@ public class MenuViewController {
                 foamLayer.setY(foamY);
                 foamLayer.setWidth(fillW);
                 foamLayer.setHeight(Math.max(0, foamH + 1));
-                foamLayer.setVisible(foamH > 1);
+                foamLayer.setVisible(dc.hasFoam() && foamH > 1);
                 foamLayer.setClip(new Polygon(pts));
 
-                if (foamH > 3) {
+                if (dc.hasFoam() && foamH > 3) {
                     for (int i = 0; i < bubbles.length; i++) {
                         bubbles[i].setCenterX(fillL + fillW * (0.08 + i * 0.13));
                         bubbles[i].setCenterY(foamY + foamH * 0.48);
