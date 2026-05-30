@@ -25,6 +25,15 @@ public class Order implements Serializable {
     private double deliveryFee;
     private int redeemedPoints = 0;
     private String paymentMethod = "CASH"; // "CASH" or "CARD"
+    private double discountApplied = 0;
+
+    public double getDiscountApplied() { 
+        return discountApplied; 
+    }
+    
+    public void setDiscountApplied(double d) { 
+        this.discountApplied = d; 
+    }
 
     public String getPaymentMethod() {
         return paymentMethod;

@@ -219,8 +219,7 @@ public class ReceiptModal {
         sb.append(String.format("%-18s Rs. %d%n", "Subtotal:", subtotal));
 
         if (redeemed > 0) {
-            // Calculate discount = grandTotal difference hint: subtotal+delivery - grandTotal
-            int discountAmt = (subtotal + delivery) - grand;
+            int discountAmt = (int) order.getDiscountApplied();
             if (discountAmt > 0) {
                 sb.append(String.format("%-18s Rs. -%d  (%d pts)%n",
                     "Loyalty Discount:", discountAmt, redeemed));

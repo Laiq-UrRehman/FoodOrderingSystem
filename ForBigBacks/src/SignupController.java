@@ -90,7 +90,7 @@ public class SignupController {
 
         if (existing != null) {
             for (Customer c : existing) {
-                if (c.getUsername().equalsIgnoreCase(username)) {
+                if (c.getUsername().equals(username)) {
                     errorLabel.setText("Username already taken.");
                     return;
                 }

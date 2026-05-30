@@ -95,18 +95,18 @@ public class Customer extends Person implements Account {
     public void cancelOrder(String orderID) {
         for (Order order : orderHistory) {
             if (order.getOrderID().equals(orderID)) {
-                loyaltyPoints.deductPoints(order.getTotalAmount());
-                if (order.getRedeemedPoints() > 0) {
-                    loyaltyPoints.refundPoints(order.getRedeemedPoints());
-                }
-                for (FoodItem item : order.getItems()) {
-                    String cat = item.getCategory();
-                    int current = categoryOrderCounts.getOrDefault(cat, 0);
-                    if (current > 0) {
-                        categoryOrderCounts.put(cat, current - 1);
+                order.cancelOrder(); // call FIRST
+                if ("Cancelled".equals(order.getStatus())) {
+                    loyaltyPoints.deductPoints(order.getTotalAmount());
+                    if (order.getRedeemedPoints() > 0)
+                        loyaltyPoints.refundPoints(order.getRedeemedPoints());
+                    for (FoodItem item : order.getItems()) {
+                        String cat = item.getCategory();
+                        int current = categoryOrderCounts.getOrDefault(cat, 0);
+                        if (current > 0)
+                            categoryOrderCounts.put(cat, current - 1);
                     }
                 }
-                order.cancelOrder();
                 return;
             }
         }

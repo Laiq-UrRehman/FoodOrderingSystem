@@ -136,6 +136,7 @@ public class Cart implements Serializable {
         customer.getLoyaltyPoints().earnPoints(amountPaid);
         Order order = new Order(generateOrderID(), "Pending", items, amountPaid);
         order.setRedeemedPoints(redeemCode.getOffer().getPointsRequired());
+        order.setDiscountApplied(discount);
         persistOrderCounts(restaurant);
         clearCart();
         return order;
@@ -194,6 +195,7 @@ public class Cart implements Serializable {
         ScheduledOrder order = new ScheduledOrder(generateOrderID(), items, amountPaid, scheduledTime);
         order.setRedeemedPoints(redeemCode.getOffer().getPointsRequired());
         customer.getLoyaltyPoints().earnPoints(amountPaid);
+        persistOrderCounts(restaurant);
         clearCart();
         return order;
     }
