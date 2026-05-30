@@ -17,9 +17,12 @@ public class CartController {
     @FXML
     private Label totalLabel;
     @FXML
+    private Label deliveryFeeLabel;
+    @FXML
     private Label offersAvailableLabel;
     @FXML
     private VBox cartItemsContainer;
+
 
     private Customer customer;
     private Cart cart;
@@ -130,8 +133,12 @@ public class CartController {
     }
 
     private void updateTotals() {
-        int total = (int) cart.getTotal();
-        subtotalLabel.setText("Rs. " + total);
+        int subtotal = (int) cart.getTotal();
+        int deliveryFee = (int) Cart.DELIVERY_FEE;
+        int total = subtotal + deliveryFee;
+
+        subtotalLabel.setText("Rs. " + subtotal);
+        deliveryFeeLabel.setText("Rs. " + deliveryFee);
         totalLabel.setText("Rs. " + total);
     }
 

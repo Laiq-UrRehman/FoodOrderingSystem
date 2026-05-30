@@ -12,7 +12,8 @@ import java.util.List;
 public class Cart implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
+    public static final double DELIVERY_FEE = 100.0;
+    
     private String cartID;
     private List<FoodItem> items;
     private double totalAmount;

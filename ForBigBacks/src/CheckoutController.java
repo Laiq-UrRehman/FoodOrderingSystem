@@ -172,7 +172,7 @@ public class CheckoutController {
         int total = (int) Math.max(0, subtotal - discount);
         subtotalLabel.setText("- Rs. " + subtotal);
         discountLabel.setText("- Rs. " + (int) discount);
-        deliveryFeeLabel.setText("- Calculated at placement");
+        deliveryFeeLabel.setText("- Rs. " + (int) Cart.DELIVERY_FEE);
         totalLabel.setText("Rs. " + total + " + delivery");
     }
 
@@ -257,7 +257,7 @@ public class CheckoutController {
             errorLabel.setText(e.getMessage());
             return;
         }
-
+        order.setDeliveryFee(Cart.DELIVERY_FEE);
         customer.placeOrder(order);
 
         FileHandler<Rider> riderFH = new FileHandler<>();

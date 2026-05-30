@@ -72,6 +72,12 @@
                         <Label fx:id="subtotalLabel" text="Rs. 0" styleClass="dashboard-menu-item-price"/>
                     </HBox>
 
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Delivery Fee " styleClass="dashboard-stat-label" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="deliveryFeeLabel" text="Rs. 100"
+                        style="-fx-text-fill: #888888; -fx-font-size: 13px;"/>
+                    </HBox>
+
                     <Region prefHeight="1" style="-fx-background-color: #2a2a2a;"/>
 
                     <HBox alignment="CENTER_LEFT">

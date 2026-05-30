@@ -50,11 +50,17 @@ public class Customer extends Person implements Account {
         String[] hashed = PasswordUtils.hashPassword(password);
         this.passwordSalt = hashed[0];
         this.passwordHash = hashed[1];
-        this.location = location;
         this.loyaltyPoints = new LoyaltyPoints(personID + "-LP", 0);
         this.orderHistory = new ArrayList<>();
         this.cart = new Cart();
         this.categoryOrderCounts = new HashMap<>();
+        if (location == null){
+            java.util.Random rand = new java.util.Random();
+            this.location = new Location(rand.nextDouble() * 30, rand.nextDouble() * 30);
+        } 
+        else{
+            this.location = location;
+        }
     }
 
     // ── Loyalty Points ────────────────────────────────────────────────────────

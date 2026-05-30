@@ -99,7 +99,7 @@ public class SignupController {
 
         String newID = String.format("C%03d", count + 1);
         Customer newCustomer = new Customer(
-                newID, name, address, phone, username, password, new Location(0, 0));
+                newID, name, address, phone, username, password, null);
 
         Customer[] updated = new Customer[count + 1];
         if (existing != null)

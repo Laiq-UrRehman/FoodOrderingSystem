@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CustomerSeeder",
+            "request": "launch",
+            "mainClass": "CustomerSeeder",
+            "projectName": "ForBigBacks_dd3b2902"
+        },
+        {
+            "type": "java",
             "name": "ConsoleMain",
             "request": "launch",
             "mainClass": "ConsoleMain",

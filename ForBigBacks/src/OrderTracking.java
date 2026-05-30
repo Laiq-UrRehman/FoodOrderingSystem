@@ -31,7 +31,6 @@ public class OrderTracking implements Serializable {
         this.startTime = Instant.now();
         this.currentStatus = "Confirmed";
 
-        customer.setLocation(randomLocation());
         for (Rider rider : riders) {
             rider.setLocation(randomLocation());
         }
@@ -151,7 +150,6 @@ public class OrderTracking implements Serializable {
             return;
         }
         distanceRestaurantToCustomer = restaurant.getLocation().distanceTo(customer.getLocation());
-        calculateDeliveryFee();
         prepMinutes = order.getItems().size() * 2;
         int travelMinutes = (int) Math.ceil(distanceRestaurantToCustomer);
         this.estimatedDeliveryMinutes = prepMinutes + travelMinutes;
@@ -264,22 +262,5 @@ public class OrderTracking implements Serializable {
     private Location randomLocation() {
         java.util.Random rand = new java.util.Random();
         return new Location(rand.nextDouble() * 30, rand.nextDouble() * 30);
-    }
-
-    private void calculateDeliveryFee() {
-        double distance = distanceRestaurantToCustomer;
-        double fee;
-        if (distance <= 5)
-            fee = 80;
-        else if (distance <= 10)
-            fee = 120;
-        else if (distance <= 15)
-            fee = 180;
-        else if (distance <= 20)
-            fee = 250;
-        else
-            fee = 350;
-
-        order.setDeliveryFee(fee);
     }
 }
