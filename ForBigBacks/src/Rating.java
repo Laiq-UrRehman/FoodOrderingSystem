@@ -16,7 +16,14 @@ public class Rating {
         if (stars < 1.0 || stars > 5.0)
             throw new IllegalArgumentException("Rating must be between 1.0 and 5.0, got: " + stars);
 
-        if (!order.getStatus().equals("Delivered")) {
+        // Sync the live status first — after a restart, order.getStatus() may be stale
+        // (e.g. still "Preparing") even though delivery is long done. getCurrentStatus()
+        // recomputes from startTime and updates order.status in place.
+        String effectiveStatus = (order.getTracking() != null)
+                ? order.getTracking().getCurrentStatus()
+                : order.getStatus();
+
+        if (!effectiveStatus.equals("Delivered")) {
             System.out.println("You can only rate after the order is delivered.");
             return;
         }

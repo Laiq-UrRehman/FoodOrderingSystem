@@ -3,6 +3,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import javafx.application.Platform;
 
 public class OrderTracking implements Serializable {
     private static final long serialVersionUID = 2L;
@@ -82,36 +83,38 @@ public class OrderTracking implements Serializable {
         statusTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if (order != null && "Cancelled".equals(order.getStatus())) {
-                    if (assignedRider != null) {
-                        assignedRider.setAvailable(true);
-                        assignedRider.setAssigned(false);
-                        updateRiderStatusInFile(true, false);
-                    }
-                    statusTimer.cancel();
-                    return;
-                }
-
-                String status = computeStatus();
-                boolean changed = !status.equals(currentStatus);
-                currentStatus = status;
-                if (order != null)
-                    order.updateStatus(status);
-
-                if (changed) {
-                    System.out.println("[Tracking " + trackingID + "] Status → " + status);
-                    saveCustomerToDisk();
-
-                    if ("Delivered".equals(status)) {
+                Platform.runLater(() -> {
+                    if (order != null && "Cancelled".equals(order.getStatus())) {
                         if (assignedRider != null) {
                             assignedRider.setAvailable(true);
                             assignedRider.setAssigned(false);
                             updateRiderStatusInFile(true, false);
-                            System.out.println("[Tracking] Rider " + assignedRider.getName() + " available again.");
                         }
                         statusTimer.cancel();
+                        return;
                     }
-                }
+
+                    String status = computeStatus();
+                    boolean changed = !status.equals(currentStatus);
+                    currentStatus = status;
+                    if (order != null)
+                        order.updateStatus(status);
+
+                    if (changed) {
+                        System.out.println("[Tracking " + trackingID + "] Status → " + status);
+                        saveCustomerToDisk();
+
+                        if ("Delivered".equals(status)) {
+                            if (assignedRider != null) {
+                                assignedRider.setAvailable(true);
+                                assignedRider.setAssigned(false);
+                                updateRiderStatusInFile(true, false);
+                                System.out.println("[Tracking] Rider " + assignedRider.getName() + " available again.");
+                            }
+                            statusTimer.cancel();
+                        }
+                    }
+                });
             }
         }, minutesToMs(0), 1000L); // tick every second
     }
