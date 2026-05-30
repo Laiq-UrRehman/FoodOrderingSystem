@@ -1,11 +1,10 @@
+// Updated: overwriteRating() added to allow Rating.java to correct the running average when a user changes a previous rating
 
-// Updated: Added rating, totalRatings fields and rate() method for item-level ratings
-// Updated: Added orderCount field and incrementOrderCount() for popularity tracking
-import java.util.HashMap;
-import java.util.Map;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FoodItem implements Serializable {
 
@@ -86,9 +85,6 @@ public class FoodItem implements Serializable {
         return orderCount;
     }
 
-    /**
-     * Called after every checkout to track how many times this item was ordered.
-     */
     public void incrementOrderCount() {
         orderCount++;
     }
@@ -100,6 +96,16 @@ public class FoodItem implements Serializable {
         }
         rating = ((rating * totalRatings) + newRating) / (totalRatings + 1);
         totalRatings++;
+    }
+
+    public void overwriteRating(double correctedAvg, int correctedCount) {
+        if (correctedCount <= 0) {
+            rating = 0.0;
+            totalRatings = 0;
+        } else {
+            rating = correctedAvg;
+            totalRatings = correctedCount;
+        }
     }
 
     public String getDetails() {
@@ -144,5 +150,4 @@ public class FoodItem implements Serializable {
         if (selectedCustomizations == null)
             selectedCustomizations = new HashMap<>();
     }
-
 }

@@ -1,7 +1,5 @@
-// FIX (Critical): Passwords are no longer stored in plain text.
-//   Customer now holds a passwordSalt and passwordHash (SHA-256).
-//   The raw password field is gone. Use PasswordUtils.verify() to check
-//   credentials and PasswordUtils.hashPassword() when creating an account.
+// Updated: getLastRatingForItem() added to scan order history and return the most recent star value for a food ID
+// Updated: getPassword() still throws UnsupportedOperationException — passwords are hashed, use verifyPassword()
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,10 +9,9 @@ import java.util.Map;
 
 public class Customer extends Person implements Account {
 
-    private static final long serialVersionUID = 2L; // bumped because fields changed
+    private static final long serialVersionUID = 2L;
 
     private String username;
-    // FIX: plain-text password replaced with salt + hash
     private String passwordSalt;
     private String passwordHash;
 
@@ -25,16 +22,16 @@ public class Customer extends Person implements Account {
     private Map<String, Integer> categoryOrderCounts;
 
     @Override
-    public String getUsername() { return username; }
+    public String getUsername() {
+        return username;
+    }
 
-    /** Not supported — passwords are hashed. Use verifyPassword() instead. */
     @Override
     public String getPassword() {
         throw new UnsupportedOperationException(
-            "Plain-text password access is disabled. Use Customer.verifyPassword().");
+                "Plain-text password access is disabled. Use Customer.verifyPassword().");
     }
 
-    /** Returns true if the given plain-text password matches the stored hash. */
     public boolean verifyPassword(String plainText) {
         return PasswordUtils.verify(plainText, passwordSalt, passwordHash);
     }
@@ -46,14 +43,10 @@ public class Customer extends Person implements Account {
         this.categoryOrderCounts = new HashMap<>();
     }
 
-    /**
-     * @param password plain-text password — hashed internally, never stored raw.
-     */
     public Customer(String personID, String name, String address, String phoneNumber,
             String username, String password, Location location) {
         super(personID, name, address, phoneNumber);
         this.username = username;
-        // FIX: hash immediately; raw password is never retained
         String[] hashed = PasswordUtils.hashPassword(password);
         this.passwordSalt = hashed[0];
         this.passwordHash = hashed[1];
@@ -64,13 +57,17 @@ public class Customer extends Person implements Account {
         this.categoryOrderCounts = new HashMap<>();
     }
 
-    // Loyalty Points Logic
+    // ── Loyalty Points ────────────────────────────────────────────────────────
 
-    public LoyaltyPoints getLoyaltyPoints() { return loyaltyPoints; }
+    public LoyaltyPoints getLoyaltyPoints() {
+        return loyaltyPoints;
+    }
 
-    public int viewLoyaltyPoints() { return loyaltyPoints.getPointsBalance(); }
+    public int viewLoyaltyPoints() {
+        return loyaltyPoints.getPointsBalance();
+    }
 
-    // Order History Logic
+    // ── Order History ─────────────────────────────────────────────────────────
 
     public void placeOrder(Order order) {
         if (order == null) {
@@ -110,10 +107,33 @@ public class Customer extends Person implements Account {
         return Collections.unmodifiableList(scheduled);
     }
 
-    // Smart Suggestions — preferred category
+    // ── Ratings ───────────────────────────────────────────────────────────────
+
+    /**
+     * Scans order history from newest to oldest and returns the most recent
+     * star value this customer gave the specified food item, or 0.0 if they
+     * have never rated it. Used to pre-fill stars when the same item appears
+     * in a new order.
+     */
+    public double getLastRatingForItem(String foodID) {
+        if (foodID == null || foodID.isBlank())
+            return 0.0;
+        for (int i = orderHistory.size() - 1; i >= 0; i--) {
+            Order order = orderHistory.get(i);
+            if (order.hasRated(foodID)) {
+                double val = order.getRatingValue(foodID);
+                if (val >= 1.0)
+                    return val;
+            }
+        }
+        return 0.0;
+    }
+
+    // ── Smart Suggestions ─────────────────────────────────────────────────────
 
     public String getPreferredCategory() {
-        if (categoryOrderCounts.isEmpty()) return null;
+        if (categoryOrderCounts.isEmpty())
+            return null;
         String preferred = null;
         int max = 0;
         for (Map.Entry<String, Integer> entry : categoryOrderCounts.entrySet()) {
@@ -129,11 +149,17 @@ public class Customer extends Person implements Account {
         return Collections.unmodifiableMap(categoryOrderCounts);
     }
 
-    // Cart and Location
+    // ── Cart and Location ─────────────────────────────────────────────────────
 
-    public Cart getCart() { return cart; }
+    public Cart getCart() {
+        return cart;
+    }
 
-    public Location getLocation() { return location; }
+    public Location getLocation() {
+        return location;
+    }
 
-    public void setLocation(Location location) { this.location = location; }
+    public void setLocation(Location location) {
+        this.location = location;
+    }
 }

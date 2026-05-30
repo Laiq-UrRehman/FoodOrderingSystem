@@ -1,9 +1,8 @@
-// Fixed: refreshFromSession() no longer reloads from disk (which would create
-// deserialized copies with no live timer). It reads from the in-memory session
-// customer, which holds the live OrderTracking objects.
-//
-// Status badges update in real time because OrderTracking.getCurrentStatus()
-// computes status from startTime + elapsed time on every call — no live timer needed.
+// Updated: buildRatingPanel() fully rewritten — stars pre-filled, clickable to change, Save button closes panel
+// Updated: highlightStars() now respects the currently selected star value so selected stars stay lit on mouse-exit
+// Updated: resetStars() resets hover highlight back to the currently selected value instead of all-off
+// Updated: hasUnratedItems() kept but "Rate Order" button now always shows for delivered orders so ratings can be changed
+// Updated: saveCustomer() catches FileHandler.FileOperationException
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -16,7 +15,9 @@ import javafx.geometry.Pos;
 import javafx.util.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OrderHistoryController {
 
@@ -27,7 +28,7 @@ public class OrderHistoryController {
 
     private Customer customer;
     private Timeline refreshTimer;
-    private static final int REFRESH_SECONDS = 1; // tick per second so status updates live
+    private static final int REFRESH_SECONDS = 1;
 
     @FXML
     public void initialize() {
@@ -61,15 +62,6 @@ public class OrderHistoryController {
         }
     }
 
-    /**
-     * Refreshes from the in-memory session customer ONLY.
-     * Never reads from disk here — disk copies are snapshots and don't have
-     * live OrderTracking timers. The session customer has the live objects.
-     *
-     * After re-login the session customer is loaded fresh from disk, so
-     * OrderTracking objects are deserialized. Their getCurrentStatus() still
-     * works because it computes from startTime + elapsed time — no timer needed.
-     */
     private void refreshFromSession() {
         Customer sessionCustomer = SessionManager.getInstance().getCurrentCustomer();
         if (sessionCustomer == null) {
@@ -78,10 +70,8 @@ public class OrderHistoryController {
         }
         customer = sessionCustomer;
 
-        // Check if any order is still in transit
         boolean anyActive = false;
         for (Order o : customer.viewOrderHistory()) {
-            // Calling getTracking().getCurrentStatus() recomputes from elapsed time
             if (o.getTracking() != null) {
                 String s = o.getTracking().getCurrentStatus();
                 if (!"Delivered".equals(s) && !"Cancelled".equals(s)) {
@@ -155,12 +145,10 @@ public class OrderHistoryController {
         idLabel.getStyleClass().add("dashboard-order-id-label");
         idBox.getChildren().addAll(typeLabel, idLabel);
 
-        // Always get live status from tracking if available
         String liveStatus = getLiveStatus(order);
 
         Label statusBadge = new Label(liveStatus);
-        statusBadge.getStyleClass().addAll("dashboard-order-status-badge",
-                getStatusClass(liveStatus));
+        statusBadge.getStyleClass().addAll("dashboard-order-status-badge", getStatusClass(liveStatus));
 
         Label totalLabel = new Label("Rs. " + (int) order.getTotalAmount());
         totalLabel.getStyleClass().add("dashboard-order-total");
@@ -207,7 +195,9 @@ public class OrderHistoryController {
             footer.getChildren().add(cancelBtn);
         }
 
-        if ("Delivered".equals(liveStatus) && hasUnratedItems(order)) {
+        // Show "Rate Order" button for all delivered orders — ratings can always be
+        // changed
+        if ("Delivered".equals(liveStatus)) {
             Button rateBtn = new Button("Rate Order  ★");
             rateBtn.getStyleClass().add("dashboard-order-rate-button");
             rateBtn.setOnAction(e -> {
@@ -226,17 +216,7 @@ public class OrderHistoryController {
         return card;
     }
 
-    /**
-     * Returns the live, time-derived status for an order.
-     * Uses OrderTracking.getCurrentStatus() if tracking is available,
-     * which recomputes from startTime on every call — correct after re-login.
-     */
-    private String getLiveStatus(Order order) {
-        if (order.getTracking() != null) {
-            return order.getTracking().getCurrentStatus();
-        }
-        return order.getStatus();
-    }
+    // ── Rating Panel ──────────────────────────────────────────────────────────
 
     private VBox buildRatingPanel(Order order) {
         VBox panel = new VBox(10);
@@ -250,7 +230,21 @@ public class OrderHistoryController {
 
         Rating ratingService = new Rating();
 
+        // Track pending selections: foodID → chosen star value (0 = none chosen yet)
+        Map<String, Integer> pendingStars = new HashMap<>();
+
         for (FoodItem item : order.getItems()) {
+
+            // Determine initial star value to display:
+            // 1. If rated in this order, use that value.
+            // 2. Otherwise, check if they rated this item in any previous order.
+            double savedValue = order.hasRated(item.getFoodID())
+                    ? order.getRatingValue(item.getFoodID())
+                    : customer.getLastRatingForItem(item.getFoodID());
+
+            int initialStars = (int) Math.round(savedValue); // 0 if never rated
+            pendingStars.put(item.getFoodID(), initialStars);
+
             HBox row = new HBox(10);
             row.setAlignment(Pos.CENTER_LEFT);
 
@@ -260,58 +254,136 @@ public class OrderHistoryController {
             HBox.setHgrow(itemName, Priority.ALWAYS);
             row.getChildren().add(itemName);
 
-            if (order.hasRated(item.getFoodID())) {
-                Label ratedLabel = new Label("Rated  ✓");
-                ratedLabel.getStyleClass().add("dashboard-order-rated-label");
-                row.getChildren().add(ratedLabel);
-            } else {
-                HBox stars = new HBox(4);
-                stars.setAlignment(Pos.CENTER_LEFT);
-                for (int s = 1; s <= 5; s++) {
-                    final int starValue = s;
-                    Button starBtn = new Button("★");
-                    starBtn.getStyleClass().add("dashboard-order-star-button");
-                    starBtn.setOnMouseEntered(e -> highlightStars(stars, starValue));
-                    starBtn.setOnMouseExited(e -> resetStars(stars));
-                    starBtn.setOnAction(e -> {
-                        try {
-                            ratingService.rateFoodItem(customer, order,
-                                    item.getFoodID(), starValue);
-                        } catch (IllegalArgumentException ex) {
-                            System.out.println("Rating error: " + ex.getMessage());
-                        }
-                        saveCustomer();
-                        loadOrders();
-                    });
-                    stars.getChildren().add(starBtn);
-                }
-                row.getChildren().add(stars);
+            // Show previous-rating badge if already rated in this order
+            if (order.hasRated(item.getFoodID()) && initialStars >= 1) {
+                Label ratedBadge = new Label(initialStars + "★  ✓");
+                ratedBadge.getStyleClass().add("dashboard-order-rated-label");
+                ratedBadge.setStyle("-fx-font-size: 12px; -fx-text-fill: #4a7c59; -fx-font-weight: bold;");
+                row.getChildren().add(ratedBadge);
             }
+
+            // Build star buttons
+            HBox stars = new HBox(4);
+            stars.setAlignment(Pos.CENTER_LEFT);
+
+            for (int s = 1; s <= 5; s++) {
+                final int starValue = s;
+                Button starBtn = new Button("★");
+                starBtn.getStyleClass().add(
+                        starValue <= initialStars
+                                ? "dashboard-order-star-button-hover"
+                                : "dashboard-order-star-button");
+                starBtn.setUserData(starValue <= initialStars); // true = currently lit
+
+                starBtn.setOnMouseEntered(e -> highlightStars(stars, starValue,
+                        pendingStars.get(item.getFoodID())));
+
+                starBtn.setOnMouseExited(e -> resetStars(stars,
+                        pendingStars.get(item.getFoodID())));
+
+                starBtn.setOnAction(e -> {
+                    pendingStars.put(item.getFoodID(), starValue);
+                    applyStarSelection(stars, starValue);
+                });
+
+                stars.getChildren().add(starBtn);
+            }
+
+            row.getChildren().add(stars);
             panel.getChildren().add(row);
         }
+
+        // Save button — commits all pending ratings and closes panel
+        Label saveError = new Label("");
+        saveError.getStyleClass().add("text-error-message");
+
+        Button saveBtn = new Button("Save Ratings");
+        saveBtn.getStyleClass().add("action-button-brown");
+        saveBtn.setOnAction(e -> {
+            boolean anyRated = false;
+            for (FoodItem item : order.getItems()) {
+                int chosen = pendingStars.getOrDefault(item.getFoodID(), 0);
+                if (chosen >= 1) {
+                    try {
+                        ratingService.rateFoodItem(customer, order, item.getFoodID(), chosen);
+                        anyRated = true;
+                    } catch (IllegalArgumentException ex) {
+                        saveError.setText("Rating error: " + ex.getMessage());
+                        return;
+                    }
+                }
+            }
+            if (anyRated) {
+                saveCustomer();
+            }
+            panel.setVisible(false);
+            panel.setManaged(false);
+            loadOrders();
+        });
+
+        HBox btnRow = new HBox(12);
+        btnRow.setAlignment(Pos.CENTER_LEFT);
+        btnRow.getChildren().addAll(saveBtn, saveError);
+        panel.getChildren().add(btnRow);
+
         return panel;
     }
 
-    private void highlightStars(HBox stars, int upTo) {
+    // ── Star highlight helpers ────────────────────────────────────────────────
+
+    /**
+     * Lights up stars 1..upTo on hover while keeping already-selected stars lit.
+     */
+    private void highlightStars(HBox stars, int upTo, int selected) {
         for (int i = 0; i < stars.getChildren().size(); i++) {
             Button b = (Button) stars.getChildren().get(i);
-            if (i < upTo) {
+            int starValue = i + 1;
+            if (starValue <= upTo) {
                 b.getStyleClass().remove("dashboard-order-star-button");
-                b.getStyleClass().add("dashboard-order-star-button-hover");
+                if (!b.getStyleClass().contains("dashboard-order-star-button-hover"))
+                    b.getStyleClass().add("dashboard-order-star-button-hover");
             } else {
                 b.getStyleClass().remove("dashboard-order-star-button-hover");
-                b.getStyleClass().add("dashboard-order-star-button");
+                if (!b.getStyleClass().contains("dashboard-order-star-button"))
+                    b.getStyleClass().add("dashboard-order-star-button");
             }
         }
     }
 
-    private void resetStars(HBox stars) {
-        for (javafx.scene.Node n : stars.getChildren()) {
-            Button b = (Button) n;
-            b.getStyleClass().remove("dashboard-order-star-button-hover");
-            if (!b.getStyleClass().contains("dashboard-order-star-button"))
-                b.getStyleClass().add("dashboard-order-star-button");
+    /**
+     * On mouse-exit, resets stars back to the currently selected value
+     * so already-chosen stars stay lit.
+     */
+    private void resetStars(HBox stars, int selected) {
+        applyStarSelection(stars, selected);
+    }
+
+    /**
+     * Applies the chosen star count visually — stars 1..selected are lit,
+     * the rest are dim.
+     */
+    private void applyStarSelection(HBox stars, int selected) {
+        for (int i = 0; i < stars.getChildren().size(); i++) {
+            Button b = (Button) stars.getChildren().get(i);
+            int starValue = i + 1;
+            if (starValue <= selected) {
+                b.getStyleClass().remove("dashboard-order-star-button");
+                if (!b.getStyleClass().contains("dashboard-order-star-button-hover"))
+                    b.getStyleClass().add("dashboard-order-star-button-hover");
+            } else {
+                b.getStyleClass().remove("dashboard-order-star-button-hover");
+                if (!b.getStyleClass().contains("dashboard-order-star-button"))
+                    b.getStyleClass().add("dashboard-order-star-button");
+            }
         }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private String getLiveStatus(Order order) {
+        if (order.getTracking() != null)
+            return order.getTracking().getCurrentStatus();
+        return order.getStatus();
     }
 
     private boolean hasUnratedItems(Order order) {

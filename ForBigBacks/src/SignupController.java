@@ -1,5 +1,5 @@
-// Updated: loadArray() and saveArray() calls now catch FileHandler.FileOperationException
-// Updated: Password validation — minimum 6 characters and at least one special character required.
+// Updated: loadArray() FileOperationException now checked — "file not found" treated as empty customer list instead of error
+// Updated: Password validation — minimum 6 characters and at least one special character required
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -65,20 +65,27 @@ public class SignupController {
         }
 
         FileHandler<Customer> fh = new FileHandler<>();
-        Customer[] existing;
+        Customer[] existing = null;
+
         try {
             existing = fh.loadArray("customers.dat");
         } catch (FileHandler.FileOperationException e) {
-            errorLabel.setText("Could not load customer data. Please try again.");
-            System.out.println("Signup load error: " + e.getMessage());
-            return;
+            // If the file simply does not exist yet that is fine — treat as empty list.
+            // Only bail out if it is a real IO problem (not a missing-file problem).
+            if (!e.getMessage().toLowerCase().contains("file not found")
+                    && !e.getMessage().toLowerCase().contains("not found")) {
+                errorLabel.setText("Could not load customer data. Please try again.");
+                System.out.println("Signup load error: " + e.getMessage());
+                return;
+            }
+            // existing stays null → treated as empty below
         }
 
         int count = (existing == null) ? 0 : existing.length;
 
         if (existing != null) {
             for (Customer c : existing) {
-                if (c.getUsername().equals(username)) {
+                if (c.getUsername().equalsIgnoreCase(username)) {
                     errorLabel.setText("Username already taken.");
                     return;
                 }
@@ -86,7 +93,8 @@ public class SignupController {
         }
 
         String newID = String.format("C%03d", count + 1);
-        Customer newCustomer = new Customer(newID, name, address, phone, username, password, new Location(0, 0));
+        Customer newCustomer = new Customer(
+                newID, name, address, phone, username, password, new Location(0, 0));
 
         Customer[] updated = new Customer[count + 1];
         if (existing != null)

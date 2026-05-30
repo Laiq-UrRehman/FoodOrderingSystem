@@ -1,5 +1,7 @@
+// Updated: rateFoodItem() now allows re-rating — previously rated items can be updated
+// Updated: markRated(foodID, stars) used instead of markRated(foodID) so the value is stored in Order
+// Updated: updateRatingInFile() corrects the running average when a previous rating is replaced
 // Updated: updateRatingInFile() now catches FileHandler.FileOperationException
-// Updated: rateFoodItem() throws IllegalArgumentException for null customer, order, blank foodID, or invalid stars range
 
 public class Rating {
     private FileHandler<Restaurant> fileHandler = new FileHandler<>();
@@ -32,18 +34,15 @@ public class Rating {
             return;
         }
 
-        if (order.hasRated(foodID)) {
-            System.out.println("You already rated " + target.getName() + " for this order.");
-            return;
-        }
+        double previousStars = order.getRatingValue(foodID);
+        boolean wasRated = order.hasRated(foodID);
 
-        target.rate(stars);
-        order.markRated(foodID);
-        updateRatingInFile(foodID, stars);
+        order.markRated(foodID, stars);
+        updateRatingInFile(foodID, stars, wasRated ? previousStars : -1);
         System.out.println("Rated " + target.getName() + " → " + stars + " stars!");
     }
 
-    private void updateRatingInFile(String foodID, double stars) {
+    private void updateRatingInFile(String foodID, double newStars, double previousStars) {
         try {
             Restaurant[] restaurants = fileHandler.loadArray("restaurants.dat");
             if (restaurants == null)
@@ -51,7 +50,13 @@ public class Rating {
             for (Restaurant r : restaurants) {
                 for (FoodItem item : r.getMenu().getItems()) {
                     if (item.getFoodID().equals(foodID)) {
-                        item.rate(stars);
+                        if (previousStars >= 1.0 && item.getTotalRatings() > 0) {
+                            // Remove old rating from running average, then add new one
+                            double correctedSum = (item.getRating() * item.getTotalRatings()) - previousStars;
+                            double correctedAvg = correctedSum / (item.getTotalRatings() - 1);
+                            item.overwriteRating(correctedAvg, item.getTotalRatings() - 1);
+                        }
+                        item.rate(newStars);
                         break;
                     }
                 }
