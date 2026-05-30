@@ -753,6 +753,10 @@ public class AdminDashboardController {
             offerFormError.setText("Discount must be a positive number.");
             return;
         }
+        if (discount > 100) {
+            offerFormError.setText("Discount cannot exceed 100%.");
+            return;
+        }
 
         admin.addRestaurantOffer(new RestaurantOffer(
                 "RO-" + System.currentTimeMillis(), title, desc, discount));
