@@ -454,7 +454,7 @@ public class OrderHistoryController {
             for (Restaurant r : restaurants) {
                 for (FoodItem item : order.getItems()) {
                     for (FoodItem menuItem : r.getMenu().getItems()) {
-                        if (menuItem.getFoodID().equals(item.getFoodID())) {
+                        if (item.getFoodID().startsWith(menuItem.getFoodID())) {
                             return r;
                         }
                     }
