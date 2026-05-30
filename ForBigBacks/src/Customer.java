@@ -90,6 +90,7 @@ public class Customer extends Person implements Account {
     public void cancelOrder(String orderID) {
         for (Order order : orderHistory) {
             if (order.getOrderID().equals(orderID)) {
+                loyaltyPoints.deductPoints(order.getTotalAmount());
                 order.cancelOrder();
                 return;
             }
