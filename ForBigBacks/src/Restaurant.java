@@ -1,11 +1,16 @@
+// Updated: Added List<RestaurantOffer> field to store restaurant-side promotional offers
+// Updated: addRestaurantOffer(), removeRestaurantOffer(), getRestaurantOffers() added
+// Updated: readObject() initialises restaurantOffers if missing for backward-compat with old saves
+// Updated: serialVersionUID bumped to 2L because a new serializable field was added
 
-// Updated: Added cuisineType, rating, totalRatings fields and rate() method for restaurant-level ratings
-// Rating: Submits a new rating (1.0 - 5.0) and updates the running average.
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Restaurant implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
     private String restaurantID;
     private String name;
@@ -17,11 +22,14 @@ public class Restaurant implements Serializable {
     private double rating;
     private int totalRatings;
 
+    // Restaurant-side promotional offers — persisted inside restaurants.dat
+    private List<RestaurantOffer> restaurantOffers = new ArrayList<>();
+
     public Restaurant() {
     }
 
-    public Restaurant(String restaurantID, String name, String address, String cuisineType, Menu menu,
-            Location location) {
+    public Restaurant(String restaurantID, String name, String address, String cuisineType,
+            Menu menu, Location location) {
         this.restaurantID = restaurantID;
         this.name = name;
         this.address = address;
@@ -30,7 +38,10 @@ public class Restaurant implements Serializable {
         this.location = location;
         this.rating = 0.0;
         this.totalRatings = 0;
+        this.restaurantOffers = new ArrayList<>();
     }
+
+    // ── Getters / Setters ─────────────────────────────────────────────────────
 
     public String getRestaurantID() {
         return restaurantID;
@@ -50,6 +61,14 @@ public class Restaurant implements Serializable {
 
     public Menu getMenu() {
         return menu;
+    }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public int getTotalRatings() {
+        return totalRatings;
     }
 
     public void setRestaurantID(String restaurantID) {
@@ -88,13 +107,7 @@ public class Restaurant implements Serializable {
         this.location = location;
     }
 
-    public double getRating() {
-        return rating;
-    }
-
-    public int getTotalRatings() {
-        return totalRatings;
-    }
+    // ── Rating ────────────────────────────────────────────────────────────────
 
     public void rate(double newRating) {
         if (newRating < 1.0 || newRating > 5.0) {
@@ -104,6 +117,26 @@ public class Restaurant implements Serializable {
         rating = ((rating * totalRatings) + newRating) / (totalRatings + 1);
         totalRatings++;
     }
+
+    // ── Restaurant Offers ─────────────────────────────────────────────────────
+
+    public List<RestaurantOffer> getRestaurantOffers() {
+        return Collections.unmodifiableList(restaurantOffers);
+    }
+
+    public void addRestaurantOffer(RestaurantOffer offer) {
+        if (offer == null)
+            throw new IllegalArgumentException("Offer cannot be null");
+        restaurantOffers.add(offer);
+    }
+
+    public void removeRestaurantOffer(String offerID) {
+        if (offerID == null || offerID.isBlank())
+            throw new IllegalArgumentException("Offer ID cannot be null or empty");
+        restaurantOffers.removeIf(o -> o.getOfferID().equalsIgnoreCase(offerID));
+    }
+
+    // ── Misc ──────────────────────────────────────────────────────────────────
 
     public void updateMenu() {
         System.out.println("Menu updated.");
@@ -118,5 +151,14 @@ public class Restaurant implements Serializable {
         return "[" + restaurantID + "] " + name + " | " + cuisineType
                 + " | Rating: " + String.format("%.1f", rating)
                 + " (" + totalRatings + ")";
+    }
+
+    // ── Deserialization guard ─────────────────────────────────────────────────
+
+    private void readObject(java.io.ObjectInputStream in)
+            throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (restaurantOffers == null)
+            restaurantOffers = new ArrayList<>();
     }
 }

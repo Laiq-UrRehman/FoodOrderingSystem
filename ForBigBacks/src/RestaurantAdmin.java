@@ -2,6 +2,7 @@
 // Updated: addFoodItem() and removeFoodItem() throw IllegalArgumentException for null items
 // Updated: addCustomization() and removeCustomization() throw IllegalArgumentException for null or blank arguments
 // Updated: addOffer() and removeOffer() throw IllegalArgumentException for null or blank arguments
+// Updated: addRestaurantOffer() and removeRestaurantOffer() delegate to restaurant and persist
 
 public class RestaurantAdmin extends Person implements Account {
 
@@ -144,6 +145,18 @@ public class RestaurantAdmin extends Person implements Account {
         if (offerCode == null || offerCode.isBlank())
             throw new IllegalArgumentException("Offer code cannot be null or empty");
         offerManager.removeOffer(offerCode);
+    }
+
+    // ── Restaurant Offers ─────────────────────────────────────────────────────
+
+    public void addRestaurantOffer(RestaurantOffer offer) {
+        restaurant.addRestaurantOffer(offer);
+        persistRestaurant();
+    }
+
+    public void removeRestaurantOffer(String offerID) {
+        restaurant.removeRestaurantOffer(offerID);
+        persistRestaurant();
     }
 
     private void readObject(java.io.ObjectInputStream in)

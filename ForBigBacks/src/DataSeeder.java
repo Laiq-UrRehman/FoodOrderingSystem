@@ -1,3 +1,5 @@
+// Updated: Added 2 RestaurantOffers per restaurant (r1–r15) before the final save call
+
 import java.util.ArrayList;
 
 public class DataSeeder {
@@ -12,7 +14,6 @@ public class DataSeeder {
 
                 // ── Shared customization groups ──────────────────────────────────────────
 
-        
                 CustomizationGroup spiceGroup = new CustomizationGroup("Spice Level");
                 spiceGroup.addOption("Mild", 0);
                 spiceGroup.addOption("Medium", 0);
@@ -88,6 +89,10 @@ public class DataSeeder {
 
                 r1.setAdmin(a1);
 
+                r1.addRestaurantOffer(new RestaurantOffer("RO-R001-1", "Weekend Deal", "20% off all Burgers", 20.0));
+                r1.addRestaurantOffer(
+                                new RestaurantOffer("RO-R001-2", "Combo Saver", "15% off Sides with any Burger", 15.0));
+
                 // ================= RESTAURANT 2 =================
                 Menu menu2 = new Menu("M002", new ArrayList<>());
 
@@ -151,6 +156,11 @@ public class DataSeeder {
 
                 r2.setAdmin(a2);
 
+                r2.addRestaurantOffer(new RestaurantOffer("RO-R002-1", "Pizza Tuesday",
+                                "25% off all Pizzas on Tuesdays", 25.0));
+                r2.addRestaurantOffer(new RestaurantOffer("RO-R002-2", "Sides Deal",
+                                "10% off Garlic Bread with any Pizza", 10.0));
+
                 // ================= RESTAURANT 3 =================
                 Menu menu3 = new Menu("M003", new ArrayList<>());
 
@@ -208,6 +218,11 @@ public class DataSeeder {
 
                 r3.setAdmin(a3);
 
+                r3.addRestaurantOffer(new RestaurantOffer("RO-R003-1", "Desi Feast",
+                                "20% off Karahi orders above Rs.1000", 20.0));
+                r3.addRestaurantOffer(
+                                new RestaurantOffer("RO-R003-2", "Bread Bonus", "Free Naan with any Biryani", 15.0));
+
                 // ================= RESTAURANT 4 =================
                 Menu menu4 = new Menu("M004", new ArrayList<>());
 
@@ -263,6 +278,10 @@ public class DataSeeder {
                                 "admin4", "123", r4);
 
                 r4.setAdmin(a4);
+
+                r4.addRestaurantOffer(
+                                new RestaurantOffer("RO-R004-1", "Sushi Monday", "20% off all Sushi Rolls", 20.0));
+                r4.addRestaurantOffer(new RestaurantOffer("RO-R004-2", "Ramen Night", "15% off Ramen after 7pm", 15.0));
 
                 // ================= RESTAURANT 5 =================
                 Menu menu5 = new Menu("M005", new ArrayList<>());
@@ -322,6 +341,10 @@ public class DataSeeder {
 
                 r5.setAdmin(a5);
 
+                r5.addRestaurantOffer(new RestaurantOffer("RO-R005-1", "Taco Thursday", "20% off all Tacos", 20.0));
+                r5.addRestaurantOffer(new RestaurantOffer("RO-R005-2", "Nacho Upgrade", "15% off Nachos with any main",
+                                15.0));
+
                 // ================= RESTAURANT 6 =================
                 Menu menu6 = new Menu("M006", new ArrayList<>());
 
@@ -375,6 +398,10 @@ public class DataSeeder {
 
                 r6.setAdmin(a6);
 
+                r6.addRestaurantOffer(new RestaurantOffer("RO-R006-1", "Curry Night", "20% off Butter Chicken", 20.0));
+                r6.addRestaurantOffer(new RestaurantOffer("RO-R006-2", "Bread & Chai",
+                                "15% off Naan + Masala Chai combo", 15.0));
+
                 // ================= RESTAURANT 7 =================
                 Menu menu7 = new Menu("M007", new ArrayList<>());
 
@@ -424,6 +451,10 @@ public class DataSeeder {
                                 "admin7", "123", r7);
 
                 r7.setAdmin(a7);
+
+                r7.addRestaurantOffer(new RestaurantOffer("RO-R007-1", "Wing Wednesday", "25% off BBQ Wings", 25.0));
+                r7.addRestaurantOffer(
+                                new RestaurantOffer("RO-R007-2", "Rib Feast", "15% off BBQ Ribs on weekends", 15.0));
 
                 // ================= RESTAURANT 8 =================
                 Menu menu8 = new Menu("M008", new ArrayList<>());
@@ -482,6 +513,11 @@ public class DataSeeder {
                                 "admin8", "123", r8);
 
                 r8.setAdmin(a8);
+
+                r8.addRestaurantOffer(
+                                new RestaurantOffer("RO-R008-1", "Pasta Friday", "20% off all Pasta dishes", 20.0));
+                r8.addRestaurantOffer(
+                                new RestaurantOffer("RO-R008-2", "Dolce Deal", "15% off Tiramisu with any main", 15.0));
 
                 // ================= RESTAURANT 9 =================
                 Menu menu9 = new Menu("M009", new ArrayList<>());
@@ -546,6 +582,11 @@ public class DataSeeder {
 
                 r9.setAdmin(a9);
 
+                r9.addRestaurantOffer(new RestaurantOffer("RO-R009-1", "Morning Brew", "20% off all Coffee before 11am",
+                                20.0));
+                r9.addRestaurantOffer(new RestaurantOffer("RO-R009-2", "Snack & Sip", "15% off Snacks with any Coffee",
+                                15.0));
+
                 // ================= RESTAURANT 10 =================
                 Menu menu10 = new Menu("M010", new ArrayList<>());
 
@@ -597,6 +638,11 @@ public class DataSeeder {
                                 "admin10", "123", r10);
 
                 r10.setAdmin(a10);
+
+                r10.addRestaurantOffer(
+                                new RestaurantOffer("RO-R010-1", "Shawarma Special", "20% off all Shawarmas", 20.0));
+                r10.addRestaurantOffer(new RestaurantOffer("RO-R010-2", "Mezze Deal",
+                                "15% off Hummus with any Shawarma", 15.0));
 
                 // ================= RESTAURANT 11 =================
                 Menu menu11 = new Menu("M011", new ArrayList<>());
@@ -667,6 +713,11 @@ public class DataSeeder {
 
                 r11.setAdmin(a11);
 
+                r11.addRestaurantOffer(
+                                new RestaurantOffer("RO-R011-1", "Wok Wednesday", "20% off Kung Pao Chicken", 20.0));
+                r11.addRestaurantOffer(new RestaurantOffer("RO-R011-2", "Dim Sum Deal",
+                                "15% off Spring Rolls with any main", 15.0));
+
                 // ================= RESTAURANT 12 =================
                 Menu menu12 = new Menu("M012", new ArrayList<>());
 
@@ -718,6 +769,10 @@ public class DataSeeder {
 
                 r12.setAdmin(a12);
 
+                r12.addRestaurantOffer(new RestaurantOffer("RO-R012-1", "Kebab Fiesta", "20% off Turkish Kebab", 20.0));
+                r12.addRestaurantOffer(new RestaurantOffer("RO-R012-2", "Sweet Ending", "15% off Baklava with any main",
+                                15.0));
+
                 // ================= RESTAURANT 13 =================
                 Menu menu13 = new Menu("M013", new ArrayList<>());
 
@@ -768,6 +823,11 @@ public class DataSeeder {
                                 "admin13", "123", r13);
 
                 r13.setAdmin(a13);
+
+                r13.addRestaurantOffer(
+                                new RestaurantOffer("RO-R013-1", "Catch of the Day", "20% off Grilled Fish", 20.0));
+                r13.addRestaurantOffer(new RestaurantOffer("RO-R013-2", "Ocean Platter",
+                                "15% off Prawn Tempura on weekends", 15.0));
 
                 // ================= RESTAURANT 14 =================
                 Menu menu14 = new Menu("M014", new ArrayList<>());
@@ -831,6 +891,10 @@ public class DataSeeder {
                                 "admin14", "123", r14);
 
                 r14.setAdmin(a14);
+
+                r14.addRestaurantOffer(new RestaurantOffer("RO-R014-1", "Clean Eating", "20% off all Salads", 20.0));
+                r14.addRestaurantOffer(new RestaurantOffer("RO-R014-2", "Bowl Bonus",
+                                "15% off Grilled Chicken Bowl on weekdays", 15.0));
 
                 // ================= RESTAURANT 15 =================
                 Menu menu15 = new Menu("M015", new ArrayList<>());
@@ -896,6 +960,10 @@ public class DataSeeder {
                                 "admin15", "123", r15);
 
                 r15.setAdmin(a15);
+
+                r15.addRestaurantOffer(new RestaurantOffer("RO-R015-1", "Zinger Deal", "20% off Zinger Burger", 20.0));
+                r15.addRestaurantOffer(new RestaurantOffer("RO-R015-2", "Strip & Sip",
+                                "15% off Chicken Strips with any Drink", 15.0));
 
                 // ================= SAVE =================
 

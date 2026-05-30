@@ -158,7 +158,15 @@ public class MenuViewController {
                 item.getRating(), item.getOrderCount()));
         itemRatingLabel.getStyleClass().add("dashboard-menu-item-rating");
 
-        info.getChildren().addAll(nameLabel, categoryLabel, itemRatingLabel);
+        // Updated: nameLabel first, then one offer label per restaurant offer, then
+        // category and rating
+        info.getChildren().add(nameLabel);
+        for (RestaurantOffer offer : restaurant.getRestaurantOffers()) {
+            Label offerLabel = new Label("🏷  " + offer.getTitle() + "  " + (int) offer.getDiscountPercent() + "% off");
+            offerLabel.setStyle("-fx-text-fill: #8B5E3C; -fx-font-size: 11px; -fx-font-weight: bold;");
+            info.getChildren().add(offerLabel);
+        }
+        info.getChildren().addAll(categoryLabel, itemRatingLabel);
 
         Label priceLabel = new Label("Rs. " + (int) item.getPrice());
         priceLabel.getStyleClass().add("dashboard-menu-item-price");

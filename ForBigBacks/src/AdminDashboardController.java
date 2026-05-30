@@ -1,3 +1,8 @@
+// Updated: Removed loyalty offer fields, offerManager, showOffersPanel(), loadOffers(), buildOfferRow(), handleAddOffer()
+// Updated: Added restaurant offers section — newOfferTitle, newOfferDescription, newOfferDiscount, restaurantOffersContainer, offerCountLabel
+// Updated: Added loadRestaurantOffers(), handleAddRestaurantOffer()
+// Updated: initialize() now calls loadRestaurantOffers() instead of loadOffers()
+
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -37,24 +42,19 @@ public class AdminDashboardController {
     @FXML
     private Label menuCountLabel;
     @FXML
-    private TextField newOfferCode;
+    private TextField newOfferTitle;
     @FXML
     private TextField newOfferDescription;
     @FXML
-    private TextField newOfferPoints;
-    @FXML
     private TextField newOfferDiscount;
-    @FXML
-    private TextField newOfferMinOrder;
     @FXML
     private Label offerFormError;
     @FXML
-    private VBox offersContainer;
+    private VBox restaurantOffersContainer;
     @FXML
     private Label offerCountLabel;
 
     private RestaurantAdmin admin;
-    private LoyaltyOfferManager offerManager;
 
     // ═════════════════════════════════════════════════════════════════════
     // Init
@@ -70,9 +70,8 @@ public class AdminDashboardController {
         if (admin.getRestaurant() != null)
             restaurantBadge.setText(admin.getRestaurant().getName().toUpperCase());
 
-        offerManager = admin.getOfferManager();
         loadMenuItems();
-        loadOffers();
+        loadRestaurantOffers();
         setNavActive(menuNavButton);
         setNavInactive(offersNavButton);
     }
@@ -352,7 +351,7 @@ public class AdminDashboardController {
             }
 
             admin.updateFoodItem(item.getFoodID(), newName, newCategory, newPrice, newQty);
-            loadMenuItems(); // full reload keeps everything consistent
+            loadMenuItems();
         });
 
         HBox btnRow = new HBox(10);
@@ -528,7 +527,6 @@ public class AdminDashboardController {
         Label editTitle = new Label("EDIT GROUP: " + group.getGroupName().toUpperCase());
         editTitle.getStyleClass().add("admin-form-label");
 
-        // Group name field pre-filled
         TextField groupNameField = new TextField(group.getGroupName());
         groupNameField.getStyleClass().add("input-text-field");
         groupNameField.setPromptText("Group name");
@@ -536,7 +534,6 @@ public class AdminDashboardController {
         Label optionsTitle = new Label("OPTIONS");
         optionsTitle.getStyleClass().add("admin-form-label");
 
-        // Pre-fill one row per existing option
         VBox optionRowsContainer = new VBox(8);
         for (int i = 0; i < group.getOptions().size(); i++) {
             HBox row = buildOptionInputRow();
@@ -545,7 +542,6 @@ public class AdminDashboardController {
             ((TextField) row.getChildren().get(1)).setText(charge > 0 ? String.valueOf((int) charge) : "");
             optionRowsContainer.getChildren().add(row);
         }
-        // Always provide one blank row for adding a new option
         optionRowsContainer.getChildren().add(buildOptionInputRow());
 
         Button addOptionRowBtn = new Button("+ Add Another Option");
@@ -564,7 +560,6 @@ public class AdminDashboardController {
                 editError.setText("Group name is required.");
                 return;
             }
-            // Allow keeping the same name; disallow collision with a *different* group
             for (CustomizationGroup existing : item.getCustomizationGroups()) {
                 if (existing.getGroupName().equalsIgnoreCase(newName)
                         && !existing.getGroupName().equalsIgnoreCase(group.getGroupName())) {
@@ -604,7 +599,7 @@ public class AdminDashboardController {
                 return;
             }
             admin.updateCustomization(item.getFoodID(), group.getGroupName(), updated);
-            loadMenuItems(); // full reload reflects the change cleanly
+            loadMenuItems();
         });
 
         HBox btnRow = new HBox(10);
@@ -616,7 +611,6 @@ public class AdminDashboardController {
         return form;
     }
 
-    // One name + extra-charge pair row for the add-group form
     private HBox buildOptionInputRow() {
         HBox row = new HBox(8);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -686,25 +680,25 @@ public class AdminDashboardController {
     }
 
     // ═════════════════════════════════════════════════════════════════════
-    // Loyalty Offers
+    // Restaurant Offers
     // ═════════════════════════════════════════════════════════════════════
 
-    private void loadOffers() {
-        offersContainer.getChildren().clear();
-        offerManager.refresh();
+    private void loadRestaurantOffers() {
+        restaurantOffersContainer.getChildren().clear();
 
-        List<LoyaltyOffer> offers = offerManager.getAllOffers();
+        List<RestaurantOffer> offers = admin.getRestaurant().getRestaurantOffers();
         offerCountLabel.setText("(" + offers.size() + " offer" + (offers.size() == 1 ? "" : "s") + ")");
 
         if (offers.isEmpty()) {
-            offersContainer.getChildren().add(makeEmptyLabel("No loyalty offers yet. Add one above."));
+            restaurantOffersContainer.getChildren().add(makeEmptyLabel("No offers yet. Add one above."));
             return;
         }
-        for (LoyaltyOffer offer : offers)
-            offersContainer.getChildren().add(buildOfferRow(offer));
+
+        for (RestaurantOffer offer : offers)
+            restaurantOffersContainer.getChildren().add(buildRestaurantOfferRow(offer));
     }
 
-    private HBox buildOfferRow(LoyaltyOffer offer) {
+    private HBox buildRestaurantOfferRow(RestaurantOffer offer) {
         HBox row = new HBox(12);
         row.getStyleClass().add("admin-item-row");
         row.setAlignment(Pos.CENTER_LEFT);
@@ -712,25 +706,22 @@ public class AdminDashboardController {
         VBox info = new VBox(4);
         HBox.setHgrow(info, Priority.ALWAYS);
 
-        Label codeLabel = new Label(offer.getOfferCode());
-        codeLabel.getStyleClass().add("admin-offer-code");
+        Label titleLabel = new Label(offer.getTitle());
+        titleLabel.getStyleClass().add("admin-offer-code");
 
         Label descLabel = new Label(offer.getDescription());
         descLabel.getStyleClass().add("admin-offer-description");
 
-        Label metaLabel = new Label(
-                offer.getPointsRequired() + " pts  ·  −Rs. "
-                        + (int) offer.getDiscountPKR()
-                        + "  ·  Min order Rs. " + (int) offer.getMinOrderPKR());
-        metaLabel.getStyleClass().add("admin-offer-meta");
+        Label discountLabel = new Label((int) offer.getDiscountPercent() + "% off");
+        discountLabel.getStyleClass().add("admin-offer-meta");
 
-        info.getChildren().addAll(codeLabel, descLabel, metaLabel);
+        info.getChildren().addAll(titleLabel, descLabel, discountLabel);
 
         Button removeBtn = new Button("Remove");
         removeBtn.getStyleClass().add("admin-remove-button");
         removeBtn.setOnAction(e -> {
-            offerManager.removeOffer(offer.getOfferCode());
-            loadOffers();
+            admin.removeRestaurantOffer(offer.getOfferID());
+            loadRestaurantOffers();
         });
 
         row.getChildren().addAll(info, removeBtn);
@@ -738,47 +729,38 @@ public class AdminDashboardController {
     }
 
     @FXML
-    private void handleAddOffer() {
+    private void handleAddRestaurantOffer() {
         offerFormError.setText("");
 
-        String code = newOfferCode.getText().trim();
+        String title = newOfferTitle.getText().trim();
         String desc = newOfferDescription.getText().trim();
-        String pointsStr = newOfferPoints.getText().trim();
         String discountStr = newOfferDiscount.getText().trim();
-        String minOrderStr = newOfferMinOrder.getText().trim();
 
-        if (code.isEmpty() || desc.isEmpty() || pointsStr.isEmpty()
-                || discountStr.isEmpty() || minOrderStr.isEmpty()) {
+        if (title.isEmpty() || desc.isEmpty() || discountStr.isEmpty()) {
             offerFormError.setText("All fields are required.");
             return;
         }
 
-        int points;
-        double discount, minOrder;
+        double discount;
         try {
-            points = Integer.parseInt(pointsStr);
             discount = Double.parseDouble(discountStr);
-            minOrder = Double.parseDouble(minOrderStr);
         } catch (NumberFormatException e) {
-            offerFormError.setText("Points, discount, and min order must be valid numbers.");
-            return;
-        }
-        if (points <= 0 || discount <= 0 || minOrder <= 0) {
-            offerFormError.setText("All numeric values must be positive.");
-            return;
-        }
-        if (offerManager.findByCode(code) != null) {
-            offerFormError.setText("An offer with code " + code + " already exists.");
+            offerFormError.setText("Discount must be a valid number.");
             return;
         }
 
-        offerManager.addOffer(new LoyaltyOffer(code, desc, points, discount, minOrder));
-        newOfferCode.clear();
+        if (discount <= 0) {
+            offerFormError.setText("Discount must be a positive number.");
+            return;
+        }
+
+        admin.addRestaurantOffer(new RestaurantOffer(
+                "RO-" + System.currentTimeMillis(), title, desc, discount));
+
+        newOfferTitle.clear();
         newOfferDescription.clear();
-        newOfferPoints.clear();
         newOfferDiscount.clear();
-        newOfferMinOrder.clear();
-        loadOffers();
+        loadRestaurantOffers();
     }
 
     // ═════════════════════════════════════════════════════════════════════
